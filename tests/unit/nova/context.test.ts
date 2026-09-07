@@ -96,4 +96,47 @@ describe('buildQueryRepresentation — structured, never raw conversation', () =
     );
     expect(q).toBe('licence');
   });
+
+  it('enriches ranking with the Business Object fields', () => {
+    const q = buildQueryRepresentation(
+      'do I need a food handler certificate',
+      {
+        industry: 'skincare',
+        business_type: 'company',
+        trading_name: 'Cay Naturals',
+        legal_name: 'Cay Naturals Ltd',
+      },
+      {
+        location: 'Nassau',
+        description: 'natural skincare for tourists',
+        business_activities: 'manufacturing and retail of cosmetics',
+        products_services: 'soaps and balms',
+        target_customers: 'tourists and local consumers',
+      },
+    );
+
+    for (const term of [
+      'company',
+      'Cay Naturals',
+      'manufacturing and retail of cosmetics',
+      'soaps and balms',
+      'tourists and local consumers',
+    ]) {
+      expect(q).toContain(term);
+    }
+  });
+
+  it('NEVER carries a sensitive identifier — the signature cannot name one', () => {
+    // This string is hashed into agent_executions.query_representation_hash, so a
+    // tax id here would leave the isolated business_identifiers table. The guard
+    // is structural: an object carrying a stray `taxId` contributes nothing,
+    // because the function only reads declared, non-sensitive fields.
+    const q = buildQueryRepresentation(
+      'vat',
+      { industry: 'skincare', taxId: 'TIN-123456' } as never,
+      { location: null, description: null, taxId: 'TIN-123456' } as never,
+    );
+    expect(q).toBe('vat skincare');
+    expect(q).not.toContain('TIN-123456');
+  });
 });

@@ -136,8 +136,56 @@ export type Database = {
           },
         ];
       };
+      business_identifiers: {
+        Row: {
+          business_id: string;
+          created_at: string;
+          id: string;
+          identifier_type: Database['public']['Enums']['business_identifier_type'];
+          label: string | null;
+          provenance: Database['public']['Enums']['fact_provenance'];
+          updated_at: string;
+          value: string;
+          verification_state: Database['public']['Enums']['verification_state'];
+          verified_at: string | null;
+        };
+        Insert: {
+          business_id: string;
+          created_at?: string;
+          id?: string;
+          identifier_type: Database['public']['Enums']['business_identifier_type'];
+          label?: string | null;
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          updated_at?: string;
+          value: string;
+          verification_state?: Database['public']['Enums']['verification_state'];
+          verified_at?: string | null;
+        };
+        Update: {
+          business_id?: string;
+          created_at?: string;
+          id?: string;
+          identifier_type?: Database['public']['Enums']['business_identifier_type'];
+          label?: string | null;
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          updated_at?: string;
+          value?: string;
+          verification_state?: Database['public']['Enums']['verification_state'];
+          verified_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'business_identifiers_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       business_profiles: {
         Row: {
+          business_activities: string | null;
           business_id: string;
           business_stage: string | null;
           completed_at: string | null;
@@ -150,10 +198,14 @@ export type Database = {
           id: string;
           last_completed_step: number;
           location: string | null;
+          operating_status: string | null;
+          products_services: string | null;
           responses: Json;
+          target_customers: string | null;
           updated_at: string;
         };
         Insert: {
+          business_activities?: string | null;
           business_id: string;
           business_stage?: string | null;
           completed_at?: string | null;
@@ -166,10 +218,14 @@ export type Database = {
           id?: string;
           last_completed_step?: number;
           location?: string | null;
+          operating_status?: string | null;
+          products_services?: string | null;
           responses?: Json;
+          target_customers?: string | null;
           updated_at?: string;
         };
         Update: {
+          business_activities?: string | null;
           business_id?: string;
           business_stage?: string | null;
           completed_at?: string | null;
@@ -182,7 +238,10 @@ export type Database = {
           id?: string;
           last_completed_step?: number;
           location?: string | null;
+          operating_status?: string | null;
+          products_services?: string | null;
           responses?: Json;
+          target_customers?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -270,35 +329,47 @@ export type Database = {
       businesses: {
         Row: {
           archived_at: string | null;
+          business_mode: Database['public']['Enums']['business_mode'];
+          business_type: string | null;
           country_code: string;
           created_at: string;
           id: string;
           industry: string | null;
+          legal_name: string | null;
           name: string;
           owner_id: string;
           status: Database['public']['Enums']['business_status'];
+          trading_name: string | null;
           updated_at: string;
         };
         Insert: {
           archived_at?: string | null;
+          business_mode?: Database['public']['Enums']['business_mode'];
+          business_type?: string | null;
           country_code: string;
           created_at?: string;
           id?: string;
           industry?: string | null;
+          legal_name?: string | null;
           name: string;
           owner_id: string;
           status?: Database['public']['Enums']['business_status'];
+          trading_name?: string | null;
           updated_at?: string;
         };
         Update: {
           archived_at?: string | null;
+          business_mode?: Database['public']['Enums']['business_mode'];
+          business_type?: string | null;
           country_code?: string;
           created_at?: string;
           id?: string;
           industry?: string | null;
+          legal_name?: string | null;
           name?: string;
           owner_id?: string;
           status?: Database['public']['Enums']['business_status'];
+          trading_name?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -1205,6 +1276,14 @@ export type Database = {
       };
     };
     Enums: {
+      business_identifier_type:
+        | 'company_registration_number'
+        | 'business_licence_number'
+        | 'tax_identification_number'
+        | 'vat_registration_number'
+        | 'nib_employer_number'
+        | 'other';
+      business_mode: 'build' | 'manage';
       business_status:
         | 'draft'
         | 'intake_started'
@@ -1213,6 +1292,12 @@ export type Database = {
         | 'active'
         | 'archived';
       commercial_publication_eligibility: 'restricted' | 'cleared';
+      fact_provenance:
+        | 'founder_provided'
+        | 'evidence_verified'
+        | 'ai_inferred'
+        | 'external_public_data'
+        | 'user_document';
       instrument_role: 'substantive' | 'amending_instruction' | 'unknown';
       knowledge_freshness_state:
         'current' | 'review_due' | 'changed_pending_assessment' | 'stale' | 'withdrawn';
@@ -1243,6 +1328,7 @@ export type Database = {
         | 'official_guidance'
         | 'agency_publication';
       validation_outcome: 'validated' | 'partially_validated' | 'unverified' | 'rejected';
+      verification_state: 'unverified' | 'verified' | 'verification_unavailable';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1364,6 +1450,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      business_identifier_type: [
+        'company_registration_number',
+        'business_licence_number',
+        'tax_identification_number',
+        'vat_registration_number',
+        'nib_employer_number',
+        'other',
+      ],
+      business_mode: ['build', 'manage'],
       business_status: [
         'draft',
         'intake_started',
@@ -1373,6 +1468,13 @@ export const Constants = {
         'archived',
       ],
       commercial_publication_eligibility: ['restricted', 'cleared'],
+      fact_provenance: [
+        'founder_provided',
+        'evidence_verified',
+        'ai_inferred',
+        'external_public_data',
+        'user_document',
+      ],
       instrument_role: ['substantive', 'amending_instruction', 'unknown'],
       knowledge_freshness_state: [
         'current',
@@ -1417,6 +1519,7 @@ export const Constants = {
         'agency_publication',
       ],
       validation_outcome: ['validated', 'partially_validated', 'unverified', 'rejected'],
+      verification_state: ['unverified', 'verified', 'verification_unavailable'],
     },
   },
 } as const;

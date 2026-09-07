@@ -77,16 +77,48 @@ export function buildNovaContext(
  * The founder's question is combined with the business facts that scope it,
  * rather than passed through as an opaque utterance.
  *
+ * The Business Object enriches this: the trading/legal name, business type, and
+ * the descriptive definition fields (activities, products/services, target
+ * customers) join `industry`, `location` and `description` as RANKING TERMS.
+ * More context makes Nova's retrieval more relevant to the specific business —
+ * without touching a single retrieval guarantee. This function feeds the
+ * *scorer*, never a filter: jurisdiction, authority, legal status, effective
+ * dates and amendment handling are all decided in `retrieval.ts` from the
+ * business's `country_code`, exactly as before.
+ *
  * The free-text `location` enters HERE and only here — as a ranking term, where
  * being wrong costs relevance, never as a jurisdiction filter, where being wrong
  * costs correctness.
+ *
+ * ⚠ **Sensitive identifiers are deliberately absent.** A tax id or registration
+ *   number is not a retrieval term, and this string is hashed into
+ *   `agent_executions.query_representation_hash` — so a value that entered here
+ *   would leave the isolated `business_identifiers` table. It never does: this
+ *   signature cannot even name an identifier.
  */
 export function buildQueryRepresentation(
   question: string,
-  business: Pick<Business, 'industry'>,
-  profile: Pick<BusinessProfile, 'location' | 'description'> | null,
+  business: Pick<Business, 'industry'> &
+    Partial<Pick<Business, 'legal_name' | 'trading_name' | 'business_type'>>,
+  profile:
+    | (Pick<BusinessProfile, 'location' | 'description'> &
+        Partial<
+          Pick<BusinessProfile, 'business_activities' | 'products_services' | 'target_customers'>
+        >)
+    | null,
 ): string {
-  return [question, business.industry, profile?.location, profile?.description]
+  return [
+    question,
+    business.industry,
+    business.business_type,
+    business.trading_name,
+    business.legal_name,
+    profile?.location,
+    profile?.business_activities,
+    profile?.products_services,
+    profile?.target_customers,
+    profile?.description,
+  ]
     .filter((part): part is string => typeof part === 'string' && part.trim().length > 0)
     .join(' ')
     .trim();

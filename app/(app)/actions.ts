@@ -14,9 +14,19 @@ import {
 } from '@/lib/validation/business';
 import * as businessService from '@/services/business';
 import * as profileService from '@/services/profile';
+import * as onboardingService from '@/services/onboarding';
 import { updateProfileSchema } from '@/lib/validation/profile';
+import { buildBusinessSchema, manageBusinessSchema } from '@/lib/validation/business-object';
 import { getCurrentUser, type RequestContext } from '@/services/auth';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
+
+const CURRENT_BUSINESS_COOKIE_OPTIONS = {
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  path: '/',
+  maxAge: 60 * 60 * 24 * 365,
+} as const;
 
 async function requestContext(): Promise<RequestContext> {
   const h = await headers();
@@ -96,6 +106,127 @@ export async function createBusinessAction(
 
   revalidatePath('/', 'layout');
   redirect('/dashboard');
+}
+
+/**
+ * Build my business — the new-founder front door.
+ *
+ * Captures the idea in the founder's own words and creates the Business Object
+ * in `build` mode, then lands on the first-value welcome screen.
+ */
+export async function buildBusinessAction(
+  _prev: Result<{ id: string }> | null,
+  formData: FormData,
+): Promise<Result<{ id: string }>> {
+  const ctx = await requestContext();
+
+  const parsed = buildBusinessSchema.safeParse({
+    name: formData.get('name'),
+    countryCode: formData.get('countryCode'),
+    concept: formData.get('concept'),
+    industry: formData.get('industry') ?? undefined,
+    businessStage: formData.get('businessStage') ?? undefined,
+  });
+
+  if (!parsed.success) {
+    return fail(
+      new AppError({
+        code: 'VALIDATION_FAILED',
+        humanMessage: 'Please correct the highlighted fields.',
+        correlationId: ctx.correlationId,
+      }),
+      toFieldErrors(parsed.error.issues),
+    );
+  }
+
+  let businessId: string;
+  try {
+    const db = await createClient();
+    const user = await getCurrentUser(db);
+    if (!user) {
+      return fail(
+        new AppError({
+          code: 'AUTH_SESSION_EXPIRED',
+          humanMessage: 'Your session expired. Please sign in again.',
+          correlationId: ctx.correlationId,
+        }),
+      );
+    }
+    const result = await onboardingService.buildMyBusiness(db, user.id, parsed.data, ctx);
+    businessId = result.businessId;
+  } catch (error) {
+    return flatten(error, ctx);
+  }
+
+  const store = await cookies();
+  store.set(CURRENT_BUSINESS_COOKIE, businessId, CURRENT_BUSINESS_COOKIE_OPTIONS);
+  revalidatePath('/', 'layout');
+  redirect('/welcome');
+}
+
+/**
+ * Manage my business — the existing-business front door.
+ *
+ * Imports the company's identity, definition and any sensitive identifiers as
+ * the same Business Object in `manage` mode, then lands on the command centre.
+ */
+export async function manageBusinessAction(
+  _prev: Result<{ id: string }> | null,
+  formData: FormData,
+): Promise<Result<{ id: string }>> {
+  const ctx = await requestContext();
+
+  const parsed = manageBusinessSchema.safeParse({
+    legalName: formData.get('legalName'),
+    tradingName: formData.get('tradingName') ?? undefined,
+    businessType: formData.get('businessType') ?? undefined,
+    countryCode: formData.get('countryCode'),
+    industry: formData.get('industry') ?? undefined,
+    location: formData.get('location') ?? undefined,
+    businessStage: formData.get('businessStage') ?? undefined,
+    operatingStatus: formData.get('operatingStatus') ?? undefined,
+    activities: formData.get('activities') ?? undefined,
+    productsServices: formData.get('productsServices') ?? undefined,
+    targetCustomers: formData.get('targetCustomers') ?? undefined,
+    registrationNumber: formData.get('registrationNumber') ?? undefined,
+    taxId: formData.get('taxId') ?? undefined,
+    vatNumber: formData.get('vatNumber') ?? undefined,
+  });
+
+  if (!parsed.success) {
+    return fail(
+      new AppError({
+        code: 'VALIDATION_FAILED',
+        humanMessage: 'Please correct the highlighted fields.',
+        correlationId: ctx.correlationId,
+      }),
+      toFieldErrors(parsed.error.issues),
+    );
+  }
+
+  let businessId: string;
+  try {
+    const db = await createClient();
+    const user = await getCurrentUser(db);
+    if (!user) {
+      return fail(
+        new AppError({
+          code: 'AUTH_SESSION_EXPIRED',
+          humanMessage: 'Your session expired. Please sign in again.',
+          correlationId: ctx.correlationId,
+        }),
+      );
+    }
+    const result = await onboardingService.bringInMyBusiness(db, user.id, parsed.data, ctx);
+    businessId = result.businessId;
+  } catch (error) {
+    return flatten(error, ctx);
+  }
+
+  const store = await cookies();
+  store.set(CURRENT_BUSINESS_COOKIE, businessId, CURRENT_BUSINESS_COOKIE_OPTIONS);
+  revalidatePath('/', 'layout');
+  redirect('/welcome');
 }
 
 export async function renameBusinessAction(

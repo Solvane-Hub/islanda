@@ -18,6 +18,17 @@ export type AuditEvent =
   | 'business.created'
   | 'business.updated'
   | 'business.archived'
+  /**
+   * Business Object onboarding. `business.built` is the new-founder (Build)
+   * path; `business.imported` is the existing-business (Manage) path;
+   * `business.identifier_added` records a sensitive identifier being stored.
+   *
+   * ⚠ Metadata carries SHAPE only — identifier type at most, never the
+   *   identifier value, legal name, or any other sensitive content.
+   */
+  | 'business.built'
+  | 'business.imported'
+  | 'business.identifier_added'
   | 'intake.started'
   | 'intake.step_saved'
   | 'intake.knowledge_applied'

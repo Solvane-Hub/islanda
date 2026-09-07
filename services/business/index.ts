@@ -1,6 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
-import type { Business, BusinessStatus } from '@/types/business';
+import type {
+  Business,
+  BusinessIdentifier,
+  BusinessIdentifierType,
+  BusinessMode,
+  BusinessObject,
+  BusinessStatus,
+} from '@/types/business';
 import { AppError, newCorrelationId } from '@/lib/errors';
 import { recordAuditEvent } from '@/services/audit';
 import {
@@ -10,6 +17,11 @@ import {
   listActiveCountries,
   updateBusiness,
 } from '@/lib/db/businesses';
+import { findProfileByBusinessId } from '@/lib/db/business-profiles';
+import {
+  insertBusinessIdentifier,
+  listIdentifiersForBusiness,
+} from '@/lib/db/business-identifiers';
 import type { CreateBusinessInput, UpdateBusinessInput } from '@/lib/validation/business';
 import type { RequestContext } from '@/services/auth';
 
@@ -67,11 +79,106 @@ export async function getBusiness(
   return findBusinessById(db, businessId);
 }
 
+/** The sensitive identifiers held for a business (RLS-scoped to the owner). */
+export async function getBusinessIdentifiers(
+  db: SupabaseClient<Database>,
+  businessId: string,
+): Promise<BusinessIdentifier[]> {
+  return listIdentifiersForBusiness(db, businessId);
+}
+
+/**
+ * The whole Business Object, assembled for the founder's own command centre.
+ *
+ * `null` when the business is not visible to the caller (RLS filtered it), which
+ * is the same response as "does not exist" — no existence oracle.
+ */
+export async function getBusinessObject(
+  db: SupabaseClient<Database>,
+  businessId: string,
+): Promise<BusinessObject | null> {
+  const business = await findBusinessById(db, businessId);
+  if (!business) return null;
+  const [profile, identifiers] = await Promise.all([
+    findProfileByBusinessId(db, businessId),
+    listIdentifiersForBusiness(db, businessId),
+  ]);
+  return { business, profile, identifiers };
+}
+
+/**
+ * Records a sensitive business identifier.
+ *
+ * ⚠ Stored `founder_provided` and `unverified` — a database CHECK
+ *   (`bi_no_unfounded_verification`) makes any "verified" state impossible until
+ *   an evidence/registry mechanism exists (product §2, §6). The audit event
+ *   carries the identifier TYPE only; the value is never logged.
+ */
+export async function addBusinessIdentifier(
+  db: SupabaseClient<Database>,
+  ownerId: string,
+  input: {
+    businessId: string;
+    identifierType: BusinessIdentifierType;
+    value: string;
+    label?: string | null;
+  },
+  ctx: RequestContext = {},
+): Promise<BusinessIdentifier> {
+  const correlationId = ctx.correlationId ?? newCorrelationId();
+
+  const { data, error } = await insertBusinessIdentifier(db, {
+    business_id: input.businessId,
+    identifier_type: input.identifierType,
+    value: input.value,
+    label: input.label ?? null,
+  });
+
+  if (error || !data) {
+    throw new AppError({
+      code: 'UNEXPECTED',
+      humanMessage: 'We could not save that business identifier. Please try again.',
+      // developerMessage must never echo the identifier value.
+      developerMessage: error ?? 'insert returned no row',
+      correlationId,
+    });
+  }
+
+  await recordAuditEvent({
+    event: 'business.identifier_added',
+    actorId: ownerId,
+    businessId: input.businessId,
+    correlationId,
+    ipAddress: ctx.ipAddress ?? null,
+    userAgent: ctx.userAgent ?? null,
+    // Shape only — the identifier TYPE, never its value.
+    metadata: { identifier_type: input.identifierType },
+  });
+
+  return data;
+}
+
+/**
+ * Extra Business Object attributes set at creation.
+ *
+ * `mode` records which front door created the business (Build vs Manage); the
+ * three identity fields are the non-sensitive parts of an existing business's
+ * identity (Manage). Sensitive identifiers never travel here — they go to
+ * `addBusinessIdentifier`, which writes the isolated, RLS-scoped table.
+ */
+export interface CreateBusinessOptions {
+  mode?: BusinessMode;
+  legalName?: string;
+  tradingName?: string;
+  businessType?: string;
+}
+
 export async function createBusiness(
   db: SupabaseClient<Database>,
   ownerId: string,
   input: CreateBusinessInput,
   ctx: RequestContext = {},
+  options: CreateBusinessOptions = {},
 ): Promise<Business> {
   const correlationId = ctx.correlationId ?? newCorrelationId();
 
@@ -93,6 +200,10 @@ export async function createBusiness(
     name: input.name,
     country_code: input.countryCode,
     industry: input.industry,
+    ...(options.mode ? { business_mode: options.mode } : {}),
+    ...(options.legalName ? { legal_name: options.legalName } : {}),
+    ...(options.tradingName ? { trading_name: options.tradingName } : {}),
+    ...(options.businessType ? { business_type: options.businessType } : {}),
   });
 
   if (error || !data) {
@@ -251,4 +362,11 @@ export function resolveCurrentBusiness(
   return businesses[0] ?? null;
 }
 
-export type { Business, BusinessStatus } from '@/types/business';
+export type {
+  Business,
+  BusinessStatus,
+  BusinessMode,
+  BusinessIdentifier,
+  BusinessIdentifierType,
+  BusinessObject,
+} from '@/types/business';

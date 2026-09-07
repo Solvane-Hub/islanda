@@ -41,6 +41,10 @@ const business: Database['public']['Tables']['businesses']['Row'] = {
   industry: 'retail',
   country_code: 'BS',
   status: 'intake_started',
+  business_mode: 'build',
+  legal_name: null,
+  trading_name: null,
+  business_type: null,
   archived_at: null,
   created_at: '2026-08-14T00:00:00.000Z',
   updated_at: '2026-08-14T00:00:00.000Z',
@@ -56,6 +60,10 @@ const profile: Database['public']['Tables']['business_profiles']['Row'] = {
   funding_requirement_amount: 50000,
   funding_requirement_currency: 'BSD',
   founder_goals: 'Grow the business.',
+  products_services: null,
+  target_customers: null,
+  business_activities: null,
+  operating_status: null,
   responses: {
     knowledge: {
       description: { source: 'founder' },

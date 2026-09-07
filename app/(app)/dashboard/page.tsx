@@ -5,7 +5,12 @@ import { Plus, Rocket } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/services/auth';
 import { getOwnProfile } from '@/services/profile';
-import { getActiveCountries, listBusinesses, resolveCurrentBusiness } from '@/services/business';
+import {
+  getActiveCountries,
+  getBusinessIdentifiers,
+  listBusinesses,
+  resolveCurrentBusiness,
+} from '@/services/business';
 import {
   getIntakeProfile,
   intakeProgress,
@@ -21,6 +26,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { WorkspaceCanvas } from '@/components/ui/workspace-canvas';
 import { WorkspaceSurface, SurfaceLabel } from '@/components/ui/workspace-surface';
 import { BusinessSnapshot, type SnapshotRow } from '../_components/business-snapshot';
+import { BusinessCommandCenter } from '../_components/business-command-center';
 import { DashboardPriorities, type PriorityItem } from '../_components/dashboard-priorities';
 import { DashboardQuickActions } from '../_components/dashboard-quick-actions';
 import { IntakeDial } from '../_components/intake-dial';
@@ -98,10 +104,12 @@ export default async function DashboardPage() {
     );
   }
 
-  const [intake, countries] = await Promise.all([
+  const [intake, countries, identifiers] = await Promise.all([
     getIntakeProfile(db, current.id),
     getActiveCountries(db),
+    getBusinessIdentifiers(db, current.id),
   ]);
+  const isManage = current.business_mode === 'manage';
   const journey = buildJourney(current, intake);
   const progress = intakeProgress(intake);
   const intakeComplete = Boolean(intake?.completed_at);
@@ -211,6 +219,28 @@ export default async function DashboardPage() {
           </Button>
         </Link>
       </header>
+
+      {/*
+        Command centre — the imported business as a first-class object. Shown for
+        Manage-mode businesses, where identity and records are the point; Build
+        mode leads with the intake snapshot below instead.
+      */}
+      {isManage ? (
+        <WorkspaceSurface
+          as="section"
+          tone="shell"
+          aria-labelledby="command-center-heading"
+          className="flex flex-col gap-7 p-6 sm:p-8"
+        >
+          <SurfaceLabel id="command-center-heading">
+            Here&apos;s what I know about your business
+          </SurfaceLabel>
+          <BusinessCommandCenter
+            object={{ business: current, profile: intake, identifiers }}
+            countryName={countryName}
+          />
+        </WorkspaceSurface>
+      ) : null}
 
       {/*
         The spatial workspace — not a stack of equal cards. A quiet secondary
