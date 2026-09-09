@@ -6,6 +6,7 @@ import type { NovaRetrievalRun } from '@/services/nova/retrieval';
 
 import { CitationIntegrityError } from '@/lib/knowledge/citation';
 import { answerNovaQuestion, assembleAnswer, toEvidenceInput } from '@/services/nova/answer';
+import type { NovaBusinessFacts } from '@/services/nova/business-awareness';
 import { buildNovaContext } from '@/services/nova/context';
 import { retrieveNovaEvidence } from '@/services/nova/retrieval';
 import {
@@ -133,6 +134,49 @@ describe('Assistant Service — three distinct outcomes', () => {
     expect(answer.outcome).toBe('answered');
     expect(answer.envelope?.status).toBe('OK');
     expect(answer.envelope?.claims.length).toBeGreaterThan(0);
+  });
+});
+
+describe('Assistant Service — business-aware layer (P1)', () => {
+  const facts: NovaBusinessFacts = {
+    legalName: null,
+    tradingName: null,
+    businessType: null,
+    industry: 'widgets',
+    activities: null,
+    productsServices: null,
+    targetCustomers: null,
+    location: 'Example City',
+    stage: 'operating',
+    operatingStatus: null,
+    employeeCount: null,
+    founderGoals: null,
+  };
+
+  it('attaches business context to an answered response when facts are supplied', async () => {
+    const answer = await answerNovaQuestion(
+      mockDb({}),
+      request('widget licence', { business: facts }),
+    );
+    expect(answer.outcome).toBe('answered');
+    expect(answer.businessContext).not.toBeNull();
+    expect(answer.businessContext?.category).toBe('regulatory');
+    expect(answer.businessContext?.knownFacts.map((f) => f.label)).toContain('Industry');
+  });
+
+  it('omits business context entirely when no facts are supplied', async () => {
+    const answer = await answerNovaQuestion(mockDb({}), request('widget licence'));
+    expect(answer.outcome).toBe('answered');
+    expect(answer.businessContext).toBeNull();
+  });
+
+  it('never attaches business context to a no-pack refusal, even with facts', async () => {
+    const answer = await answerNovaQuestion(
+      mockDb({ pack: null }),
+      request('widget licence', { business: facts }),
+    );
+    expect(answer.outcome).toBe('no_published_knowledge');
+    expect(answer.businessContext).toBeNull();
   });
 });
 

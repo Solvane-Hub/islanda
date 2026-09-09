@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, FlaskConical, HelpCircle } from 'lucide-react';
+import { AlertTriangle, Building2, FlaskConical, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { isSyntheticCorpus } from '@/lib/knowledge/jurisdiction';
 import { NovaCanvas, RailModule } from '@/components/nova/nova-canvas';
@@ -160,6 +160,79 @@ function SyntheticCorpusNotice() {
         Example Jurisdiction (ZZ) is fictional. This content is not real law and must not be used
         for legal or business decisions.
       </p>
+    </WorkspaceSurface>
+  );
+}
+
+/**
+ * The business-aware layer (P1).
+ *
+ * ⚠ States business FACTS and Nova's own GAPS. It never interprets the law —
+ *   there is no paraphrase of any provision here, exactly as in `narration.ts`.
+ *   The founder facts are shown as founder-provided context, never as verified,
+ *   and a missing decisive fact is reported as missing, never guessed.
+ */
+function BusinessAware({ business }: { business: NonNullable<NovaAnswerView['business']> }) {
+  const { relevance, knownFacts, openQuestions, clarifyingQuestion } = business;
+  if (!relevance && knownFacts.length === 0 && openQuestions.length === 0) return null;
+
+  return (
+    <WorkspaceSurface
+      as="section"
+      tone="inset"
+      aria-labelledby="nova-business-heading"
+      className="flex flex-col gap-4 p-5 sm:p-6"
+    >
+      <div className="flex items-center gap-2.5">
+        <Building2 aria-hidden="true" className="text-champagne size-3.5" strokeWidth={2} />
+        <SurfaceLabel as="h2" id="nova-business-heading">
+          What this means for your business
+        </SurfaceLabel>
+      </div>
+
+      {relevance ? <p className="text-on-ink max-w-2xl text-sm text-pretty">{relevance}</p> : null}
+
+      {knownFacts.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <ul className="flex flex-wrap gap-1.5">
+            {knownFacts.map((fact) => (
+              <li
+                key={fact.label}
+                className="border-border-control bg-surface text-on-ink-muted inline-flex items-baseline gap-1.5 rounded-full border px-2.5 py-1 text-xs"
+              >
+                <span className="text-on-glass-subtle">{fact.label}</span>
+                <span className="text-on-ink font-medium">{fact.value}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-on-glass-subtle text-2xs text-pretty">
+            From your business profile — founder-provided, and not independently verified. Update it
+            anytime and Nova will factor in the change.
+          </p>
+        </div>
+      ) : null}
+
+      {openQuestions.length > 0 ? (
+        <div className="flex flex-col gap-2 border-t border-white/8 pt-4">
+          <SurfaceLabel as="p" className="text-on-glass-subtle">
+            What I don&apos;t know yet
+          </SurfaceLabel>
+          <ul className="flex flex-col gap-2.5">
+            {openQuestions.map((q, i) => (
+              <li key={`${q.question}-${i}`} className="text-sm">
+                <span className="text-on-ink block font-medium text-pretty">{q.question}</span>
+                <span className="text-on-ink-muted mt-1 block text-xs text-pretty">{q.why}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {clarifyingQuestion ? (
+        <p className="text-on-ink-muted border-t border-white/8 pt-4 text-sm text-pretty italic">
+          {clarifyingQuestion}
+        </p>
+      ) : null}
     </WorkspaceSurface>
   );
 }
@@ -397,6 +470,17 @@ export function NovaAnswerPanel({
               ) : (
                 <Refusal outcome={refusalOutcome} />
               )}
+
+              {/*
+                The business-aware layer (P1). Shown only on an answered outcome
+                with Business Object context. It sits between the quoted evidence
+                and "what Nova could not establish" — the general rule first, then
+                what it means for this business, then the open gaps. It states
+                business facts and Nova's own limits, never a legal conclusion.
+              */}
+              {refusalOutcome === null && answer.business ? (
+                <BusinessAware business={answer.business} />
+              ) : null}
 
               {/*
                 `unresolved[]` is shown on every outcome, including a successful

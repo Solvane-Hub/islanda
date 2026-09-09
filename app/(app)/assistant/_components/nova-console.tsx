@@ -79,10 +79,16 @@ const BOUNDARY_EXAMPLE = 'What is the VAT rate in The Bahamas?';
 export function NovaConsole({
   businessName,
   knowledgeLine,
+  businessContextLine = null,
   knowledgePublished = true,
 }: {
   businessName: string;
   knowledgeLine: string | null;
+  /**
+   * A subtle line acknowledging the business context Nova now holds (§10/§11).
+   * Computed by the page from the Business Object; null when there is too little.
+   */
+  businessContextLine?: string | null;
   /**
    * Whether a Knowledge Pack is published for this business's jurisdiction.
    *
@@ -246,6 +252,7 @@ export function NovaConsole({
           <NovaLanding
             businessName={businessName}
             knowledgeLine={knowledgeLine}
+            contextLine={businessContextLine}
             hero={
               <NovaVideo
                 state={presenceState}

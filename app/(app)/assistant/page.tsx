@@ -63,6 +63,21 @@ export default async function AssistantPage() {
     ? (countries.find((c) => c.code === current.country_code)?.name ?? current.country_code)
     : null;
 
+  /**
+   * A subtle acknowledgement that Nova is working with the business the founder
+   * brought in (§10/§11). Shown only when there is genuinely enough context to
+   * say so — otherwise null, so Nova never claims to know a business it doesn't.
+   * Makes no legal claim; it names the business and invites a question.
+   */
+  const hasBusinessContext = Boolean(
+    current &&
+    (current.industry || intake?.description || intake?.business_activities || intake?.location),
+  );
+  const businessContextLine =
+    current && hasBusinessContext
+      ? `I already have the basics of ${current.name}. Ask about the requirements that may affect it.`
+      : null;
+
   const knowledgeLine =
     countryName && capability.knowledgePublished
       ? capability.syntheticCorpus
@@ -95,6 +110,7 @@ export default async function AssistantPage() {
         <NovaConsole
           businessName={current.name}
           knowledgeLine={knowledgeLine}
+          businessContextLine={businessContextLine}
           knowledgePublished={knowledgePublished}
         />
       ) : (

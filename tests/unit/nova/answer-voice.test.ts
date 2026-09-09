@@ -44,6 +44,7 @@ function answer(overrides: Partial<NovaAnswerView> = {}): NovaAnswerView {
     jurisdiction: 'ZZ',
     knowledgeVersion: 'ZZ-v0.1',
     emptyDomains: [],
+    business: null,
     ...overrides,
   };
 }

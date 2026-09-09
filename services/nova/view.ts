@@ -129,6 +129,22 @@ export function toNovaAnswerView(answer: NovaAnswer, question: string): NovaAnsw
     };
   });
 
+  const business: NovaAnswerView['business'] = answer.businessContext
+    ? {
+        category: answer.businessContext.category,
+        knownFacts: answer.businessContext.knownFacts.map((f) => ({
+          label: f.label,
+          value: f.value,
+        })),
+        relevance: answer.businessContext.relevance,
+        openQuestions: answer.businessContext.openQuestions.map((q) => ({
+          question: q.question,
+          why: q.why,
+        })),
+        clarifyingQuestion: answer.businessContext.clarifyingQuestion,
+      }
+    : null;
+
   return {
     outcome: answer.outcome,
     question,
@@ -138,5 +154,6 @@ export function toNovaAnswerView(answer: NovaAnswer, question: string): NovaAnsw
     jurisdiction: answer.jurisdiction,
     knowledgeVersion: answer.knowledgeVersion,
     emptyDomains: answer.coverage.emptyDomains,
+    business,
   };
 }

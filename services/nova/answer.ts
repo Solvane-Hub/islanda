@@ -21,6 +21,11 @@ import { assertCitationsGrounded } from '@/lib/knowledge/citation';
 import { reasonExtractively } from '@/lib/ai/agents/nova/reason';
 import { amendmentsForProvision } from '@/services/knowledge/manifests/types';
 import { retrieveNovaEvidence } from '@/services/nova/retrieval';
+import {
+  buildBusinessContext,
+  type NovaBusinessContext,
+  type NovaBusinessFacts,
+} from '@/services/nova/business-awareness';
 
 type Db = SupabaseClient<Database>;
 
@@ -148,6 +153,12 @@ export interface NovaAnswer {
    * A refusal that names nothing is never produced.
    */
   unresolved: readonly NovaUnresolved[];
+  /**
+   * The business-aware layer (P1). Null when there is no Business Object context
+   * to add, or when no pack is published. Carries founder-provided facts and
+   * Nova's own epistemic gaps — never a legal conclusion, never a verified fact.
+   */
+  businessContext: NovaBusinessContext | null;
   retrievedAt: string;
 }
 
@@ -157,6 +168,14 @@ export interface NovaAnswerRequest {
   queryRepresentation: string;
   /** Verbatim, for `unresolved[].question`. */
   question: string;
+  /**
+   * Non-sensitive Business Object facts, for the business-aware layer.
+   *
+   * ⚠ Deliberately a `NovaBusinessFacts`, which has no field for a sensitive
+   *   identifier — a tax id or registration number cannot be passed in. Optional
+   *   so the pipeline still runs for a business with no profile.
+   */
+  business?: NovaBusinessFacts;
   topK?: number;
   /**
    * Corpus definition for the jurisdiction. Supplies the amendment chain.
@@ -435,6 +454,10 @@ function noPublishedKnowledgeAnswer(
           'of an answer in the sources we hold.',
       },
     ],
+    // No material was retrieved, so there is nothing for the business layer to
+    // frame. The founder's context is acknowledged elsewhere (the Nova landing),
+    // not attached to a refusal that quotes nothing.
+    businessContext: null,
     retrievedAt: retrieval.retrievedAt,
   };
 }
@@ -538,8 +561,34 @@ export function assembleAnswer(
 
   const notInForceGaps = notInForceUnresolved(retrieval.excludedNotInForce);
 
+  const outcome = outcomeFor(envelope);
+
+  // ── Business-aware layer (P1) ────────────────────────────────────────────
+  //
+  // Purely additive: it reads the founder's non-sensitive facts and the answer
+  // that was already assembled, and states business context + epistemic gaps. It
+  // NEVER feeds retrieval, ranking, citations or `unresolved` (which drives the
+  // execution record), so every existing guarantee is untouched. Sensitive
+  // identifiers cannot reach it — `request.business` is a `NovaBusinessFacts`,
+  // which has no identifier field.
+  const documents = [
+    ...new Set(citations.flatMap((c) => c.citations.map((cite) => cite.document))),
+  ];
+  const businessContext = request.business
+    ? buildBusinessContext({
+        facts: request.business,
+        question: request.question,
+        outcome,
+        claims: envelope.claims.map((claim) => ({
+          statement: claim.content.statement,
+          sectionReference: claim.content.sectionReference,
+        })),
+        documents,
+      })
+    : null;
+
   return {
-    outcome: outcomeFor(envelope),
+    outcome,
     envelope,
     citations,
     amendmentNotices: notices,
@@ -551,6 +600,7 @@ export function assembleAnswer(
     reproducibility: retrieval.reproducibility,
     retrievedChunkIds: retrieval.chunks.map((c) => c.chunkId),
     unresolved: [...envelope.unresolved, ...amendmentGaps, ...notInForceGaps],
+    businessContext,
     retrievedAt: retrieval.retrievedAt,
   };
 }

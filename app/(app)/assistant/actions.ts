@@ -15,6 +15,7 @@ import { recordAuditEvent } from '@/services/audit';
 import { manifestForJurisdiction } from '@/services/knowledge/manifests/registry';
 import { answerNovaQuestion } from '@/services/nova/answer';
 import { buildNovaContext, buildQueryRepresentation } from '@/services/nova/context';
+import { toNovaBusinessFacts } from '@/services/nova/business-awareness';
 import { consumeNovaRateLimit, rateLimitMessage } from '@/services/nova/rate-limit';
 import {
   executionEntryForAnswer,
@@ -170,6 +171,10 @@ export async function askNovaAction(
       context: buildNovaContext(business, profile),
       question,
       queryRepresentation: buildQueryRepresentation(question, business, profile),
+      // Non-sensitive Business Object facts for the business-aware layer. This
+      // builder has no identifier field, so a tax id or registration number
+      // cannot travel with the request or reach the execution record.
+      business: toNovaBusinessFacts(business, profile),
       ...(manifest ? { manifest } : {}),
     });
 

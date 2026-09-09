@@ -92,6 +92,29 @@ export interface NovaUnresolvedView {
   why: string;
 }
 
+/** One founder-provided business fact Nova used as context. Never verified. */
+export interface NovaKnownFactView {
+  label: string;
+  value: string;
+}
+
+/**
+ * The business-aware layer (P1), ready to render.
+ *
+ * ⚠ Like the rest of this projection, it states no legal conclusion. `relevance`
+ *   names business facts and how Nova read the material; `openQuestions` name
+ *   what Nova could not determine about THIS business. Nothing here paraphrases
+ *   a provision — that boundary is identical to `narration.ts`.
+ */
+export interface NovaBusinessContextView {
+  /** The intelligence category. Always 'regulatory' on this evidence-backed path. */
+  category: 'regulatory';
+  knownFacts: readonly NovaKnownFactView[];
+  relevance: string | null;
+  openQuestions: readonly NovaUnresolvedView[];
+  clarifyingQuestion: string | null;
+}
+
 export interface NovaAnswerView {
   outcome: NovaViewOutcome;
   question: string;
@@ -111,4 +134,9 @@ export interface NovaAnswerView {
   knowledgeVersion: string | null;
   /** Domains the Coordinator expected that returned nothing (K5 §10). */
   emptyDomains: readonly string[];
+  /**
+   * The business-aware layer (P1). Null when there is no Business Object context
+   * to add (or on a refusal). Founder-provided facts + Nova's own gaps only.
+   */
+  business: NovaBusinessContextView | null;
 }

@@ -27,6 +27,7 @@ import { currentNovaUpdate } from '@/lib/nova/updates';
 export function NovaLanding({
   businessName,
   knowledgeLine,
+  contextLine,
   hero,
   children,
 }: {
@@ -38,6 +39,12 @@ export function NovaLanding({
    *   invents — if there is nothing to say, the caller passes null.
    */
   knowledgeLine: string | null;
+  /**
+   * A subtle acknowledgement that Nova is working with the business the founder
+   * just brought in (§10/§11). Computed by the page from the Business Object;
+   * null when there is not yet enough context to say so. Makes no legal claim.
+   */
+  contextLine?: string | null;
   /**
    * Nova's presence, at rest. Supplied by the console (a client component that
    * can resolve motion preference); when absent the landing falls back to the
@@ -78,6 +85,10 @@ export function NovaLanding({
               notices. Nova searches the published sources Foundry holds for your jurisdiction and
               quotes what it finds — with the provision it came from.
             </p>
+
+            {contextLine ? (
+              <p className="text-champagne-dim mt-3 max-w-xl text-sm text-pretty">{contextLine}</p>
+            ) : null}
 
             <Link
               href="/assistant/about"
