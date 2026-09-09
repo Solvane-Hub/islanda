@@ -136,6 +136,178 @@ export type Database = {
           },
         ];
       };
+      business_documents: {
+        Row: {
+          business_id: string;
+          byte_size: number | null;
+          content_type: string | null;
+          created_at: string;
+          document_date: string | null;
+          document_type: Database['public']['Enums']['business_document_type'];
+          expiration_date: string | null;
+          extraction_status: Database['public']['Enums']['document_extraction_status'];
+          financial_period_id: string | null;
+          id: string;
+          metadata: Json;
+          processing_status: Database['public']['Enums']['document_processing_status'];
+          provenance: Database['public']['Enums']['fact_provenance'];
+          storage_path: string | null;
+          title: string;
+          updated_at: string;
+          verification_state: Database['public']['Enums']['verification_state'];
+        };
+        Insert: {
+          business_id: string;
+          byte_size?: number | null;
+          content_type?: string | null;
+          created_at?: string;
+          document_date?: string | null;
+          document_type: Database['public']['Enums']['business_document_type'];
+          expiration_date?: string | null;
+          extraction_status?: Database['public']['Enums']['document_extraction_status'];
+          financial_period_id?: string | null;
+          id?: string;
+          metadata?: Json;
+          processing_status?: Database['public']['Enums']['document_processing_status'];
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          storage_path?: string | null;
+          title: string;
+          updated_at?: string;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Update: {
+          business_id?: string;
+          byte_size?: number | null;
+          content_type?: string | null;
+          created_at?: string;
+          document_date?: string | null;
+          document_type?: Database['public']['Enums']['business_document_type'];
+          expiration_date?: string | null;
+          extraction_status?: Database['public']['Enums']['document_extraction_status'];
+          financial_period_id?: string | null;
+          id?: string;
+          metadata?: Json;
+          processing_status?: Database['public']['Enums']['document_processing_status'];
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          storage_path?: string | null;
+          title?: string;
+          updated_at?: string;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bd_period_same_business';
+            columns: ['business_id', 'financial_period_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_financial_periods';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_documents_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_financial_periods: {
+        Row: {
+          business_id: string;
+          created_at: string;
+          id: string;
+          label: string | null;
+          period_end: string;
+          period_start: string;
+          period_type: Database['public']['Enums']['financial_period_type'];
+          updated_at: string;
+        };
+        Insert: {
+          business_id: string;
+          created_at?: string;
+          id?: string;
+          label?: string | null;
+          period_end: string;
+          period_start: string;
+          period_type: Database['public']['Enums']['financial_period_type'];
+          updated_at?: string;
+        };
+        Update: {
+          business_id?: string;
+          created_at?: string;
+          id?: string;
+          label?: string | null;
+          period_end?: string;
+          period_start?: string;
+          period_type?: Database['public']['Enums']['financial_period_type'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'business_financial_periods_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_goals: {
+        Row: {
+          business_id: string;
+          created_at: string;
+          description: string | null;
+          goal_type: Database['public']['Enums']['business_goal_type'];
+          id: string;
+          provenance: Database['public']['Enums']['fact_provenance'];
+          status: Database['public']['Enums']['business_goal_status'];
+          target_currency: string | null;
+          target_date: string | null;
+          target_metric_key: Database['public']['Enums']['business_metric_key'] | null;
+          target_value: number | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          business_id: string;
+          created_at?: string;
+          description?: string | null;
+          goal_type: Database['public']['Enums']['business_goal_type'];
+          id?: string;
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          status?: Database['public']['Enums']['business_goal_status'];
+          target_currency?: string | null;
+          target_date?: string | null;
+          target_metric_key?: Database['public']['Enums']['business_metric_key'] | null;
+          target_value?: number | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          business_id?: string;
+          created_at?: string;
+          description?: string | null;
+          goal_type?: Database['public']['Enums']['business_goal_type'];
+          id?: string;
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          status?: Database['public']['Enums']['business_goal_status'];
+          target_currency?: string | null;
+          target_date?: string | null;
+          target_metric_key?: Database['public']['Enums']['business_metric_key'] | null;
+          target_value?: number | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'business_goals_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       business_identifiers: {
         Row: {
           business_id: string;
@@ -176,6 +348,79 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: 'business_identifiers_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_metrics: {
+        Row: {
+          as_of_date: string | null;
+          business_id: string;
+          created_at: string;
+          currency: string | null;
+          financial_period_id: string | null;
+          id: string;
+          label: string | null;
+          metric_key: Database['public']['Enums']['business_metric_key'];
+          provenance: Database['public']['Enums']['fact_provenance'];
+          source_document_id: string | null;
+          unit: string | null;
+          updated_at: string;
+          value: number;
+          verification_state: Database['public']['Enums']['verification_state'];
+        };
+        Insert: {
+          as_of_date?: string | null;
+          business_id: string;
+          created_at?: string;
+          currency?: string | null;
+          financial_period_id?: string | null;
+          id?: string;
+          label?: string | null;
+          metric_key: Database['public']['Enums']['business_metric_key'];
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          source_document_id?: string | null;
+          unit?: string | null;
+          updated_at?: string;
+          value: number;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Update: {
+          as_of_date?: string | null;
+          business_id?: string;
+          created_at?: string;
+          currency?: string | null;
+          financial_period_id?: string | null;
+          id?: string;
+          label?: string | null;
+          metric_key?: Database['public']['Enums']['business_metric_key'];
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          source_document_id?: string | null;
+          unit?: string | null;
+          updated_at?: string;
+          value?: number;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bm_document_same_business';
+            columns: ['business_id', 'source_document_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_documents';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'bm_period_same_business';
+            columns: ['business_id', 'financial_period_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_financial_periods';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_metrics_business_id_fkey';
             columns: ['business_id'];
             isOneToOne: false;
             referencedRelation: 'businesses';
@@ -1276,12 +1521,46 @@ export type Database = {
       };
     };
     Enums: {
+      business_document_type:
+        | 'financial_statement'
+        | 'profit_loss'
+        | 'sales_report'
+        | 'tax_document'
+        | 'invoice'
+        | 'expense_report'
+        | 'bank_statement'
+        | 'payroll_report'
+        | 'inventory_report'
+        | 'registration'
+        | 'licence'
+        | 'certificate'
+        | 'other';
+      business_goal_status: 'proposed' | 'active' | 'achieved' | 'on_hold' | 'abandoned';
+      business_goal_type:
+        | 'revenue_target'
+        | 'launch_product'
+        | 'open_location'
+        | 'hire'
+        | 'expand_market'
+        | 'improve_profitability'
+        | 'increase_sales'
+        | 'obtain_licence'
+        | 'other';
       business_identifier_type:
         | 'company_registration_number'
         | 'business_licence_number'
         | 'tax_identification_number'
         | 'vat_registration_number'
         | 'nib_employer_number'
+        | 'other';
+      business_metric_key:
+        | 'revenue'
+        | 'expenses'
+        | 'net_profit'
+        | 'gross_margin'
+        | 'cash_flow'
+        | 'sales_count'
+        | 'customer_count'
         | 'other';
       business_mode: 'build' | 'manage';
       business_status:
@@ -1292,12 +1571,16 @@ export type Database = {
         | 'active'
         | 'archived';
       commercial_publication_eligibility: 'restricted' | 'cleared';
+      document_extraction_status:
+        'not_started' | 'pending' | 'extracted' | 'failed' | 'unavailable';
+      document_processing_status: 'pending' | 'stored' | 'processing' | 'processed' | 'failed';
       fact_provenance:
         | 'founder_provided'
         | 'evidence_verified'
         | 'ai_inferred'
         | 'external_public_data'
         | 'user_document';
+      financial_period_type: 'month' | 'quarter' | 'year' | 'custom';
       instrument_role: 'substantive' | 'amending_instruction' | 'unknown';
       knowledge_freshness_state:
         'current' | 'review_due' | 'changed_pending_assessment' | 'stale' | 'withdrawn';
@@ -1450,12 +1733,49 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      business_document_type: [
+        'financial_statement',
+        'profit_loss',
+        'sales_report',
+        'tax_document',
+        'invoice',
+        'expense_report',
+        'bank_statement',
+        'payroll_report',
+        'inventory_report',
+        'registration',
+        'licence',
+        'certificate',
+        'other',
+      ],
+      business_goal_status: ['proposed', 'active', 'achieved', 'on_hold', 'abandoned'],
+      business_goal_type: [
+        'revenue_target',
+        'launch_product',
+        'open_location',
+        'hire',
+        'expand_market',
+        'improve_profitability',
+        'increase_sales',
+        'obtain_licence',
+        'other',
+      ],
       business_identifier_type: [
         'company_registration_number',
         'business_licence_number',
         'tax_identification_number',
         'vat_registration_number',
         'nib_employer_number',
+        'other',
+      ],
+      business_metric_key: [
+        'revenue',
+        'expenses',
+        'net_profit',
+        'gross_margin',
+        'cash_flow',
+        'sales_count',
+        'customer_count',
         'other',
       ],
       business_mode: ['build', 'manage'],
@@ -1468,6 +1788,8 @@ export const Constants = {
         'archived',
       ],
       commercial_publication_eligibility: ['restricted', 'cleared'],
+      document_extraction_status: ['not_started', 'pending', 'extracted', 'failed', 'unavailable'],
+      document_processing_status: ['pending', 'stored', 'processing', 'processed', 'failed'],
       fact_provenance: [
         'founder_provided',
         'evidence_verified',
@@ -1475,6 +1797,7 @@ export const Constants = {
         'external_public_data',
         'user_document',
       ],
+      financial_period_type: ['month', 'quarter', 'year', 'custom'],
       instrument_role: ['substantive', 'amending_instruction', 'unknown'],
       knowledge_freshness_state: [
         'current',

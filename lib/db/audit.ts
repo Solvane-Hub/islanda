@@ -29,6 +29,16 @@ export type AuditEvent =
   | 'business.built'
   | 'business.imported'
   | 'business.identifier_added'
+  /**
+   * Business Intelligence Core (P2). Metadata carries SHAPE only — a document
+   * type, a metric key, a period label, a goal type — never a financial value,
+   * a document's contents, or any sensitive figure.
+   */
+  | 'business.document_added'
+  | 'business.financial_period_created'
+  | 'business.metric_recorded'
+  | 'business.goal_created'
+  | 'business.goal_updated'
   | 'intake.started'
   | 'intake.step_saved'
   | 'intake.knowledge_applied'
