@@ -56,6 +56,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
        */
       { href: '/assistant', label: 'Nova', available: true, icon: Sparkles },
       { href: '/intake', label: 'Business intake', available: true, icon: ClipboardList },
+      { href: '/documents', label: 'Documents', available: true, icon: FileText },
     ],
   },
   {
@@ -64,7 +65,6 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       { href: '/timeline', label: 'Timeline', available: false, icon: Waypoints },
       { href: '/compliance', label: 'Compliance', available: false, icon: ShieldCheck },
       { href: '/funding', label: 'Funding', available: false, icon: Banknote },
-      { href: '/documents', label: 'Documents', available: false, icon: FileText },
     ],
   },
   {

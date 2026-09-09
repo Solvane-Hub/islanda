@@ -44,3 +44,22 @@ export async function findBusinessDocumentById(
     .maybeSingle();
   return data ?? null;
 }
+
+type DocumentUpdate = Database['public']['Tables']['business_documents']['Update'];
+
+export async function updateBusinessDocument(
+  db: Db,
+  documentId: string,
+  patch: Pick<
+    DocumentUpdate,
+    'storage_path' | 'content_type' | 'byte_size' | 'processing_status' | 'extraction_status'
+  >,
+): Promise<{ data: BusinessDocument | null; error: string | null }> {
+  const { data, error } = await db
+    .from('business_documents')
+    .update(patch)
+    .eq('id', documentId)
+    .select('*')
+    .maybeSingle();
+  return { data: data ?? null, error: error?.message ?? null };
+}

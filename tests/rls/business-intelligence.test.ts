@@ -229,4 +229,40 @@ describe.skipIf(!rlsConfigured)('Row Level Security — business intelligence co
       expect(error).not.toBeNull(); // bm_other_requires_label
     });
   });
+
+  describe('document storage is private and per-business', () => {
+    const bucket = 'business-documents';
+    const objectPath = () => `${aBiz}/rls-${RUN}/probe.txt`;
+
+    it('A can upload and sign a URL for its own document object', async () => {
+      const path = objectPath();
+      const signed = await A.storage.from(bucket).createSignedUploadUrl(path);
+      expect(signed.error).toBeNull();
+      const up = await A.storage
+        .from(bucket)
+        .uploadToSignedUrl(path, signed.data!.token, new Blob(['probe']));
+      expect(up.error).toBeNull();
+
+      const dl = await A.storage.from(bucket).createSignedUrl(path, 60);
+      expect(dl.error).toBeNull();
+      expect(typeof dl.data?.signedUrl).toBe('string');
+    });
+
+    it('B cannot sign a URL for A’s document object', async () => {
+      const dl = await B.storage.from(bucket).createSignedUrl(objectPath(), 60);
+      expect(dl.error).not.toBeNull(); // storage SELECT policy denies
+    });
+
+    it('anonymous cannot sign a URL for A’s document object', async () => {
+      const dl = await anon.storage.from(bucket).createSignedUrl(objectPath(), 60);
+      expect(dl.error).not.toBeNull();
+    });
+
+    it('B cannot mint an upload URL under A’s business folder', async () => {
+      const attempt = await B.storage
+        .from(bucket)
+        .createSignedUploadUrl(`${aBiz}/rls-${RUN}/intrusion.txt`);
+      expect(attempt.error).not.toBeNull(); // storage INSERT policy denies
+    });
+  });
 });

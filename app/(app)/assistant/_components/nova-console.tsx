@@ -80,6 +80,7 @@ export function NovaConsole({
   businessName,
   knowledgeLine,
   businessContextLine = null,
+  initialQuestion,
   knowledgePublished = true,
 }: {
   businessName: string;
@@ -89,6 +90,11 @@ export function NovaConsole({
    * Computed by the page from the Business Object; null when there is too little.
    */
   businessContextLine?: string | null;
+  /**
+   * A question prefilled from a contextual "Ask Nova" elsewhere (e.g. a licence
+   * goal). It fills the composer on first load; it is never auto-submitted.
+   */
+  initialQuestion?: string;
   /**
    * Whether a Knowledge Pack is published for this business's jurisdiction.
    *
@@ -157,6 +163,16 @@ export function NovaConsole({
   useEffect(() => {
     if (state && !pending) resultRef.current?.focus();
   }, [state, pending]);
+
+  // Prefill the composer from a contextual "Ask Nova" (?q=). Fills and focuses;
+  // never submits — the founder still decides to ask.
+  useEffect(() => {
+    if (initialQuestion && inputRef.current) {
+      inputRef.current.value = initialQuestion;
+      setDraft(initialQuestion);
+      inputRef.current.focus();
+    }
+  }, [initialQuestion]);
 
   // Record the question AFTER it resolves (see the original design note).
   if (answer?.question && answer.question !== lastRecorded) {

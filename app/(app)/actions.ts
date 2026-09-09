@@ -15,8 +15,10 @@ import {
 import * as businessService from '@/services/business';
 import * as profileService from '@/services/profile';
 import * as onboardingService from '@/services/onboarding';
+import * as goalsService from '@/services/goals';
 import { updateProfileSchema } from '@/lib/validation/profile';
 import { buildBusinessSchema, manageBusinessSchema } from '@/lib/validation/business-object';
+import { createGoalSchema } from '@/lib/validation/business-intelligence';
 import { getCurrentUser, type RequestContext } from '@/services/auth';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
 
@@ -352,6 +354,98 @@ export async function updateProfileAction(
     await profileService.updateAccountProfile(db, user.id, parsed.data, ctx.correlationId);
     revalidatePath('/', 'layout');
     return ok({ saved: true });
+  } catch (error) {
+    return flatten(error, ctx);
+  }
+}
+
+/**
+ * Sets a goal on the current business.
+ *
+ * A monetary target's currency is derived from the business's country (never
+ * typed by the founder), the same way funding is — so a value and its currency
+ * cannot disagree. Goal progress is derived from metrics, never entered here.
+ */
+export async function createGoalAction(
+  _prev: Result<{ id: string }> | null,
+  formData: FormData,
+): Promise<Result<{ id: string }>> {
+  const ctx = await requestContext();
+  const parsed = createGoalSchema.safeParse({
+    goalType: formData.get('goalType'),
+    title: formData.get('title'),
+    description: formData.get('description') ?? undefined,
+    targetMetricKey: formData.get('targetMetricKey') ?? undefined,
+    targetValue: formData.get('targetValue') ?? undefined,
+    targetDate: formData.get('targetDate') ?? undefined,
+  });
+
+  if (!parsed.success) {
+    return fail(
+      new AppError({
+        code: 'VALIDATION_FAILED',
+        humanMessage: 'Please correct the highlighted fields.',
+        correlationId: ctx.correlationId,
+      }),
+      toFieldErrors(parsed.error.issues),
+    );
+  }
+
+  try {
+    const db = await createClient();
+    const user = await getCurrentUser(db);
+    if (!user) {
+      return fail(
+        new AppError({
+          code: 'AUTH_SESSION_EXPIRED',
+          humanMessage: 'Your session expired. Please sign in again.',
+          correlationId: ctx.correlationId,
+        }),
+      );
+    }
+
+    const [businesses, store, countries] = await Promise.all([
+      businessService.listBusinesses(db),
+      cookies(),
+      businessService.getActiveCountries(db),
+    ]);
+    const business = businessService.resolveCurrentBusiness(
+      businesses,
+      store.get(CURRENT_BUSINESS_COOKIE)?.value,
+    );
+    if (!business) {
+      return fail(
+        new AppError({
+          code: 'NOT_FOUND',
+          humanMessage: 'Create a business before setting a goal.',
+          correlationId: ctx.correlationId,
+        }),
+      );
+    }
+
+    const targetCurrency =
+      parsed.data.targetValue !== undefined
+        ? (countries.find((c) => c.code === business.country_code)?.currency_code ?? null)
+        : null;
+
+    const goal = await goalsService.createBusinessGoal(
+      db,
+      user.id,
+      {
+        businessId: business.id,
+        goalType: parsed.data.goalType,
+        title: parsed.data.title,
+        description: parsed.data.description ?? null,
+        targetMetricKey: parsed.data.targetMetricKey ?? null,
+        targetValue: parsed.data.targetValue ?? null,
+        targetCurrency,
+        targetDate: parsed.data.targetDate ?? null,
+      },
+      ctx,
+    );
+
+    revalidatePath('/dashboard');
+    return ok({ id: goal.id });
   } catch (error) {
     return flatten(error, ctx);
   }

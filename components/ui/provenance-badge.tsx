@@ -36,6 +36,27 @@ const PROVENANCE: Record<ProvenanceKind, ProvenanceMeta> = {
   not_established: { label: 'Not yet established', tone: 'neutral' },
 };
 
+/**
+ * Map a stored fact's provenance + verification to a badge kind.
+ *
+ * Verified state wins (only reachable via external/evidence provenance, by DB
+ * CHECK); otherwise the origin is shown as-is. Used for metrics and documents.
+ * Sensitive identifiers use their own mapping (they emphasise "not verified").
+ */
+export function provenanceKindFor(
+  provenance:
+    | 'founder_provided'
+    | 'evidence_verified'
+    | 'ai_inferred'
+    | 'external_public_data'
+    | 'user_document',
+  verification: 'unverified' | 'verified' | 'verification_unavailable',
+): ProvenanceKind {
+  if (verification === 'verified') return 'evidence_verified';
+  if (verification === 'verification_unavailable') return 'verification_unavailable';
+  return provenance;
+}
+
 export function ProvenanceBadge({ kind, className }: { kind: ProvenanceKind; className?: string }) {
   const meta = PROVENANCE[kind];
   return (

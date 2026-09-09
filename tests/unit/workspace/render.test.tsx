@@ -316,9 +316,13 @@ describe('primary navigation', () => {
     expect(primary[1]?.href).toBe('/assistant');
   });
 
+  it('lists Documents as an available route (secure vault shipped in P3)', () => {
+    expect(NAV_ITEMS.find((i) => i.href === '/documents')?.available).toBe(true);
+  });
+
   it('still marks genuinely unbuilt surfaces as unavailable', () => {
     // Promoting one route must not have promoted the rest.
-    for (const href of ['/timeline', '/compliance', '/funding', '/documents']) {
+    for (const href of ['/timeline', '/compliance', '/funding']) {
       expect(NAV_ITEMS.find((i) => i.href === href)?.available, href).toBe(false);
     }
   });

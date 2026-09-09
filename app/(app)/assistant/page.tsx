@@ -27,7 +27,18 @@ export const metadata: Metadata = { title: 'Nova' };
  * When no pack exists the founder sees the roadmap surface, whose prerequisite
  * states are REAL: `met` is computed from the database, not asserted.
  */
-export default async function AssistantPage() {
+export default async function AssistantPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  // A contextual "Ask Nova" elsewhere in the product may prefill a question via
+  // `?q=`. It fills the composer; it never auto-submits — the founder still
+  // decides to ask, and the question is a plain regulatory one Nova can answer.
+  const { q } = await searchParams;
+  const initialQuestion =
+    typeof q === 'string' && q.trim().length > 0 ? q.slice(0, 500) : undefined;
+
   const db = await createClient();
   const [businesses, store] = await Promise.all([listBusinesses(db), cookies()]);
   const current = resolveCurrentBusiness(businesses, store.get(CURRENT_BUSINESS_COOKIE)?.value);
@@ -112,6 +123,7 @@ export default async function AssistantPage() {
           knowledgeLine={knowledgeLine}
           businessContextLine={businessContextLine}
           knowledgePublished={knowledgePublished}
+          {...(initialQuestion ? { initialQuestion } : {})}
         />
       ) : (
         <RoadmapSurface
