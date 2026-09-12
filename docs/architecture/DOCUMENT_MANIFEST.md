@@ -278,6 +278,7 @@ Trust Layer §8 · `schema-future-phases.sql`.
 | Future-phase schema design                                   | `docs/architecture/schema-future-phases.sql`      | 2026-08-05 |
 | Changelog                                                    | `CHANGELOG.md`                                    | 2026-08-07 |
 | Business Intelligence Core (private, post-competition P2–P4) | `docs/architecture/business-intelligence-core.md` | 2026-09-11 |
+| Intelligence Gateway (private, post-competition P5–P6)       | `docs/architecture/intelligence-gateway.md`       | 2026-09-11 |
 
 ## Architecture Decision Records
 

@@ -29,6 +29,19 @@ const serverSchema = z.object({
    */
   FISH_API_KEY: z.string().min(1).optional(),
   FISH_NOVA_VOICE_ID: z.string().min(1).optional(),
+  /**
+   * Intelligence Gateway — the LLM provider credential (P5).
+   *
+   * ⚠ Server-only bearer credential for a paid provider: never in the browser
+   *   bundle, never logged, never committed. Optional by design — the gateway
+   *   degrades to a controlled "unavailable" state when it is absent, and every
+   *   deterministic request works without it. Model ids are overridable per tier
+   *   so the tier→model mapping stays configuration (ADR-0019), not code.
+   */
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_MODEL_NANO: z.string().min(1).optional(),
+  OPENAI_MODEL_MINI: z.string().min(1).optional(),
+  OPENAI_MODEL_PREMIUM: z.string().min(1).optional(),
 });
 
 /**
@@ -100,6 +113,10 @@ function parseServerEnv(source: EnvSource): z.infer<typeof serverSchema> {
     SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY,
     FISH_API_KEY: source.FISH_API_KEY,
     FISH_NOVA_VOICE_ID: source.FISH_NOVA_VOICE_ID,
+    OPENAI_API_KEY: source.OPENAI_API_KEY,
+    OPENAI_MODEL_NANO: source.OPENAI_MODEL_NANO,
+    OPENAI_MODEL_MINI: source.OPENAI_MODEL_MINI,
+    OPENAI_MODEL_PREMIUM: source.OPENAI_MODEL_PREMIUM,
   });
   if (!parsed.success) {
     throw new Error(

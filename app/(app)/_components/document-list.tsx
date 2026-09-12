@@ -26,6 +26,8 @@ export interface DocumentListItem {
   documentDate: string | null;
   periodLabel: string | null;
   hasFile: boolean;
+  /** Figures this document supports (founder-linked), e.g. "Revenue BSD 63,200". */
+  supports: string | null;
 }
 
 export function DocumentList({ items }: { items: readonly DocumentListItem[] }) {
@@ -59,6 +61,9 @@ export function DocumentList({ items }: { items: readonly DocumentListItem[] }) 
               <span className="text-on-glass-subtle text-2xs">
                 {[doc.typeLabel, doc.periodLabel, doc.documentDate].filter(Boolean).join(' · ')}
               </span>
+              {doc.supports ? (
+                <span className="text-champagne-dim text-2xs">Supports: {doc.supports}</span>
+              ) : null}
             </div>
 
             <span className="text-on-ink-muted hidden text-xs sm:inline">{doc.status}</span>

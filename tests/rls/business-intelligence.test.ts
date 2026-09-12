@@ -17,7 +17,7 @@ describe.skipIf(!rlsConfigured)('Row Level Security — business intelligence co
   let aId: string, bId: string;
   let aBiz: string, bBiz: string;
   let aPeriod: string, bPeriod: string;
-  let aDoc: string, aMetric: string, aGoal: string;
+  let aDoc: string, aMetric: string, aGoal: string, bDoc: string;
 
   beforeAll(async () => {
     ({ db: A, userId: aId } = await signIn('A'));
@@ -55,6 +55,13 @@ describe.skipIf(!rlsConfigured)('Row Level Security — business intelligence co
     };
     aPeriod = await mkPeriod(A, aBiz);
     bPeriod = await mkPeriod(B, bBiz);
+
+    const { data: bdoc, error: bdErr } = await B.from('business_documents')
+      .insert({ business_id: bBiz, document_type: 'financial_statement', title: `${RUN} b-doc` })
+      .select('id')
+      .single();
+    if (bdErr) throw new Error(`b doc setup: ${bdErr.message}`);
+    bDoc = bdoc.id;
 
     const { data: doc, error: docErr } = await A.from('business_documents')
       .insert({
@@ -218,6 +225,16 @@ describe.skipIf(!rlsConfigured)('Row Level Security — business intelligence co
         financial_period_id: bPeriod, // belongs to tenant B
       });
       expect(error).not.toBeNull(); // bm_period_same_business
+    });
+
+    it('rejects a metric referencing another business’s document (composite FK)', async () => {
+      const { error } = await A.from('business_metrics').insert({
+        business_id: aBiz,
+        metric_key: 'revenue',
+        value: 1,
+        source_document_id: bDoc, // belongs to tenant B
+      });
+      expect(error).not.toBeNull(); // bm_document_same_business
     });
 
     it('requires a label for an "other" metric', async () => {

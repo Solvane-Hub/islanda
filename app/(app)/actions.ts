@@ -16,9 +16,11 @@ import * as businessService from '@/services/business';
 import * as profileService from '@/services/profile';
 import * as onboardingService from '@/services/onboarding';
 import * as goalsService from '@/services/goals';
+import * as financialsService from '@/services/financials';
 import { updateProfileSchema } from '@/lib/validation/profile';
 import { buildBusinessSchema, manageBusinessSchema } from '@/lib/validation/business-object';
-import { createGoalSchema } from '@/lib/validation/business-intelligence';
+import { createGoalSchema, recordFigureSchema } from '@/lib/validation/business-intelligence';
+import { resolveMetricEntry } from '@/lib/business-intelligence/performance';
 import { getCurrentUser, type RequestContext } from '@/services/auth';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
 
@@ -446,6 +448,121 @@ export async function createGoalAction(
 
     revalidatePath('/dashboard');
     return ok({ id: goal.id });
+  } catch (error) {
+    return flatten(error, ctx);
+  }
+}
+
+/**
+ * Records a financial figure on the current business.
+ *
+ * Finds-or-creates the period, then stores the metric. Currency, unit and
+ * provenance are decided HERE, never typed by the founder: monetary keys take
+ * the business's currency, margin is a percent, counts are unitless, and a
+ * figure linked to a supporting document is `user_document` — otherwise
+ * `founder_provided`. A figure is never stored verified.
+ */
+export async function recordFigureAction(input: {
+  financialPeriodId?: string;
+  periodType?: string;
+  periodStart?: string;
+  periodEnd?: string;
+  metricKey: string;
+  value: number | string;
+  label?: string;
+  sourceDocumentId?: string;
+}): Promise<Result<{ id: string }>> {
+  const ctx = await requestContext();
+  const parsed = recordFigureSchema.safeParse(input);
+  if (!parsed.success) {
+    return fail(
+      new AppError({
+        code: 'VALIDATION_FAILED',
+        humanMessage: 'Please correct the highlighted fields.',
+        correlationId: ctx.correlationId,
+      }),
+      toFieldErrors(parsed.error.issues),
+    );
+  }
+
+  try {
+    const db = await createClient();
+    const user = await getCurrentUser(db);
+    if (!user) {
+      return fail(
+        new AppError({
+          code: 'AUTH_SESSION_EXPIRED',
+          humanMessage: 'Your session expired. Please sign in again.',
+          correlationId: ctx.correlationId,
+        }),
+      );
+    }
+
+    const [businesses, store, countries] = await Promise.all([
+      businessService.listBusinesses(db),
+      cookies(),
+      businessService.getActiveCountries(db),
+    ]);
+    const business = businessService.resolveCurrentBusiness(
+      businesses,
+      store.get(CURRENT_BUSINESS_COOKIE)?.value,
+    );
+    if (!business) {
+      return fail(
+        new AppError({
+          code: 'NOT_FOUND',
+          humanMessage: 'Create a business before recording a figure.',
+          correlationId: ctx.correlationId,
+        }),
+      );
+    }
+
+    const businessCurrency =
+      countries.find((c) => c.code === business.country_code)?.currency_code ?? null;
+
+    // Resolve the period: an existing id, or find-or-create from the new fields.
+    let periodId = parsed.data.financialPeriodId ?? null;
+    if (!periodId) {
+      const period = await financialsService.findOrCreateFinancialPeriod(
+        db,
+        user.id,
+        {
+          businessId: business.id,
+          periodType: parsed.data.periodType!,
+          periodStart: parsed.data.periodStart!,
+          periodEnd: parsed.data.periodEnd!,
+        },
+        ctx,
+      );
+      periodId = period.id;
+    }
+
+    const shape = resolveMetricEntry(
+      parsed.data.metricKey,
+      businessCurrency,
+      Boolean(parsed.data.sourceDocumentId),
+    );
+
+    const metric = await financialsService.recordMetric(
+      db,
+      user.id,
+      {
+        businessId: business.id,
+        metricKey: parsed.data.metricKey,
+        value: parsed.data.value,
+        label: parsed.data.label ?? null,
+        currency: shape.currency,
+        unit: shape.unit,
+        financialPeriodId: periodId,
+        sourceDocumentId: parsed.data.sourceDocumentId ?? null,
+        provenance: shape.provenance,
+      },
+      ctx,
+    );
+
+    revalidatePath('/dashboard');
+    revalidatePath('/documents');
+    return ok({ id: metric.id });
   } catch (error) {
     return flatten(error, ctx);
   }

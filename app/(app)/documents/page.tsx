@@ -5,12 +5,13 @@ import { FileText, Rocket } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { listBusinesses, resolveCurrentBusiness } from '@/services/business';
 import { getBusinessDocuments } from '@/services/documents';
-import { getFinancialPeriods } from '@/services/financials';
+import { getFinancialPeriods, getBusinessMetrics } from '@/services/financials';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
 import {
   DOCUMENT_TYPE_LABELS,
   documentStatusLabel,
 } from '@/lib/business-intelligence/document-display';
+import { METRIC_KEY_LABELS, formatMetricValue } from '@/lib/business-intelligence/performance';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { WorkspaceSurface, SurfaceLabel } from '@/components/ui/workspace-surface';
@@ -53,12 +54,25 @@ export default async function DocumentsPage() {
     );
   }
 
-  const [documents, periods] = await Promise.all([
+  const [documents, periods, metrics] = await Promise.all([
     getBusinessDocuments(db, current.id),
     getFinancialPeriods(db, current.id),
+    getBusinessMetrics(db, current.id),
   ]);
 
   const periodLabels = new Map(periods.map((p) => [p.id, p.label ?? '']));
+
+  // Figures a founder linked to each document — the "this document supports X"
+  // relationship. Manual linkage only; nothing here implies automatic extraction.
+  const supportsByDocument = new Map<string, string[]>();
+  for (const m of metrics) {
+    if (!m.source_document_id) continue;
+    const label = `${METRIC_KEY_LABELS[m.metric_key]} ${formatMetricValue(Number(m.value), m.currency, m.unit)}`;
+    const list = supportsByDocument.get(m.source_document_id) ?? [];
+    list.push(label);
+    supportsByDocument.set(m.source_document_id, list);
+  }
+
   const items: DocumentListItem[] = documents.map((doc) => ({
     id: doc.id,
     title: doc.title,
@@ -70,6 +84,7 @@ export default async function DocumentsPage() {
       ? (periodLabels.get(doc.financial_period_id) ?? null)
       : null,
     hasFile: doc.storage_path !== null && doc.processing_status !== 'pending',
+    supports: supportsByDocument.get(doc.id)?.join(' · ') ?? null,
   }));
 
   return (

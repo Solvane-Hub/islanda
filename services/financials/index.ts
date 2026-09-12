@@ -97,6 +97,28 @@ export async function createFinancialPeriod(
   return data;
 }
 
+/**
+ * Find an existing period matching (type, start, end) for the business, or
+ * create it. Recording a figure into "Q2 2026" should reuse the one period, not
+ * fail on the unique constraint or duplicate it.
+ */
+export async function findOrCreateFinancialPeriod(
+  db: SupabaseClient<Database>,
+  ownerId: string,
+  input: CreateFinancialPeriodInput,
+  ctx: RequestContext = {},
+): Promise<BusinessFinancialPeriod> {
+  const existing = await listFinancialPeriods(db, input.businessId);
+  const match = existing.find(
+    (p) =>
+      p.period_type === input.periodType &&
+      p.period_start === input.periodStart &&
+      p.period_end === input.periodEnd,
+  );
+  if (match) return match;
+  return createFinancialPeriod(db, ownerId, input, ctx);
+}
+
 export async function recordMetric(
   db: SupabaseClient<Database>,
   ownerId: string,

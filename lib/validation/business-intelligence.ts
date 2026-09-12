@@ -78,6 +78,46 @@ export const finalizeUploadSchema = z.object({
   byteSize: z.coerce.number().int().min(0).max(1_000_000_000).optional(),
 });
 
+export const PERIOD_TYPES = ['month', 'quarter', 'year', 'custom'] as const;
+
+/**
+ * Recording a business figure.
+ *
+ * Either an existing `financialPeriodId` OR a new period (type + start + end) is
+ * required — the action finds-or-creates the period. `value` may be negative
+ * (net profit, cash flow). Currency/unit/provenance are decided by the service,
+ * not typed here, so a founder can never mark a figure "verified".
+ */
+export const recordFigureSchema = z
+  .object({
+    financialPeriodId: optionalUuid,
+    periodType: z
+      .enum(PERIOD_TYPES)
+      .optional()
+      .or(z.literal('').transform(() => undefined)),
+    periodStart: optionalDate,
+    periodEnd: optionalDate,
+    metricKey: z.enum(METRIC_KEYS, { message: 'Choose a metric.' }),
+    value: z.coerce.number({ message: 'Enter an amount.' }).min(-9_999_999_999).max(9_999_999_999),
+    label: z
+      .string()
+      .trim()
+      .max(80)
+      .optional()
+      .or(z.literal('').transform(() => undefined)),
+    sourceDocumentId: optionalUuid,
+  })
+  .refine(
+    (v) => Boolean(v.financialPeriodId) || Boolean(v.periodType && v.periodStart && v.periodEnd),
+    { message: 'Choose or define a period.', path: ['financialPeriodId'] },
+  )
+  .refine((v) => v.metricKey !== 'other' || Boolean(v.label), {
+    message: 'Name this metric.',
+    path: ['label'],
+  });
+
+export type RecordFigureInput = z.infer<typeof recordFigureSchema>;
+
 /** Creating a business goal. */
 export const createGoalSchema = z.object({
   goalType: z.enum(GOAL_TYPES, { message: 'Choose a goal type.' }),

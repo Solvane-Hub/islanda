@@ -32,25 +32,12 @@ export type BusinessGoalType = Enums<'business_goal_type'>;
 export type BusinessGoalStatus = Enums<'business_goal_status'>;
 
 /**
- * Nova's intelligence categories — the durable vocabulary for the answer
- * contract's epistemic basis (product Part 7). These MUST stay distinct so a
- * future generative layer can never blur law, founder facts, document-derived
- * facts, financial calculations, external data and AI recommendations.
- *
- * Declared here as the single source of truth; Nova currently only emits
- * `regulatory`. Wiring the others is future work, gated behind their own
- * evidence/verification paths.
+ * Nova's intelligence categories — now owned by the Intelligence Gateway (P5),
+ * which is the single controlled entry point for LLM-powered capabilities. Kept
+ * re-exported here so existing importers of the business-intelligence domain
+ * keep working. See `lib/intelligence/types.ts`.
  */
-export type IntelligenceCategory =
-  | 'regulatory'
-  | 'business'
-  | 'financial'
-  | 'strategy'
-  | 'creative'
-  | 'document'
-  | 'registry'
-  | 'monitoring'
-  | 'roadmap';
+export type { IntelligenceCategory } from '@/lib/intelligence/types';
 
 /**
  * Goal progress — DERIVED, never stored.
