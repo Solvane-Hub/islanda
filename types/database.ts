@@ -92,6 +92,77 @@ export type Database = {
           },
         ];
       };
+      ai_usage: {
+        Row: {
+          actor_id: string | null;
+          business_id: string | null;
+          category: string;
+          correlation_id: string | null;
+          determination: string;
+          error_code: string | null;
+          estimated_cost_usd: number | null;
+          failed: boolean;
+          id: string;
+          input_tokens: number | null;
+          llm_called: boolean;
+          model: string | null;
+          model_reason: string | null;
+          model_tier: string | null;
+          occurred_at: string;
+          output_tokens: number | null;
+          provider: string | null;
+          validation_ok: boolean | null;
+        };
+        Insert: {
+          actor_id?: string | null;
+          business_id?: string | null;
+          category: string;
+          correlation_id?: string | null;
+          determination: string;
+          error_code?: string | null;
+          estimated_cost_usd?: number | null;
+          failed?: boolean;
+          id?: string;
+          input_tokens?: number | null;
+          llm_called?: boolean;
+          model?: string | null;
+          model_reason?: string | null;
+          model_tier?: string | null;
+          occurred_at?: string;
+          output_tokens?: number | null;
+          provider?: string | null;
+          validation_ok?: boolean | null;
+        };
+        Update: {
+          actor_id?: string | null;
+          business_id?: string | null;
+          category?: string;
+          correlation_id?: string | null;
+          determination?: string;
+          error_code?: string | null;
+          estimated_cost_usd?: number | null;
+          failed?: boolean;
+          id?: string;
+          input_tokens?: number | null;
+          llm_called?: boolean;
+          model?: string | null;
+          model_reason?: string | null;
+          model_tier?: string | null;
+          occurred_at?: string;
+          output_tokens?: number | null;
+          provider?: string | null;
+          validation_ok?: boolean | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'ai_usage_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       audit_log: {
         Row: {
           actor_id: string | null;
@@ -129,6 +200,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: 'audit_log_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_cases: {
+        Row: {
+          advisor_id: string | null;
+          business_id: string;
+          created_at: string;
+          id: string;
+          objective: string;
+          owner_id: string;
+          status: Database['public']['Enums']['business_case_status'];
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          advisor_id?: string | null;
+          business_id: string;
+          created_at?: string;
+          id?: string;
+          objective: string;
+          owner_id: string;
+          status?: Database['public']['Enums']['business_case_status'];
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          advisor_id?: string | null;
+          business_id?: string;
+          created_at?: string;
+          id?: string;
+          objective?: string;
+          owner_id?: string;
+          status?: Database['public']['Enums']['business_case_status'];
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'business_cases_business_id_fkey';
             columns: ['business_id'];
             isOneToOne: false;
             referencedRelation: 'businesses';
@@ -1521,6 +1636,7 @@ export type Database = {
       };
     };
     Enums: {
+      business_case_status: 'open' | 'in_review' | 'resolved' | 'archived';
       business_document_type:
         | 'financial_statement'
         | 'profit_loss'
@@ -1733,6 +1849,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      business_case_status: ['open', 'in_review', 'resolved', 'archived'],
       business_document_type: [
         'financial_statement',
         'profit_loss',

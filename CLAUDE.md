@@ -50,7 +50,7 @@ document — status, version, Notion URL, local path, Drive location, owner,
 related documents, ADRs, evidence. **A document not in the manifest is not
 canonical.** Read the manifest before assuming a document does or does not exist.
 
-Decisions live in `docs/decisions/` as ADR-0001 … ADR-0020 and are binding.
+Decisions live in `docs/decisions/` as ADR-0001 … ADR-0021 and are binding.
 
 ## Trust model (Trust Layer Specification v1.0)
 

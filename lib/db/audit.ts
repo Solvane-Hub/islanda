@@ -39,6 +39,13 @@ export type AuditEvent =
   | 'business.metric_recorded'
   | 'business.goal_created'
   | 'business.goal_updated'
+  /**
+   * Business Case (P7.1) — a thin objective/owner/status correlation object.
+   * Metadata carries SHAPE only — status value at most, never the case title
+   * or objective text.
+   */
+  | 'business.case_created'
+  | 'business.case_status_changed'
   | 'intake.started'
   | 'intake.step_saved'
   | 'intake.knowledge_applied'

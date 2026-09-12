@@ -2,7 +2,7 @@
 
 **Purpose:** the single register of every canonical architecture document, where it lives, and what it depends on.
 **Owner:** Jamil Nash (Co-Founder & CEO) · **Maintained by:** Lead Software Engineer
-**Last updated:** 2026-08-09 — **ADR-0020** accepted (one business profile; intake progress reads knowledge, not the guided-flow cursor; Nova extension point documented, Nova not implemented). Previously: 2026-08-08 — four previously unregistered documents retired (D1–D5); Knowledge Engineering series **7 of 7 registered and mirrored**; ✅ **zero unresolved conflicts** (C1–C3, R1–R3, A1–A12 all resolved; ADR-0015 unchanged throughout). Previously: 2026-08-07 — **AI Architecture series complete (15/15)**; ADRs 0015–0019 ratified/accepted
+**Last updated:** 2026-09-11 — **ADR-0021** accepted (institutional access extension point, documentation only); `business-intelligence-core.md` and `intelligence-gateway.md` registered (private, post-competition P2–P6, previously undocumented). Previously: 2026-08-09 — **ADR-0020** accepted (one business profile; intake progress reads knowledge, not the guided-flow cursor; Nova extension point documented, Nova not implemented). Previously: 2026-08-08 — four previously unregistered documents retired (D1–D5); Knowledge Engineering series **7 of 7 registered and mirrored**; ✅ **zero unresolved conflicts** (C1–C3, R1–R3, A1–A12 all resolved; ADR-0015 unchanged throughout). Previously: 2026-08-07 — **AI Architecture series complete (15/15)**; ADRs 0015–0019 ratified/accepted
 
 **Milestone update (2026-08-11):** ADR-0020 now has a live per-slot provenance seam and a shared confirmed / declined / unknown / needs-confirmation reader for dashboard, intake, and review. Nova conversation remains unimplemented.
 
@@ -271,39 +271,41 @@ Trust Layer §8 · `schema-future-phases.sql`.
 
 ## Repository-primary documents
 
-| Title                      | Path                                         | Updated    |
-| -------------------------- | -------------------------------------------- | ---------- |
-| ER Diagram & Relationships | `docs/architecture/er-diagram.md`            | 2026-08-05 |
-| Schema Design & Decisions  | `docs/architecture/schema-design.md`         | 2026-08-05 |
-| Future-phase schema design | `docs/architecture/schema-future-phases.sql` | 2026-08-05 |
-| Changelog                  | `CHANGELOG.md`                               | 2026-08-07 |
+| Title                                                        | Path                                              | Updated    |
+| ------------------------------------------------------------ | ------------------------------------------------- | ---------- |
+| ER Diagram & Relationships                                   | `docs/architecture/er-diagram.md`                 | 2026-08-05 |
+| Schema Design & Decisions                                    | `docs/architecture/schema-design.md`              | 2026-08-05 |
+| Future-phase schema design                                   | `docs/architecture/schema-future-phases.sql`      | 2026-08-05 |
+| Changelog                                                    | `CHANGELOG.md`                                    | 2026-08-07 |
+| Business Intelligence Core (private, post-competition P2–P4) | `docs/architecture/business-intelligence-core.md` | 2026-09-11 |
 
 ## Architecture Decision Records
 
 `docs/decisions/ADR-0001 … ADR-0014`. Drive copy: `03 Architecture/2026-08-07_ADR_Register_0001-0013.md` (⚠️ predates ADR-0014).
 
-| ADR      | Decision                                                                                                                                                                                                    |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0001     | Repository structure & enforced layer boundaries                                                                                                                                                            |
-| 0002     | TypeScript strictness                                                                                                                                                                                       |
-| 0003     | Server Actions default, REST by exception                                                                                                                                                                   |
-| 0004     | Testing strategy                                                                                                                                                                                            |
-| 0005     | Zod as the single validation layer                                                                                                                                                                          |
-| 0006     | Tenancy — user-owned, multi-business                                                                                                                                                                        |
-| 0007     | Business lifecycle states                                                                                                                                                                                   |
-| 0008     | Primary key strategy                                                                                                                                                                                        |
-| 0009     | RLS policy pattern                                                                                                                                                                                          |
-| 0010     | `auth.users` owns identity                                                                                                                                                                                  |
-| 0011     | Controlled denormalization for RLS                                                                                                                                                                          |
-| 0012     | Audit write path & fail-open policy                                                                                                                                                                         |
-| 0013     | Password policy                                                                                                                                                                                             |
-| 0014     | Structured logging & correlation IDs                                                                                                                                                                        |
-| **0015** | **Unified trust and confidence model** — ✅ ratified. Four dimensions; VERIFIED requires Authority ≥ 4                                                                                                      |
-| **0016** | **Long-running AI workflow execution** — ✅ accepted. Persisted workflow runs; one step per invocation. Foundation for all AI orchestration                                                                 |
-| **0017** | Shared agent output contract — envelope, evidence binding, idempotency, mandatory `unresolved[]`                                                                                                            |
-| **0018** | Evaluation gates & release criteria — hard gates; coverage recall ≥ 95% is also the TRL 3 gate                                                                                                              |
-| **0019** | Model provider abstraction & data residency — capability tiers; failover off by default                                                                                                                     |
-| **0020** | **One business profile; intake measures knowledge, not visitation** — ✅ accepted. Nova writes the same profile through the Intake service; provenance goes in the existing `responses` jsonb; no migration |
+| ADR      | Decision                                                                                                                                                                                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0001     | Repository structure & enforced layer boundaries                                                                                                                                                                                                              |
+| 0002     | TypeScript strictness                                                                                                                                                                                                                                         |
+| 0003     | Server Actions default, REST by exception                                                                                                                                                                                                                     |
+| 0004     | Testing strategy                                                                                                                                                                                                                                              |
+| 0005     | Zod as the single validation layer                                                                                                                                                                                                                            |
+| 0006     | Tenancy — user-owned, multi-business                                                                                                                                                                                                                          |
+| 0007     | Business lifecycle states                                                                                                                                                                                                                                     |
+| 0008     | Primary key strategy                                                                                                                                                                                                                                          |
+| 0009     | RLS policy pattern                                                                                                                                                                                                                                            |
+| 0010     | `auth.users` owns identity                                                                                                                                                                                                                                    |
+| 0011     | Controlled denormalization for RLS                                                                                                                                                                                                                            |
+| 0012     | Audit write path & fail-open policy                                                                                                                                                                                                                           |
+| 0013     | Password policy                                                                                                                                                                                                                                               |
+| 0014     | Structured logging & correlation IDs                                                                                                                                                                                                                          |
+| **0015** | **Unified trust and confidence model** — ✅ ratified. Four dimensions; VERIFIED requires Authority ≥ 4                                                                                                                                                        |
+| **0016** | **Long-running AI workflow execution** — ✅ accepted. Persisted workflow runs; one step per invocation. Foundation for all AI orchestration                                                                                                                   |
+| **0017** | Shared agent output contract — envelope, evidence binding, idempotency, mandatory `unresolved[]`                                                                                                                                                              |
+| **0018** | Evaluation gates & release criteria — hard gates; coverage recall ≥ 95% is also the TRL 3 gate                                                                                                                                                                |
+| **0019** | Model provider abstraction & data residency — capability tiers; failover off by default                                                                                                                                                                       |
+| **0020** | **One business profile; intake measures knowledge, not visitation** — ✅ accepted. Nova writes the same profile through the Intake service; provenance goes in the existing `responses` jsonb; no migration                                                   |
+| **0021** | **Institutional access extension point** (private, post-competition, P7.0) — documentation only. Reaffirms ADR-0006's `app.business_access()` seam and records its exact future extension shape (one grants table, one function-body change); no code changed |
 
 ## Evidence
 
