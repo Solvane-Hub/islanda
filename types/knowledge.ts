@@ -85,12 +85,12 @@ export const CURRENT_LAW_LEGAL_STATUSES: readonly KnowledgeSourceLegalStatus[] =
  *
  * A PUBLICATION/REDISTRIBUTION gate, not an ingestion gate. Official Government
  * of The Bahamas legislation may be acquired and worked with for internal
- * engineering, staging and testing, but not published as FoundryAI-served
+ * engineering, staging and testing, but not published as Islanda-served
  * content until reuse permission is recorded. Fail-closed: packs are
  * `'restricted'` until deliberately `'cleared'`. Successful retrieval never
  * implies eligibility. Enforced atomically in `publish_knowledge_pack`.
  *
- * A FoundryAI-authored synthetic corpus (e.g. Example Jurisdiction ZZ) carries
+ * An Islanda-authored synthetic corpus (e.g. Example Jurisdiction ZZ) carries
  * no third-party copyright and is `'cleared'`.
  */
 export type CommercialPublicationEligibility = 'restricted' | 'cleared';

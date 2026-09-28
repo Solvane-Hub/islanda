@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 
 /**
- * Provenance badge — the visible promise that FoundryAI never blends origins.
+ * Provenance badge — the visible promise that Islanda never blends origins.
  *
  * Every business fact shows where it came from and whether it has been
  * verified. These are the product's non-negotiable categories (§2): a founder

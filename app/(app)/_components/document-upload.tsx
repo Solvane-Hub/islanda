@@ -39,7 +39,7 @@ type Phase = 'idle' | 'working' | 'done';
  * straight to private storage, then confirm. The file never passes through a
  * server action, and the bucket is private — nothing here produces a public URL.
  *
- * ⚠ It never claims FoundryAI understands the document. On success the founder is
+ * ⚠ It never claims Islanda understands the document. On success the founder is
  *   told it is stored; analysis is honestly absent until extraction exists.
  */
 export function DocumentUpload({ periods }: { periods: { id: string; label: string }[] }) {

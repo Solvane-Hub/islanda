@@ -14,8 +14,11 @@ import { normaliseContent, uuidV5 } from '@/lib/knowledge/chunk-id';
 /**
  * Distinct from the chunk namespace on purpose. A claim and the chunk it quotes
  * are different things; identical input strings must not produce a colliding id.
+ *
+ * Renamed from FOUNDRYAI_CLAIM_NAMESPACE during the Islanda rebrand; the
+ * literal UUID below is byte-for-byte unchanged.
  */
-const FOUNDRYAI_CLAIM_NAMESPACE = 'c4a91e7d-58b2-4a06-9f13-7e2b5d0a6c94';
+const NOVA_CLAIM_NAMESPACE = 'c4a91e7d-58b2-4a06-9f13-7e2b5d0a6c94';
 
 /** Unit separator — non-printable, so it cannot occur inside a field value. */
 const FIELD_SEPARATOR = '\u001f';
@@ -43,5 +46,5 @@ export function claimIdentityString(input: ClaimIdentityInput): string {
  * because a changed statement is a different claim.
  */
 export function deriveClaimId(input: ClaimIdentityInput): string {
-  return uuidV5(claimIdentityString(input), FOUNDRYAI_CLAIM_NAMESPACE);
+  return uuidV5(claimIdentityString(input), NOVA_CLAIM_NAMESPACE);
 }

@@ -68,6 +68,11 @@ export async function listMetricsForBusiness(
   return data ?? [];
 }
 
+export async function findMetricById(db: Db, metricId: string): Promise<BusinessMetric | null> {
+  const { data } = await db.from('business_metrics').select('*').eq('id', metricId).maybeSingle();
+  return data ?? null;
+}
+
 export async function listMetricsForPeriod(db: Db, periodId: string): Promise<BusinessMetric[]> {
   const { data } = await db
     .from('business_metrics')

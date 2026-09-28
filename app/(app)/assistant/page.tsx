@@ -58,7 +58,7 @@ export default async function AssistantPage({
   const ready = Boolean(current);
 
   /**
-   * What Foundry holds for this jurisdiction, in one line.
+   * What Islanda holds for this jurisdiction, in one line.
    *
    * ⚠ Every part of this comes from the database — the country name from
    *   `countries`, the pack version from the published pack, the synthetic flag
@@ -132,7 +132,7 @@ export default async function AssistantPage({
           today={
             intakeComplete
               ? {
-                  text: 'Your intake is complete, so FoundryAI already holds the profile this surface is built on. The remaining work is ours.',
+                  text: 'Your intake is complete, so Islanda already holds the profile this surface is built on. The remaining work is ours.',
                   href: '/dashboard',
                   label: 'Back to your workspace',
                 }

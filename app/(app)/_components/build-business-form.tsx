@@ -41,7 +41,7 @@ export function BuildBusinessForm({ countries }: { countries: { code: string; na
 
       <Field
         id="concept"
-        label="Tell FoundryAI what you want to build"
+        label="Tell Islanda what you want to build"
         size="question"
         description="For example: “A premium Bahamian skincare company selling natural products to tourists and local customers in Nassau.”"
         error={err('concept')}
@@ -77,7 +77,7 @@ export function BuildBusinessForm({ countries }: { countries: { code: string; na
         <Field
           id="countryCode"
           label="Where will it operate?"
-          description="This determines which government requirements FoundryAI applies. It cannot be inferred, so we ask directly."
+          description="This determines which government requirements Islanda applies. It cannot be inferred, so we ask directly."
           error={err('countryCode')}
         >
           {(aria) => (

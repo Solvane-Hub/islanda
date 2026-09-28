@@ -66,7 +66,7 @@ export const ZZ_PACK: KnowledgePack = {
   approval_note: null,
   superseded_at: null,
   superseded_by_id: null,
-  // Synthetic FoundryAI-authored corpus: no third-party copyright, publishable.
+  // Synthetic Islanda-authored corpus: no third-party copyright, publishable.
   commercial_publication_eligibility: 'cleared',
   created_at: '2026-01-01T00:00:00.000Z',
   updated_at: '2026-01-01T00:00:00.000Z',

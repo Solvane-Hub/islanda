@@ -88,7 +88,7 @@ async function resolveFundingCurrency(
 
 /**
  * The knowledge model is part of this service's public surface — callers ask
- * the Intake service what FoundryAI knows, never the database directly.
+ * the Intake service what Islanda knows, never the database directly.
  */
 export {
   INTAKE_SLOTS,

@@ -29,7 +29,9 @@ import { useCallback, useSyncExternalStore } from 'react';
  * site-data setting degrades to the default rather than throwing.
  */
 
-const STORAGE_KEY = 'foundryai-nova-voice';
+const STORAGE_KEY = 'islanda-nova-voice';
+/** Pre-rename key. Read once as a fallback, then migrated forward — never written again. */
+const LEGACY_STORAGE_KEY = 'foundryai-nova-voice';
 const ON = 'on';
 const OFF = 'off';
 
@@ -38,7 +40,16 @@ const listeners = new Set<() => void>();
 function read(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    return window.localStorage.getItem(STORAGE_KEY) === ON;
+    const current = window.localStorage.getItem(STORAGE_KEY);
+    if (current !== null) return current === ON;
+    // First read after the rename: carry a returning visitor's preference
+    // forward so it isn't silently reset to the OFF default.
+    const legacy = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy !== null) {
+      window.localStorage.setItem(STORAGE_KEY, legacy);
+      return legacy === ON;
+    }
+    return false;
   } catch {
     // Private mode, blocked site data, or a thumbnail context — treat as off.
     return false;

@@ -4,7 +4,7 @@ import type { FactProvenance } from '@/types/business';
 /**
  * Business Intelligence Core domain types (P2).
  *
- * The durable spine for FoundryAI understanding a business over its lifecycle:
+ * The durable spine for Islanda understanding a business over its lifecycle:
  * documents, financial periods, performance metrics, and goals. These live in
  * `types/` (not `lib/db/`) so `app/` and `components/` can name them without
  * importing the data-access layer.

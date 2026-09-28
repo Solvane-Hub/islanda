@@ -1,13 +1,15 @@
-# FoundryAI
+# Islanda
+
+_(Formerly FoundryAI — renamed after the buildathon; see CHANGELOG.md.)_
 
 An AI-native operating system for entrepreneurship, by **Solvane Hub**.
 
-FoundryAI turns a founder's plain-language business idea into an evidence-backed launch
+Islanda turns a founder's plain-language business idea into an evidence-backed launch
 roadmap — the registrations, licences, permits, agencies, fees, timelines, and funding
 programmes that apply to their business in their jurisdiction, each traceable to the
 government document it came from.
 
-> FoundryAI is not a chatbot. Authority comes from verified knowledge, not from the model.
+> Islanda is not a chatbot. Authority comes from verified knowledge, not from the model.
 
 **Current status:** Sprint 1 · Phase 0 — Platform Foundation. No AI, knowledge, or
 product features are implemented yet.

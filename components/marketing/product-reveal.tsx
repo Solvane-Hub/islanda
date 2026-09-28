@@ -264,7 +264,7 @@ export function ProductReveal({ journey }: { journey: React.ReactNode }) {
                   </div>
 
                   <p className="text-on-ink-subtle text-xs">
-                    Compliance, funding and growth are in development. FoundryAI will show a
+                    Compliance, funding and growth are in development. Islanda will show a
                     requirement only when it can cite the legislation behind it.
                   </p>
                 </div>

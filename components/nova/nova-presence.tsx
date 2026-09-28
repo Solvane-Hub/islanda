@@ -6,7 +6,7 @@ import { resolvePresenceConfig, type PresenceConfig } from '@/lib/nova/presence'
 import { novaStateLabel, type NovaState } from '@/components/ui/nova-mark';
 
 /**
- * Nova's physical presence — FoundryAI's intelligence made physical.
+ * Nova's physical presence — Islanda's intelligence made physical.
  *
  * ## What it is
  *

@@ -19,8 +19,11 @@ import {
 } from '@/services/intake';
 import { getGoalProgress } from '@/services/goals';
 import { getBusinessMetrics, getFinancialPeriods } from '@/services/financials';
+import { getEvidenceForMetrics } from '@/services/evidence';
 import { getBusinessDocuments } from '@/services/documents';
-import { buildJourney } from '@/services/progress';
+import { buildJourney, type Milestone } from '@/services/progress';
+import { toNovaBusinessFacts } from '@/services/nova/business-awareness';
+import type { BusinessPassport } from '@/services/passport';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
 import { BUSINESS_STAGE_LABELS, type BusinessStage } from '@/lib/validation/intake';
 import {
@@ -62,7 +65,7 @@ const STATUS: Record<string, string> = {
 /**
  * The founder briefing.
  *
- * Four questions in order: where am I, what do I do next, what does FoundryAI
+ * Four questions in order: where am I, what do I do next, what does Islanda
  * know, where am I on the route. Everything on the page comes from data the
  * founder already supplied or from `buildJourney()` — no metrics, no activity,
  * no charts of nothing.
@@ -105,7 +108,7 @@ export default async function DashboardPage() {
           <EmptyState
             icon={<Rocket aria-hidden="true" className="size-5" strokeWidth={1.75} />}
             title="You haven't created a business yet"
-            explanation="FoundryAI works out what your business needs — registrations, licences, permits and funding — from the country and industry you're operating in."
+            explanation="Islanda works out what your business needs — registrations, licences, permits and funding — from the country and industry you're operating in."
             nextStep="Start by telling us what you're building."
             action={
               <Link href="/businesses/new">
@@ -118,16 +121,24 @@ export default async function DashboardPage() {
     );
   }
 
-  const [intake, countries, identifiers, goalsWithProgress, metrics, periods, documents] =
-    await Promise.all([
-      getIntakeProfile(db, current.id),
-      getActiveCountries(db),
-      getBusinessIdentifiers(db, current.id),
-      getGoalProgress(db, current.id),
-      getBusinessMetrics(db, current.id),
-      getFinancialPeriods(db, current.id),
-      getBusinessDocuments(db, current.id),
-    ]);
+  const [intake, countries, identifiers, metrics, periods, documents] = await Promise.all([
+    getIntakeProfile(db, current.id),
+    getActiveCountries(db),
+    getBusinessIdentifiers(db, current.id),
+    getBusinessMetrics(db, current.id),
+    getFinancialPeriods(db, current.id),
+    getBusinessDocuments(db, current.id),
+  ]);
+  const goalsWithProgress = await getGoalProgress(db, current.id, metrics);
+  // Evidence for whatever metrics exist — cheap at today's volumes (P8
+  // activation, Milestone 3), and depends on knowing metric ids first, so it
+  // cannot join the batch above.
+  const evidenceByMetricId = await getEvidenceForMetrics(
+    db,
+    current.id,
+    metrics.map((m) => m.id),
+  );
+
   const isManage = current.business_mode === 'manage';
   const journey = buildJourney(current, intake);
   const progress = intakeProgress(intake);
@@ -137,6 +148,31 @@ export default async function DashboardPage() {
   // The country is stored as an ISO code; the founder should read the name.
   const countryName =
     countries.find((c) => c.code === current.country_code)?.name ?? current.country_code;
+
+  // The resolved-value business facts, shaped exactly like `BusinessPassport`'s
+  // own `identity`/`definition` (P7 Milestone 5) — `current` and `intake` are
+  // already in hand, so this is the same derivation Passport composes from
+  // (`toNovaBusinessFacts`), not a second query. Command Centre is the one
+  // place these facts render; identifiers are never part of this shape.
+  const passportFacts = toNovaBusinessFacts(current, intake);
+  const commandCenterIdentity: BusinessPassport['identity'] = {
+    legalName: passportFacts.legalName,
+    tradingName: passportFacts.tradingName,
+    businessType: passportFacts.businessType,
+    industry: passportFacts.industry,
+    countryCode: current.country_code,
+    jurisdictionName: countryName,
+    stage: passportFacts.stage,
+    operatingStatus: passportFacts.operatingStatus,
+  };
+  const commandCenterDefinition: BusinessPassport['definition'] = {
+    activities: passportFacts.activities,
+    productsServices: passportFacts.productsServices,
+    targetCustomers: passportFacts.targetCustomers,
+    location: passportFacts.location,
+    employeeCount: passportFacts.employeeCount,
+    founderGoals: passportFacts.founderGoals,
+  };
 
   const knowledge = new Map(readKnowledge(intake).map((entry) => [entry.slot.id, entry]));
   const stage = intake?.business_stage
@@ -197,6 +233,53 @@ export default async function DashboardPage() {
   const openItems: PriorityItem[] = rows
     .filter((row) => !isKnowledgeEstablished(row.state ?? 'unknown'))
     .map((row) => ({ label: row.label, href: row.href }));
+
+  // The founder journey (`buildJourney`) only ever proposes two real moves —
+  // create a business, complete intake — and falls silent once intake is
+  // done, because roadmap/compliance/funding are deliberately `blocked` until
+  // those capabilities exist (services/progress). That silence is real: once
+  // intake is complete there is no deterministic "next move" today unless one
+  // is derived from the other foundational state already on this page.
+  //
+  // This is a fixed, three-step cascade over existing state — not a
+  // recommendation engine. Exactly one fires, in this order, and only once
+  // intake is done (`journey.next` already owns the slot until then): record
+  // a first financial figure, set a first goal, add a first document. Each
+  // reuses the exact route/anchor its own module already offers.
+  const foundationalPriority: Pick<Milestone, 'title' | 'href' | 'description'> | null =
+    journey.next
+      ? null
+      : metrics.length === 0
+        ? {
+            title: 'Record your first financial figure',
+            href: '/dashboard#financials',
+            description: "You haven't recorded any financial figures yet.",
+          }
+        : goalsWithProgress.length === 0
+          ? {
+              title: 'Set your first goal',
+              href: '/dashboard#goals',
+              description: "You haven't added a business goal yet.",
+            }
+          : documents.length === 0
+            ? {
+                title: 'Add your first document',
+                href: '/documents',
+                description: "Your business doesn't have any documents yet.",
+              }
+            : null;
+
+  const nextMove: Milestone | null =
+    journey.next ??
+    (foundationalPriority
+      ? {
+          key: 'foundational-action',
+          title: foundationalPriority.title,
+          description: foundationalPriority.description,
+          state: 'current',
+          href: foundationalPriority.href,
+        }
+      : null);
 
   // ── Command-centre modules — real P2 data only, never fabricated ──────────
   const performanceView = buildPerformanceView(periods, metrics);
@@ -280,12 +363,11 @@ export default async function DashboardPage() {
           aria-labelledby="command-center-heading"
           className="flex flex-col gap-7 p-6 sm:p-8"
         >
-          <SurfaceLabel id="command-center-heading">
-            Here&apos;s what I know about your business
-          </SurfaceLabel>
+          <SurfaceLabel id="command-center-heading">Business identity</SurfaceLabel>
           <BusinessCommandCenter
-            object={{ business: current, profile: intake, identifiers }}
-            countryName={countryName}
+            identity={commandCenterIdentity}
+            definition={commandCenterDefinition}
+            identifiers={identifiers}
           />
         </WorkspaceSurface>
       ) : null}
@@ -302,13 +384,13 @@ export default async function DashboardPage() {
       <div className="relative grid gap-3.5 sm:gap-4 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:items-start">
         {/* LEFT — secondary control column. Recessed, dense, quiet. */}
         <div className="flex flex-col gap-3.5 sm:gap-4">
-          <DashboardPriorities nextMove={journey.next} openItems={openItems} className="flex-1" />
+          <DashboardPriorities nextMove={nextMove} openItems={openItems} className="flex-1" />
           <IntakeDial completed={progress.completed} total={progress.total} />
         </div>
 
         {/* RIGHT — the dominant workspace, then journey · Nova. */}
         <div className="flex min-w-0 flex-col gap-5 sm:gap-6">
-          {/* PRIMARY — FoundryAI's understanding of the business. Lifted, spacious. */}
+          {/* PRIMARY — Islanda's understanding of the business. Lifted, spacious. */}
           <WorkspaceSurface
             as="section"
             tone="shell"
@@ -316,7 +398,7 @@ export default async function DashboardPage() {
             className="flex flex-col gap-7 p-6 sm:p-8 lg:p-9"
           >
             <div className="flex flex-col gap-2.5">
-              <SurfaceLabel id="snapshot-heading">What FoundryAI knows</SurfaceLabel>
+              <SurfaceLabel id="snapshot-heading">What you&apos;ve told us</SurfaceLabel>
               {intake?.description ? (
                 <p className="text-on-ink max-w-2xl text-lg leading-relaxed text-pretty italic sm:text-xl">
                   “{intake.description}”
@@ -360,13 +442,21 @@ export default async function DashboardPage() {
         <SurfaceLabel id="command-modules-heading" className="px-1">
           Your business
         </SurfaceLabel>
-        <PerformanceModule
-          view={performanceView}
-          periods={periodOptions}
-          documents={documentOptions}
-        />
+        {/* Scroll targets for the "Financials"/"Goals" nav items (P7 Phase 1) —
+            neither has a page of its own yet, so the nav links here rather
+            than inventing a route for a module that already exists. */}
+        <div id="financials" className="scroll-mt-4">
+          <PerformanceModule
+            view={performanceView}
+            periods={periodOptions}
+            documents={documentOptions}
+            evidenceByMetricId={evidenceByMetricId}
+          />
+        </div>
         <div className="grid gap-3.5 sm:gap-4 lg:grid-cols-2">
-          <GoalsModule items={goalItems} />
+          <div id="goals" className="min-w-0 scroll-mt-4">
+            <GoalsModule items={goalItems} />
+          </div>
           <DocumentsModule documents={documents} />
         </div>
         <NovaFinance />

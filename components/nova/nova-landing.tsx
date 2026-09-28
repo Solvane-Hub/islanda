@@ -9,7 +9,7 @@ import { currentNovaUpdate } from '@/lib/nova/updates';
  *
  * ## The fragmentation story, told without a diagram
  *
- * The problem Foundry exists to solve is that the information a founder needs
+ * The problem Islanda exists to solve is that the information a founder needs
  * is scattered across separate Acts, regulations and agency notices that do not
  * refer to one another. The temptation is to draw that: three boxes, an arrow,
  * a funnel.
@@ -21,7 +21,7 @@ import { currentNovaUpdate } from '@/lib/nova/updates';
  *
  * The copy underneath names the problem once, in a sentence, and then gets out
  * of the way. Everything else on this screen is either the composer or a fact
- * about what Foundry actually holds.
+ * about what Islanda actually holds.
  */
 
 export function NovaLanding({
@@ -33,7 +33,7 @@ export function NovaLanding({
 }: {
   businessName: string;
   /**
-   * What Foundry holds for this jurisdiction, in one line.
+   * What Islanda holds for this jurisdiction, in one line.
    *
    * ⚠ Computed by the page from the database. Never a claim this component
    *   invents — if there is nothing to say, the caller passes null.
@@ -82,7 +82,7 @@ export function NovaLanding({
             </h1>
             <p className="text-on-ink-muted mt-3 max-w-xl text-sm text-pretty sm:text-base">
               What applies to your business is spread across separate Acts, regulations and agency
-              notices. Nova searches the published sources Foundry holds for your jurisdiction and
+              notices. Nova searches the published sources Islanda holds for your jurisdiction and
               quotes what it finds — with the provision it came from.
             </p>
 

@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getActiveCountries } from '@/services/business';
 import { Alert } from '@/components/ui/alert';
 
-export const metadata: Metadata = { title: 'Bring your business into FoundryAI' };
+export const metadata: Metadata = { title: 'Bring your business into Islanda' };
 
 /**
  * The two front doors. Both create the same Business Object — this screen only
@@ -20,14 +20,14 @@ const PATHS = [
     icon: Sparkles,
     eyebrow: 'Start from an idea',
     title: 'Build my business',
-    body: 'You have an idea or an early concept. Describe what you want to build, and FoundryAI starts shaping it into a business with you.',
+    body: 'You have an idea or an early concept. Describe what you want to build, and Islanda starts shaping it into a business with you.',
   },
   {
     href: '/businesses/new/manage',
     icon: Building2,
     eyebrow: 'You already operate',
     title: 'Manage my business',
-    body: 'You already own or run a business. Bring it into FoundryAI — its identity, registrations and records — and make it your intelligence layer.',
+    body: 'You already own or run a business. Bring it into Islanda — its identity, registrations and records — and make it your intelligence layer.',
   },
 ] as const;
 
@@ -38,12 +38,9 @@ export default async function NewBusinessPage() {
   if (countries.length === 0) {
     return (
       <div className="flex flex-col gap-6">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Bring your business into FoundryAI
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Bring your business into Islanda</h1>
         <Alert tone="info" title="No jurisdictions are available yet">
-          FoundryAI needs an active country before a business can be created. Please contact
-          support.
+          Islanda needs an active country before a business can be created. Please contact support.
         </Alert>
       </div>
     );
@@ -56,11 +53,11 @@ export default async function NewBusinessPage() {
           New business
         </p>
         <h1 className="text-on-ink text-2xl font-semibold tracking-[-0.02em] text-balance sm:text-3xl">
-          Bring your business into FoundryAI
+          Bring your business into Islanda
         </h1>
         <p className="text-on-ink-muted max-w-prose text-sm">
-          Whether you are starting from an idea or already operating, FoundryAI becomes the place
-          your business lives. Choose where you are today — you can change anything later.
+          Whether you are starting from an idea or already operating, Islanda becomes the place your
+          business lives. Choose where you are today — you can change anything later.
         </p>
       </div>
 
@@ -96,7 +93,7 @@ export default async function NewBusinessPage() {
       </div>
 
       <p className="text-on-ink-subtle text-xs">
-        Nothing here is submitted to any government agency. FoundryAI keeps your business private to
+        Nothing here is submitted to any government agency. Islanda keeps your business private to
         your account.
       </p>
     </div>

@@ -1,11 +1,15 @@
-# FoundryAI — Context for AI Coding Assistants
+# Islanda — Context for AI Coding Assistants
+
+_(Product renamed from FoundryAI to Islanda after the buildathon. The company remains
+Solvane Hub; the AI agent remains Nova. Historical documents and applied migrations
+still say FoundryAI where that was the name at the time — see CHANGELOG.md.)_
 
 This file mirrors the **Claude Code Master Context** into the repository so AI
 assistants read it automatically. The Knowledge Base remains canonical.
 
 ## Role
 
-You are a lead software engineer on FoundryAI. You implement software.
+You are a lead software engineer on Islanda. You implement software.
 You do not redesign architecture. You do not redefine product scope.
 
 ## Read before implementing

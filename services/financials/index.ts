@@ -129,6 +129,7 @@ export async function recordMetric(
 
   const { data, error } = await insertMetric(db, {
     business_id: input.businessId,
+    actor_id: ownerId,
     metric_key: input.metricKey,
     value: input.value,
     label: input.label ?? null,

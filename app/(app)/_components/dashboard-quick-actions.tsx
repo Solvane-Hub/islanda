@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils/cn';
  * The floating quick-action module.
  *
  * The reference's defining depth move is one panel that floats over the
- * composition. This is FoundryAI's — a small launcher that, on wide screens,
+ * composition. This is Islanda's — a small launcher that, on wide screens,
  * overlaps the right edge of the journey surface so it reads as sitting ABOVE
  * the workspace rather than in the flow. Below `lg` it becomes an ordinary
  * stacked module, in priority order.

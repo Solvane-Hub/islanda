@@ -253,6 +253,7 @@ export type Database = {
       };
       business_documents: {
         Row: {
+          actor_id: string | null;
           business_id: string;
           byte_size: number | null;
           content_type: string | null;
@@ -272,6 +273,7 @@ export type Database = {
           verification_state: Database['public']['Enums']['verification_state'];
         };
         Insert: {
+          actor_id?: string | null;
           business_id: string;
           byte_size?: number | null;
           content_type?: string | null;
@@ -291,6 +293,7 @@ export type Database = {
           verification_state?: Database['public']['Enums']['verification_state'];
         };
         Update: {
+          actor_id?: string | null;
           business_id?: string;
           byte_size?: number | null;
           content_type?: string | null;
@@ -319,6 +322,272 @@ export type Database = {
           },
           {
             foreignKeyName: 'business_documents_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_evidence: {
+        Row: {
+          actor_id: string;
+          business_id: string;
+          created_at: string;
+          document_id: string | null;
+          id: string;
+          knowledge_chunk_id: string | null;
+          provenance: Database['public']['Enums']['fact_provenance'];
+          retracted_at: string | null;
+          verification_state: Database['public']['Enums']['verification_state'];
+        };
+        Insert: {
+          actor_id: string;
+          business_id: string;
+          created_at?: string;
+          document_id?: string | null;
+          id?: string;
+          knowledge_chunk_id?: string | null;
+          provenance: Database['public']['Enums']['fact_provenance'];
+          retracted_at?: string | null;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Update: {
+          actor_id?: string;
+          business_id?: string;
+          created_at?: string;
+          document_id?: string | null;
+          id?: string;
+          knowledge_chunk_id?: string | null;
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          retracted_at?: string | null;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'be_document_same_business';
+            columns: ['business_id', 'document_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_documents';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_knowledge_chunk_id_fkey';
+            columns: ['knowledge_chunk_id'];
+            isOneToOne: false;
+            referencedRelation: 'knowledge_chunks';
+            referencedColumns: ['chunk_id'];
+          },
+        ];
+      };
+      business_evidence_for_cases: {
+        Row: {
+          actor_id: string;
+          business_id: string;
+          case_id: string;
+          created_at: string;
+          evidence_id: string;
+          id: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Insert: {
+          actor_id: string;
+          business_id: string;
+          case_id: string;
+          created_at?: string;
+          evidence_id: string;
+          id?: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Update: {
+          actor_id?: string;
+          business_id?: string;
+          case_id?: string;
+          created_at?: string;
+          evidence_id?: string;
+          id?: string;
+          relationship?: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'befc_case_same_business';
+            columns: ['business_id', 'case_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_cases';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'befc_evidence_same_business';
+            columns: ['business_id', 'evidence_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_evidence';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_for_cases_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_evidence_for_goals: {
+        Row: {
+          actor_id: string;
+          business_id: string;
+          created_at: string;
+          evidence_id: string;
+          goal_id: string;
+          id: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Insert: {
+          actor_id: string;
+          business_id: string;
+          created_at?: string;
+          evidence_id: string;
+          goal_id: string;
+          id?: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Update: {
+          actor_id?: string;
+          business_id?: string;
+          created_at?: string;
+          evidence_id?: string;
+          goal_id?: string;
+          id?: string;
+          relationship?: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'befg_evidence_same_business';
+            columns: ['business_id', 'evidence_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_evidence';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'befg_goal_same_business';
+            columns: ['business_id', 'goal_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_goals';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_for_goals_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_evidence_for_metrics: {
+        Row: {
+          actor_id: string;
+          business_id: string;
+          created_at: string;
+          evidence_id: string;
+          id: string;
+          metric_id: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Insert: {
+          actor_id: string;
+          business_id: string;
+          created_at?: string;
+          evidence_id: string;
+          id?: string;
+          metric_id: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Update: {
+          actor_id?: string;
+          business_id?: string;
+          created_at?: string;
+          evidence_id?: string;
+          id?: string;
+          metric_id?: string;
+          relationship?: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'befm_evidence_same_business';
+            columns: ['business_id', 'evidence_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_evidence';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'befm_metric_same_business';
+            columns: ['business_id', 'metric_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_metrics';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_for_metrics_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_evidence_for_requirements: {
+        Row: {
+          actor_id: string;
+          business_id: string;
+          business_regulatory_requirement_id: string;
+          created_at: string;
+          evidence_id: string;
+          id: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Insert: {
+          actor_id: string;
+          business_id: string;
+          business_regulatory_requirement_id: string;
+          created_at?: string;
+          evidence_id: string;
+          id?: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Update: {
+          actor_id?: string;
+          business_id?: string;
+          business_regulatory_requirement_id?: string;
+          created_at?: string;
+          evidence_id?: string;
+          id?: string;
+          relationship?: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'befr_evidence_same_business';
+            columns: ['business_id', 'evidence_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_evidence';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'befr_requirement_same_business';
+            columns: ['business_id', 'business_regulatory_requirement_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_regulatory_requirements';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_for_requirements_business_id_fkey';
             columns: ['business_id'];
             isOneToOne: false;
             referencedRelation: 'businesses';
@@ -369,6 +638,7 @@ export type Database = {
       };
       business_goals: {
         Row: {
+          actor_id: string | null;
           business_id: string;
           created_at: string;
           description: string | null;
@@ -384,6 +654,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          actor_id?: string | null;
           business_id: string;
           created_at?: string;
           description?: string | null;
@@ -399,6 +670,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          actor_id?: string | null;
           business_id?: string;
           created_at?: string;
           description?: string | null;
@@ -472,6 +744,7 @@ export type Database = {
       };
       business_metrics: {
         Row: {
+          actor_id: string | null;
           as_of_date: string | null;
           business_id: string;
           created_at: string;
@@ -488,6 +761,7 @@ export type Database = {
           verification_state: Database['public']['Enums']['verification_state'];
         };
         Insert: {
+          actor_id?: string | null;
           as_of_date?: string | null;
           business_id: string;
           created_at?: string;
@@ -504,6 +778,7 @@ export type Database = {
           verification_state?: Database['public']['Enums']['verification_state'];
         };
         Update: {
+          actor_id?: string | null;
           as_of_date?: string | null;
           business_id?: string;
           created_at?: string;
@@ -696,6 +971,7 @@ export type Database = {
           id: string;
           industry: string | null;
           legal_name: string | null;
+          logo_storage_path: string | null;
           name: string;
           owner_id: string;
           status: Database['public']['Enums']['business_status'];
@@ -711,6 +987,7 @@ export type Database = {
           id?: string;
           industry?: string | null;
           legal_name?: string | null;
+          logo_storage_path?: string | null;
           name: string;
           owner_id: string;
           status?: Database['public']['Enums']['business_status'];
@@ -726,6 +1003,7 @@ export type Database = {
           id?: string;
           industry?: string | null;
           legal_name?: string | null;
+          logo_storage_path?: string | null;
           name?: string;
           owner_id?: string;
           status?: Database['public']['Enums']['business_status'];
@@ -1587,6 +1865,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      waitlist_signups: {
+        Row: {
+          business_name: string | null;
+          created_at: string;
+          email: string;
+          first_name: string | null;
+          id: string;
+          role: string | null;
+          source: string | null;
+          status: Database['public']['Enums']['waitlist_signup_status'];
+          updated_at: string;
+        };
+        Insert: {
+          business_name?: string | null;
+          created_at?: string;
+          email: string;
+          first_name?: string | null;
+          id?: string;
+          role?: string | null;
+          source?: string | null;
+          status?: Database['public']['Enums']['waitlist_signup_status'];
+          updated_at?: string;
+        };
+        Update: {
+          business_name?: string | null;
+          created_at?: string;
+          email?: string;
+          first_name?: string | null;
+          id?: string;
+          role?: string | null;
+          source?: string | null;
+          status?: Database['public']['Enums']['waitlist_signup_status'];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -1690,6 +2004,7 @@ export type Database = {
       document_extraction_status:
         'not_started' | 'pending' | 'extracted' | 'failed' | 'unavailable';
       document_processing_status: 'pending' | 'stored' | 'processing' | 'processed' | 'failed';
+      evidence_relationship_type: 'supports' | 'derived_from';
       fact_provenance:
         | 'founder_provided'
         | 'evidence_verified'
@@ -1728,6 +2043,7 @@ export type Database = {
         | 'agency_publication';
       validation_outcome: 'validated' | 'partially_validated' | 'unverified' | 'rejected';
       verification_state: 'unverified' | 'verified' | 'verification_unavailable';
+      waitlist_signup_status: 'pending' | 'invited' | 'declined';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1907,6 +2223,7 @@ export const Constants = {
       commercial_publication_eligibility: ['restricted', 'cleared'],
       document_extraction_status: ['not_started', 'pending', 'extracted', 'failed', 'unavailable'],
       document_processing_status: ['pending', 'stored', 'processing', 'processed', 'failed'],
+      evidence_relationship_type: ['supports', 'derived_from'],
       fact_provenance: [
         'founder_provided',
         'evidence_verified',
@@ -1960,6 +2277,7 @@ export const Constants = {
       ],
       validation_outcome: ['validated', 'partially_validated', 'unverified', 'rejected'],
       verification_state: ['unverified', 'verified', 'verification_unavailable'],
+      waitlist_signup_status: ['pending', 'invited', 'declined'],
     },
   },
 } as const;

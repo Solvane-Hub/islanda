@@ -81,6 +81,8 @@ export function formatMetricValue(
 
 /** A recorded metric, projected for display. */
 export interface MetricView {
+  /** The underlying `business_metrics.id` — the row this figure came from. */
+  id: string;
   key: BusinessMetricKey;
   label: string;
   value: number;
@@ -134,6 +136,7 @@ function latestByKey(metrics: readonly BusinessMetric[]): Map<BusinessMetricKey,
 
 function toMetricView(metric: BusinessMetric, periodLabel: string | null): MetricView {
   return {
+    id: metric.id,
     key: metric.metric_key,
     label: KEY_LABELS[metric.metric_key],
     value: num(metric.value),

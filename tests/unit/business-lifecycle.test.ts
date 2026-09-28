@@ -108,6 +108,7 @@ function biz(id: string, name = id): Business {
     legal_name: null,
     trading_name: null,
     business_type: null,
+    logo_storage_path: null,
     archived_at: null,
     created_at: '2026-08-05T00:00:00Z',
     updated_at: '2026-08-05T00:00:00Z',

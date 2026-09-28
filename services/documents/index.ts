@@ -60,6 +60,7 @@ export async function addBusinessDocument(
 
   const { data, error } = await insertBusinessDocument(db, {
     business_id: input.businessId,
+    actor_id: ownerId,
     document_type: input.documentType,
     title: input.title,
     financial_period_id: input.financialPeriodId ?? null,
@@ -133,6 +134,7 @@ export async function beginDocumentUpload(
 
   const { data: row, error } = await insertBusinessDocument(db, {
     business_id: input.businessId,
+    actor_id: ownerId,
     document_type: input.documentType,
     title: input.title,
     financial_period_id: input.financialPeriodId ?? null,

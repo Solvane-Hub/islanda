@@ -17,9 +17,14 @@ import * as profileService from '@/services/profile';
 import * as onboardingService from '@/services/onboarding';
 import * as goalsService from '@/services/goals';
 import * as financialsService from '@/services/financials';
+import * as evidenceService from '@/services/evidence';
 import { updateProfileSchema } from '@/lib/validation/profile';
 import { buildBusinessSchema, manageBusinessSchema } from '@/lib/validation/business-object';
-import { createGoalSchema, recordFigureSchema } from '@/lib/validation/business-intelligence';
+import {
+  attachEvidenceSchema,
+  createGoalSchema,
+  recordFigureSchema,
+} from '@/lib/validation/business-intelligence';
 import { resolveMetricEntry } from '@/lib/business-intelligence/performance';
 import { getCurrentUser, type RequestContext } from '@/services/auth';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
@@ -563,6 +568,76 @@ export async function recordFigureAction(input: {
     revalidatePath('/dashboard');
     revalidatePath('/documents');
     return ok({ id: metric.id });
+  } catch (error) {
+    return flatten(error, ctx);
+  }
+}
+
+/**
+ * Attach an existing business document to an existing metric as evidence
+ * (P8 activation — ADR-0022). `businessId` is never taken from the client:
+ * it is the server-resolved current business, exactly like every other write
+ * action in this file, so a client-supplied metric/document pairing is
+ * always re-checked against the business the caller is actually working in.
+ */
+export async function attachEvidenceAction(input: {
+  metricId: string;
+  documentId: string;
+}): Promise<Result<{ linkId: string; documentTitle: string }>> {
+  const ctx = await requestContext();
+  const parsed = attachEvidenceSchema.safeParse(input);
+  if (!parsed.success) {
+    return fail(
+      new AppError({
+        code: 'VALIDATION_FAILED',
+        humanMessage: 'Please choose a document.',
+        correlationId: ctx.correlationId,
+      }),
+      toFieldErrors(parsed.error.issues),
+    );
+  }
+
+  try {
+    const db = await createClient();
+    const user = await getCurrentUser(db);
+    if (!user) {
+      return fail(
+        new AppError({
+          code: 'AUTH_SESSION_EXPIRED',
+          humanMessage: 'Your session expired. Please sign in again.',
+          correlationId: ctx.correlationId,
+        }),
+      );
+    }
+
+    const [businesses, store] = await Promise.all([businessService.listBusinesses(db), cookies()]);
+    const business = businessService.resolveCurrentBusiness(
+      businesses,
+      store.get(CURRENT_BUSINESS_COOKIE)?.value,
+    );
+    if (!business) {
+      return fail(
+        new AppError({
+          code: 'NOT_FOUND',
+          humanMessage: 'Select a business before attaching evidence.',
+          correlationId: ctx.correlationId,
+        }),
+      );
+    }
+
+    const evidence = await evidenceService.attachMetricEvidence(
+      db,
+      user.id,
+      {
+        businessId: business.id,
+        metricId: parsed.data.metricId,
+        documentId: parsed.data.documentId,
+      },
+      ctx,
+    );
+
+    revalidatePath('/dashboard');
+    return ok({ linkId: evidence.linkId, documentTitle: evidence.documentTitle });
   } catch (error) {
     return flatten(error, ctx);
   }

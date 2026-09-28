@@ -140,3 +140,15 @@ export const createGoalSchema = z.object({
 });
 
 export type CreateGoalInput = z.infer<typeof createGoalSchema>;
+
+/**
+ * Attaching an existing document to an existing metric as evidence (P8
+ * activation). Both ids are required and are re-verified server-side against
+ * the current business — this schema only checks shape, never ownership.
+ */
+export const attachEvidenceSchema = z.object({
+  metricId: z.uuid('Unknown metric.'),
+  documentId: z.uuid('Choose a document.'),
+});
+
+export type AttachEvidenceInput = z.infer<typeof attachEvidenceSchema>;

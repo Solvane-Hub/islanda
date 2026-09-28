@@ -43,7 +43,7 @@ export default function Loading() {
             Setting up Nova…
           </p>
           <p className="text-on-ink-muted mt-3 max-w-xl text-sm text-pretty sm:text-base">
-            Loading the published sources Foundry holds for your jurisdiction.
+            Loading the published sources Islanda holds for your jurisdiction.
           </p>
         </div>
       </section>

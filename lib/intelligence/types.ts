@@ -3,7 +3,7 @@ import type { NovaPerformanceContext } from '@/lib/business-intelligence/perform
 /**
  * Intelligence Gateway — shared contracts (P5).
  *
- * The single, controlled vocabulary for FoundryAI's future LLM-powered
+ * The single, controlled vocabulary for Islanda's future LLM-powered
  * capabilities. Pure types only — no I/O, no provider SDK, importable anywhere.
  *
  * Core principle (see docs/architecture/intelligence-gateway.md): the LLM is

@@ -1,9 +1,9 @@
 /**
  * Solvane Hub Tech — optional execution layer (architecture only).
  *
- * FoundryAI is Solvane's flagship product and Solvane is also a technology
- * services company, so FoundryAI may eventually offer an OPTIONAL path to
- * Solvane's execution help when a genuine business need calls for it. This
+ * Islanda is Solvane Hub's flagship product and Solvane Hub is also a technology
+ * services company, so Islanda may eventually offer an OPTIONAL path to
+ * Solvane Hub's execution help when a genuine business need calls for it. This
  * module establishes the boundary and vocabulary for that — and nothing more.
  *
  * ## Non-negotiable product principles (encoded as structure)
@@ -16,7 +16,7 @@
  *  2. **The founder is never forced down the Solvane path.** Every initiative
  *     carries a first-class "do it myself" option; `executionOptions` is
  *     constructed self-first by `initiative()`.
- *  3. **FoundryAI stays valuable even if no Solvane service is ever bought.**
+ *  3. **Islanda stays valuable even if no Solvane service is ever bought.**
  *     Nothing here is persisted, wired to checkout, or required by the Business
  *     Intelligence Core. It is a typed boundary a future capability can build on
  *     without rewriting the Business Object.
@@ -156,7 +156,7 @@ export function initiative(params: {
   solvane?: { label: string; serviceCategory: SolvaneServiceCategory };
 }): BusinessInitiative {
   const options: ExecutionOption[] = [
-    { kind: 'self', label: params.selfLabel ?? 'Plan it myself with FoundryAI' },
+    { kind: 'self', label: params.selfLabel ?? 'Plan it myself with Islanda' },
   ];
   if (params.solvane) {
     options.push({

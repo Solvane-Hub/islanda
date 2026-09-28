@@ -8,7 +8,7 @@ import type { Milestone } from '@/services/progress';
  * What requires attention.
  *
  * The left module of the workspace — the reference's "Tasks" panel, in
- * FoundryAI terms. ⚠ It invents nothing: every item is real state the founder
+ * Islanda terms. ⚠ It invents nothing: every item is real state the founder
  * can act on — the next move `buildJourney()` computed, and the intake slots
  * that are genuinely unanswered, each linking to the route that resolves it.
  * When there is nothing outstanding it says so and points at Nova, rather than
@@ -78,6 +78,11 @@ export function DashboardPriorities({
                   <span className="text-2xs text-bahama-turquoise block font-medium tracking-[0.12em] uppercase">
                     Next move
                   </span>
+                  {nextMove.description ? (
+                    <span className="text-on-ink-muted mt-1 block text-xs text-pretty">
+                      {nextMove.description}
+                    </span>
+                  ) : null}
                 </span>
               </Link>
             </li>

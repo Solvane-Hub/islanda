@@ -1,24 +1,24 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { WorkspaceSurface } from '@/components/ui/workspace-surface';
-import { NAV_GROUPS } from './nav-items';
+import { NAV_SECTORS } from './nav-items';
 
 /**
  * The rooms that are coming online.
  *
- * Every surface FoundryAI will have, shown as a place rather than as a greyed
+ * Every surface Islanda will have, shown as a place rather than as a greyed
  * menu item — with the one thing it is actually waiting for, and whether that
  * thing exists yet. `intakeComplete` is real application state, so the tiles
  * change as the founder works. Nothing else is claimed about them.
  *
- * The list is derived from `NAV_GROUPS` rather than restated, so a route added
- * to the rail cannot silently go missing here.
+ * The list is derived from `NAV_SECTORS` rather than restated, so a route
+ * added to the rail cannot silently go missing here.
  *
  * "Beautiful" is not "available". These read as doors, and the copy never
  * implies anything behind them is built.
  */
 export function SurfaceTiles({ intakeComplete }: { intakeComplete: boolean }) {
-  const upcoming = NAV_GROUPS.flatMap((g) => g.items).filter((i) => !i.available);
+  const upcoming = NAV_SECTORS.flatMap((g) => g.items).filter((i) => !i.available);
 
   return (
     <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

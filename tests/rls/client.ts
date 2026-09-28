@@ -13,8 +13,19 @@ const aEmail = process.env.RLS_TEST_USER_A_EMAIL;
 const aPassword = process.env.RLS_TEST_USER_A_PASSWORD;
 const bEmail = process.env.RLS_TEST_USER_B_EMAIL;
 const bPassword = process.env.RLS_TEST_USER_B_PASSWORD;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export const rlsConfigured = Boolean(url && anonKey && aEmail && aPassword && bEmail && bPassword);
+
+/**
+ * Whether a service-role client can be built. Gates the handful of tests that
+ * need to do something the application itself never does through the API —
+ * currently, creating and deleting a throwaway `auth.users` row to prove an
+ * `ON DELETE SET NULL` foreign key live rather than by reading migration
+ * metadata. Separate from `rlsConfigured` since an environment can have the
+ * two test users without necessarily exposing the service-role key to tests.
+ */
+export const adminConfigured = Boolean(url && serviceRoleKey);
 
 /**
  * Skipping a security suite silently is how isolation regressions ship.
@@ -42,6 +53,18 @@ function client(): Db {
 /** An unauthenticated client — used to prove `anon` can reach nothing. */
 export function anonClient(): Db {
   return client();
+}
+
+/**
+ * Service-role client. BYPASSES RLS — test setup/teardown only, never a
+ * stand-in for a real tenant. Used exactly once today: creating and deleting
+ * a throwaway `auth.users` row to prove `ON DELETE SET NULL` live on
+ * `actor_id`. Guarded by `adminConfigured`; callers must check it first.
+ */
+export function adminClient(): Db {
+  return createClient<Database>(url!, serviceRoleKey!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 export async function signIn(which: 'A' | 'B'): Promise<{ db: Db; userId: string }> {

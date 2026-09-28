@@ -59,7 +59,7 @@ export async function RoadmapRoute({
         today={
           intakeComplete
             ? {
-                text: 'Your intake is complete, so FoundryAI already holds the profile this surface will be built on. Nothing further is needed from you here.',
+                text: 'Your intake is complete, so Islanda already holds the profile this surface will be built on. Nothing further is needed from you here.',
                 href: '/dashboard',
                 label: 'Back to your workspace',
               }

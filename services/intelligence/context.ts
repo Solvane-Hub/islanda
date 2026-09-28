@@ -1,9 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
-import { getActiveCountries, getBusinessObject } from '@/services/business';
+import { getActiveCountries } from '@/services/business';
+import { assembleBusinessFacts } from '@/services/business/facts';
 import { getFinancialPeriods, getBusinessMetrics } from '@/services/financials';
 import { getGoalProgress } from '@/services/goals';
-import { toNovaBusinessFacts } from '@/services/nova/business-awareness';
 import {
   buildPerformanceView,
   toNovaPerformanceContext,
@@ -17,8 +17,9 @@ import type { IntelligenceContext } from '@/lib/intelligence/types';
  *
  * Runs through the RLS-scoped client and the existing services, so it reads only
  * what the caller owns (business isolation) and reuses — never duplicates — the
- * Business Object, the P4 performance derivation (`toNovaPerformanceContext`),
- * goals and goal-progress. The P4 financial context plugs straight in here.
+ * shared business facts contract (`assembleBusinessFacts`), the P4 performance
+ * derivation (`toNovaPerformanceContext`), goals and goal-progress. The P4
+ * financial context plugs straight in here.
  *
  * ⚠ It NEVER reads `business_identifiers` and the built context has no field for
  *   a sensitive identifier, so none can reach an LLM.
@@ -27,23 +28,21 @@ export async function assembleIntelligenceContext(
   db: SupabaseClient<Database>,
   businessId: string,
 ): Promise<IntelligenceContext | null> {
-  const [object, countries] = await Promise.all([
-    getBusinessObject(db, businessId),
+  const [facts, countries] = await Promise.all([
+    assembleBusinessFacts(db, businessId),
     getActiveCountries(db),
   ]);
-  if (!object) return null; // not found or not owned (RLS)
+  if (!facts) return null; // not found or not owned (RLS)
 
-  const [periods, metrics, goalRows] = await Promise.all([
+  const [periods, metrics] = await Promise.all([
     getFinancialPeriods(db, businessId),
     getBusinessMetrics(db, businessId),
-    getGoalProgress(db, businessId),
   ]);
+  const goalRows = await getGoalProgress(db, businessId, metrics);
 
-  const facts = toNovaBusinessFacts(object.business, object.profile);
   const performance = toNovaPerformanceContext(buildPerformanceView(periods, metrics));
   const jurisdiction =
-    countries.find((c) => c.code === object.business.country_code)?.name ??
-    object.business.country_code;
+    countries.find((c) => c.code === facts.countryCode)?.name ?? facts.countryCode;
 
   const goals = goalRows.map(({ goal, progress }) => ({
     title: goal.title,

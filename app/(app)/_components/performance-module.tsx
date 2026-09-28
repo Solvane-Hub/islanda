@@ -3,6 +3,7 @@ import type { PerformanceView } from '@/lib/business-intelligence/performance';
 import { ProvenanceBadge, provenanceKindFor } from '@/components/ui/provenance-badge';
 import { WorkspaceSurface, SurfaceLabel } from '@/components/ui/workspace-surface';
 import { RecordFigure } from './record-figure';
+import { AddEvidence, type MetricEvidenceItem } from './add-evidence';
 
 /**
  * Financial performance — recorded figures, deterministically derived figures,
@@ -15,10 +16,13 @@ export function PerformanceModule({
   view,
   periods,
   documents,
+  evidenceByMetricId = {},
 }: {
   view: PerformanceView;
   periods: { id: string; label: string }[];
   documents: { id: string; title: string }[];
+  /** Evidence already attached to a recorded metric, keyed by its row id. */
+  evidenceByMetricId?: Record<string, MetricEvidenceItem[]>;
 }) {
   return (
     <WorkspaceSurface as="section" tone="shell" className="flex flex-col gap-6 p-6 sm:p-8">
@@ -55,6 +59,11 @@ export function PerformanceModule({
                     {m.display}
                   </span>
                   <ProvenanceBadge kind={provenanceKindFor(m.provenance, 'unverified')} />
+                  <AddEvidence
+                    metricId={m.id}
+                    documents={documents}
+                    evidence={evidenceByMetricId[m.id] ?? []}
+                  />
                 </dd>
               </div>
             ))}

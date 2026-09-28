@@ -46,6 +46,12 @@ export type AuditEvent =
    */
   | 'business.case_created'
   | 'business.case_status_changed'
+  /**
+   * Generalized Evidence Linkage (P8 activation, ADR-0022). Metadata carries
+   * SHAPE only — which kind of subject (metric, goal, ...) and the document
+   * type, never a document's title or contents.
+   */
+  | 'business.evidence_attached'
   | 'intake.started'
   | 'intake.step_saved'
   | 'intake.knowledge_applied'

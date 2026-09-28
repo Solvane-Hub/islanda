@@ -4,7 +4,7 @@ import { findPublishedPack } from '@/lib/db/knowledge/packs';
 import { isUserAssignedCountryCode } from '@/lib/knowledge/jurisdiction';
 
 /**
- * What FoundryAI can actually do for a jurisdiction, read from the database.
+ * What Islanda can actually do for a jurisdiction, read from the database.
  *
  * ## Why this exists
  *

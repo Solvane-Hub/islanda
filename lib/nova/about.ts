@@ -28,7 +28,7 @@ export const NOVA_ABOUT: readonly AboutSection[] = [
     id: 'what',
     title: 'What Nova is',
     body:
-      'Nova answers questions about your business by searching the published sources FoundryAI ' +
+      'Nova answers questions about your business by searching the published sources Islanda ' +
       'holds for your jurisdiction, and quoting the passages it finds. It is a way to navigate ' +
       'information that is otherwise spread across separate Acts, regulations and agency notices.',
   },
@@ -90,7 +90,7 @@ export const NOVA_ABOUT: readonly AboutSection[] = [
  * words appear wherever it is needed rather than being paraphrased per surface.
  */
 export const NOVA_DISCLAIMER =
-  'Nova is not legal, financial or tax advice. FoundryAI is an informational and navigation ' +
+  'Nova is not legal, financial or tax advice. Islanda is an informational and navigation ' +
   'resource: it helps you find and read the published sources that may apply to your business, ' +
   'and it is not a substitute for professional advice on your specific situation.';
 

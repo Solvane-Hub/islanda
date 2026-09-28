@@ -10,7 +10,7 @@ import type { BuildBusinessInput, ManageBusinessInput } from '@/lib/validation/b
 import type { BusinessIdentifierType } from '@/types/business';
 
 /**
- * Onboarding Application Service — "Bring your business into FoundryAI".
+ * Onboarding Application Service — "Bring your business into Islanda".
  *
  * The two front doors, one Business Object. `buildMyBusiness` starts from an
  * idea; `bringInMyBusiness` imports an existing company. Both compose the
@@ -80,7 +80,7 @@ const IDENTIFIER_FIELDS: readonly {
   { key: 'vatNumber', type: 'vat_registration_number' },
 ];
 
-/** Manage my business — bring an existing company into FoundryAI. */
+/** Manage my business — bring an existing company into Islanda. */
 export async function bringInMyBusiness(
   db: SupabaseClient<Database>,
   ownerId: string,

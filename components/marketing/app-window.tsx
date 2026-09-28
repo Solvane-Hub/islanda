@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils/cn';
 
 /**
- * The FoundryAI system window — an environment, not a card.
+ * The Islanda system window — an environment, not a card.
  *
  * Two things make it read as software rather than as a marketing panel:
  *
@@ -47,7 +47,7 @@ export function AppWindow({
       {/* Stage header */}
       <div className="border-marine-line/60 flex flex-wrap items-center gap-x-6 gap-y-2 border-b px-5 py-3.5 sm:px-7">
         <span className="text-on-ink-subtle text-2xs font-medium tracking-wide uppercase">
-          FoundryAI workspace
+          Islanda workspace
         </span>
 
         <ol className="flex flex-wrap items-center gap-x-5 gap-y-1.5">

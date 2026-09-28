@@ -4,6 +4,7 @@ import type {
   BusinessGoal,
   BusinessGoalStatus,
   BusinessGoalType,
+  BusinessMetric,
   BusinessMetricKey,
   GoalProgress,
 } from '@/types/business-intelligence';
@@ -50,6 +51,7 @@ export async function createBusinessGoal(
 
   const { data, error } = await insertBusinessGoal(db, {
     business_id: input.businessId,
+    actor_id: ownerId,
     goal_type: input.goalType,
     title: input.title,
     description: input.description ?? null,
@@ -139,14 +141,21 @@ export async function getBusinessGoals(
  * One metrics read powers every goal's progress; the computation is pure
  * (`computeGoalProgress`) and returns nulls, not zeros, where progress cannot be
  * established — so nothing is invented.
+ *
+ * `prefetchedMetrics` is optional: a caller that already holds this business's
+ * metrics (Business Passport composes financials and goals from the same
+ * data) can pass them in to avoid fetching `business_metrics` a second time.
+ * Every existing caller omits it and gets the exact same fetch-then-compute
+ * behavior as before.
  */
 export async function getGoalProgress(
   db: SupabaseClient<Database>,
   businessId: string,
+  prefetchedMetrics?: readonly BusinessMetric[],
 ): Promise<{ goal: BusinessGoal; progress: GoalProgress }[]> {
   const [goals, metrics] = await Promise.all([
     listBusinessGoals(db, businessId),
-    listMetricsForBusiness(db, businessId),
+    prefetchedMetrics ? Promise.resolve(prefetchedMetrics) : listMetricsForBusiness(db, businessId),
   ]);
   return goals.map((goal) => ({ goal, progress: computeGoalProgress(goal, metrics) }));
 }

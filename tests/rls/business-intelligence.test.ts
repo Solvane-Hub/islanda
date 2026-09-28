@@ -1,5 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { anonClient, archiveAll, rlsConfigured, RUN, signIn, type Db } from './client';
+import {
+  adminClient,
+  adminConfigured,
+  anonClient,
+  archiveAll,
+  rlsConfigured,
+  RUN,
+  signIn,
+  type Db,
+} from './client';
 
 /**
  * Row Level Security — the Business Intelligence Core.
@@ -244,6 +253,124 @@ describe.skipIf(!rlsConfigured)('Row Level Security — business intelligence co
         value: 1,
       });
       expect(error).not.toBeNull(); // bm_other_requires_label
+    });
+  });
+
+  /**
+   * actor_id — historical attribution retrofit (ADR-0022, post-competition
+   * Milestone 2). Nullable, ON DELETE SET NULL, not part of RLS: business_id /
+   * app.business_access() stays the only tenant boundary these tables have.
+   * These tests exist to prove that addition holds, not to re-prove RLS itself.
+   */
+  describe('actor_id — historical attribution retrofit', () => {
+    it('an authenticated insert stores the signed-in founder as actor_id', async () => {
+      const { data: metric, error: mErr } = await A.from('business_metrics')
+        .insert({ business_id: aBiz, metric_key: 'expenses', value: 42, actor_id: aId })
+        .select('actor_id')
+        .single();
+      expect(mErr).toBeNull();
+      expect(metric?.actor_id).toBe(aId);
+
+      const { data: goal, error: gErr } = await A.from('business_goals')
+        .insert({
+          business_id: aBiz,
+          goal_type: 'revenue_target',
+          title: `${RUN} actor-attributed goal`,
+          actor_id: aId,
+        })
+        .select('actor_id')
+        .single();
+      expect(gErr).toBeNull();
+      expect(goal?.actor_id).toBe(aId);
+
+      const { data: doc, error: dErr } = await A.from('business_documents')
+        .insert({
+          business_id: aBiz,
+          document_type: 'financial_statement',
+          title: `${RUN} actor-attributed doc`,
+          actor_id: aId,
+        })
+        .select('actor_id')
+        .single();
+      expect(dErr).toBeNull();
+      expect(doc?.actor_id).toBe(aId);
+    });
+
+    it('an insert omitting actor_id succeeds with actor_id null — legacy rows remain valid', async () => {
+      const { data, error } = await A.from('business_metrics')
+        .insert({ business_id: aBiz, metric_key: 'expenses', value: 7 })
+        .select('id, actor_id')
+        .single();
+      expect(error).toBeNull();
+      expect(data?.actor_id).toBeNull();
+
+      // Untouched by the retrofit: still readable under the exact same policy.
+      const { data: check } = await A.from('business_metrics').select('id').eq('id', data!.id);
+      expect(check).toHaveLength(1);
+    });
+
+    it('does not become a new access boundary — B still cannot reach an actor-attributed row of A’s', async () => {
+      const { data: metric } = await A.from('business_metrics')
+        .insert({ business_id: aBiz, metric_key: 'expenses', value: 9, actor_id: aId })
+        .select('id')
+        .single();
+
+      const { data } = await B.from('business_metrics').select('id').eq('id', metric!.id);
+      expect(data ?? []).toHaveLength(0); // exactly as before — business_id decides this, not actor_id
+    });
+
+    it('anonymous still cannot write a row, actor_id payload or not', async () => {
+      const { error } = await anon.from('business_metrics').insert({
+        business_id: aBiz,
+        metric_key: 'expenses',
+        value: 1,
+        actor_id: aId,
+      });
+      expect(error).not.toBeNull();
+    });
+
+    describe.skipIf(!adminConfigured)('deleting the auth user (live ON DELETE SET NULL)', () => {
+      it('clears actor_id but leaves the business record intact', async () => {
+        const admin = adminClient();
+        const { data: created, error: createErr } = await admin.auth.admin.createUser({
+          email: `actor-retrofit-${RUN}@foundryai-test.dev`,
+          password: `Retrofit-${RUN}-Aa1!`,
+          email_confirm: true,
+        });
+        if (createErr || !created.user) {
+          throw new Error(`Could not create throwaway user: ${createErr?.message}`);
+        }
+        const throwawayId = created.user.id;
+
+        try {
+          const { data: metric, error: insertErr } = await A.from('business_metrics')
+            .insert({
+              business_id: aBiz,
+              metric_key: 'expenses',
+              value: 13,
+              actor_id: throwawayId,
+            })
+            .select('id, actor_id')
+            .single();
+          expect(insertErr).toBeNull();
+          expect(metric?.actor_id).toBe(throwawayId);
+
+          const { error: deleteErr } = await admin.auth.admin.deleteUser(throwawayId);
+          expect(deleteErr).toBeNull();
+
+          const { data: after, error: afterErr } = await A.from('business_metrics')
+            .select('id, actor_id')
+            .eq('id', metric!.id)
+            .single();
+          expect(afterErr).toBeNull();
+          // The row survives the user's deletion — SET NULL, not CASCADE or RESTRICT.
+          expect(after?.id).toBe(metric!.id);
+          expect(after?.actor_id).toBeNull();
+        } finally {
+          // In case an assertion above throws before the delete step runs.
+          await admin.auth.admin.deleteUser(throwawayId).catch(() => {});
+        }
+      });
     });
   });
 

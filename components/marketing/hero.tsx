@@ -2,13 +2,21 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { WorkspacePanel } from './workspace-panel';
+import { LogoLockup } from '@/components/brand/logo-mark';
 
 /**
- * The landing hero.
+ * The landing hero — environment, then logo, then statement, then action.
  *
- * A photograph of the Bahama Banks fills the viewport and the product sits
- * inside it. Two separate images, art-directed rather than cropped: the desktop
+ * A photograph of the Bahama Banks fills the viewport; the brand sits inside
+ * it as the supplied lockup image, not an HTML wordmark — this is the one
+ * place `LogoLockup` renders rather than `Logo`, because the design calls for
+ * the exact designed graphic, verbatim, directly on the photograph — no
+ * backing plate. `variant="dark"` selects the white-wordmark file (the icon
+ * itself is never recoloured) so it reads without one. The workspace product
+ * preview lives immediately below (`enter-islanda.tsx` via `app/page.tsx`),
+ * so this first viewport stays uncontested: environment, brand, message, door in.
+ *
+ * Two separate background images, art-directed rather than cropped: the desktop
  * frame is a high-altitude view of the Exuma chain, the mobile frame is a
  * vertical sandbar composition with its own headline zone. One is not a resize
  * of the other, because a 3:2 aerial cropped to 4:5 loses the geography that
@@ -52,78 +60,55 @@ export function Hero() {
         className="object-cover object-[58%_center] md:hidden"
       />
 
-      {/* Directional scrim. Strong at the origin, gone by two-thirds across, so
-          most of the photograph is untouched. */}
+      {/* Centered vignette. A horizontal band rather than a radial pool — a
+          radial shape reads as a blob at wide aspect ratios, where its width
+          and height stop matching each other. A vertical band scales correctly
+          at any width, and only the middle of the viewport needs it: the logo
+          sits on its own opaque plate and needs no help, so this exists for the
+          headline and scroll cue alone. Fades out well before the top and
+          bottom of the photograph, which stays untouched at the edges. */}
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-0"
         style={{
           background:
-            'linear-gradient(168deg, oklch(18% 0.055 245 / 0.86) 0%, oklch(18% 0.055 245 / 0.72) 26%, oklch(18% 0.055 245 / 0.18) 58%, transparent 76%)',
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 bottom-0 h-40 md:hidden"
-        style={{
-          background: 'linear-gradient(to top, oklch(18% 0.055 245 / 0.75), transparent)',
+            'linear-gradient(to bottom, transparent 0%, oklch(18% 0.055 245 / 0.28) 34%, oklch(18% 0.055 245 / 0.34) 66%, transparent 88%)',
         }}
       />
 
       {/* ---- Composition -------------------------------------------------- */}
-      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[92rem] flex-col px-6 pt-28 pb-16 sm:px-8 lg:px-12 lg:pt-32">
-        <div className="grid flex-1 items-center gap-14 lg:grid-cols-[1.02fr_0.98fr] lg:gap-8">
-          {/* Type */}
-          <div className="flex max-w-2xl flex-col items-start">
-            <p className="text-bahama-sand text-2xs font-medium tracking-[0.18em] uppercase">
-              The Bahamas
-            </p>
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[92rem] flex-col items-center justify-center px-6 py-24 text-center sm:px-8 lg:px-12">
+        <div className="hero-text-in flex max-w-xl flex-col items-center">
+          <LogoLockup variant="dark" priority className="w-[clamp(10.5rem,26vw,17rem)]" />
 
-            <h1 className="mt-6 text-[clamp(2.75rem,7.2vw,5.25rem)] leading-[0.98] font-semibold tracking-[-0.035em] text-balance text-white">
-              Every business
-              <br />
-              has a route.
-              <br />
-              <span className="text-bahama-turquoise">Yours starts here.</span>
-            </h1>
+          <h1 className="font-display mt-8 text-[clamp(1.75rem,5.2vw,3.25rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-balance text-white">
+            Navigate <span className="text-bahama-turquoise">what&apos;s next.</span>
+          </h1>
 
-            <p className="mt-8 max-w-md text-base text-pretty text-white/80 sm:text-lg">
-              FoundryAI works out what your business actually needs — formation, licences,
-              compliance, funding — and shows you the legislation behind every requirement.
-            </p>
-
-            <div className="mt-10 flex flex-wrap items-center gap-3">
-              <Link href="/signup">
-                <Button
-                  size="lg"
-                  className="text-ink bg-white shadow-lg transition-transform hover:-translate-y-0.5 hover:bg-white"
-                >
-                  Start building
-                  <ArrowRight aria-hidden="true" strokeWidth={2} />
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="border-white/30 bg-white/10 text-white shadow-none backdrop-blur-md transition-colors hover:border-white/50 hover:bg-white/20"
-                >
-                  Sign in
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Product. Tilted and pushed past the container on wide screens so it
-              is cropped by the viewport — an object continuing beyond the frame
-              rather than a card parked in a column. */}
-          <div className="hero-panel lg:-mr-24 lg:[perspective:2000px] xl:-mr-32">
-            <WorkspacePanel className="lg:[transform:rotateY(-9deg)_rotateX(2.5deg)_translateZ(0)]" />
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link href="#waitlist">
+              <Button
+                size="lg"
+                className="text-ink bg-white shadow-lg transition-transform hover:-translate-y-0.5 hover:bg-white"
+              >
+                Join the waitlist
+                <ArrowRight aria-hidden="true" strokeWidth={2} />
+              </Button>
+            </Link>
+            <Link href="#journey">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="border-white/30 bg-white/10 text-white shadow-none backdrop-blur-md transition-colors hover:border-white/50 hover:bg-white/20"
+              >
+                See how it works
+              </Button>
+            </Link>
           </div>
         </div>
 
         {/* Scroll invitation */}
-        <div className="mt-14 flex items-center gap-3">
+        <div className="mt-16 flex items-center gap-3 lg:mt-20">
           <span className="text-2xs font-medium tracking-[0.18em] text-white/70 uppercase">
             Scroll to explore
           </span>

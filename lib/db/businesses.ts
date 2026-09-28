@@ -74,6 +74,7 @@ export async function updateBusiness(
       | 'legal_name'
       | 'trading_name'
       | 'business_type'
+      | 'logo_storage_path'
     >
   >,
 ): Promise<{ data: BusinessRow | null; error: string | null }> {

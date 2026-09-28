@@ -11,18 +11,20 @@ import {
   resolveCurrentBusiness,
 } from '@/services/business';
 import { hasPublishedKnowledge } from '@/services/nova/retrieval';
+import { toNovaBusinessFacts } from '@/services/nova/business-awareness';
+import type { BusinessPassport } from '@/services/passport';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
 import { BUSINESS_STAGE_LABELS, type BusinessStage } from '@/lib/validation/intake';
 import { Button } from '@/components/ui/button';
 import { WorkspaceSurface, SurfaceLabel } from '@/components/ui/workspace-surface';
 import { BusinessCommandCenter } from '../_components/business-command-center';
 
-export const metadata: Metadata = { title: 'Your business in FoundryAI' };
+export const metadata: Metadata = { title: 'Your business in Islanda' };
 
 /**
  * The first-value moment.
  *
- * Straight after onboarding the founder should see FoundryAI understood what
+ * Straight after onboarding the founder should see Islanda understood what
  * they brought in — not an empty dashboard. Build mode reflects the concept
  * back; Manage mode shows the command centre. Both then offer a clear path into
  * Nova, which is the only "next" that genuinely works today — the rest are named
@@ -51,6 +53,29 @@ export default async function WelcomePage() {
     ? (BUSINESS_STAGE_LABELS[profile.business_stage as BusinessStage] ?? profile.business_stage)
     : null;
 
+  // Same resolved-value shape as the dashboard's Command Centre (P7 Milestone
+  // 5) — `business`/`profile` are already in hand via `getBusinessObject`, so
+  // this is a pure derivation, not a second query.
+  const passportFacts = toNovaBusinessFacts(business, profile);
+  const commandCenterIdentity: BusinessPassport['identity'] = {
+    legalName: passportFacts.legalName,
+    tradingName: passportFacts.tradingName,
+    businessType: passportFacts.businessType,
+    industry: passportFacts.industry,
+    countryCode: business.country_code,
+    jurisdictionName: countryName,
+    stage: passportFacts.stage,
+    operatingStatus: passportFacts.operatingStatus,
+  };
+  const commandCenterDefinition: BusinessPassport['definition'] = {
+    activities: passportFacts.activities,
+    productsServices: passportFacts.productsServices,
+    targetCustomers: passportFacts.targetCustomers,
+    location: passportFacts.location,
+    employeeCount: passportFacts.employeeCount,
+    founderGoals: passportFacts.founderGoals,
+  };
+
   const nextAreas: { label: string; available: boolean; note: string }[] = [
     {
       label: 'Regulatory requirements',
@@ -71,20 +96,22 @@ export default async function WelcomePage() {
           {isManage ? 'Business imported' : 'Business started'}
         </p>
         <h1 className="text-on-ink text-2xl font-semibold tracking-[-0.02em] text-balance sm:text-3xl">
-          {isManage
-            ? 'Your business is in FoundryAI.'
-            : "I've got the beginnings of your business."}
+          {isManage ? 'Your business is in Islanda.' : "I've got the beginnings of your business."}
         </h1>
         <p className="text-on-ink-muted max-w-prose text-sm">
-          Here is what FoundryAI understands so far. Everything shows where it came from, and you
-          can refine any of it at any time.
+          Here is what Islanda understands so far. Everything shows where it came from, and you can
+          refine any of it at any time.
         </p>
       </header>
 
       {isManage ? (
         <WorkspaceSurface as="section" tone="shell" className="flex flex-col gap-7 p-6 sm:p-8">
           <SurfaceLabel>Here&apos;s what I know about your business</SurfaceLabel>
-          <BusinessCommandCenter object={object} countryName={countryName} />
+          <BusinessCommandCenter
+            identity={commandCenterIdentity}
+            definition={commandCenterDefinition}
+            identifiers={object.identifiers}
+          />
         </WorkspaceSurface>
       ) : (
         <WorkspaceSurface as="section" tone="shell" className="flex flex-col gap-7 p-6 sm:p-8">

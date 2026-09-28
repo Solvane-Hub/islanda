@@ -45,6 +45,7 @@ const business: Database['public']['Tables']['businesses']['Row'] = {
   legal_name: null,
   trading_name: null,
   business_type: null,
+  logo_storage_path: null,
   archived_at: null,
   created_at: '2026-08-14T00:00:00.000Z',
   updated_at: '2026-08-14T00:00:00.000Z',

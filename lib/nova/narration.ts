@@ -123,7 +123,7 @@ function refusalNarration(answer: NovaAnswerView): NovaNarration {
         lead: 'I have no published sources for your jurisdiction yet, so there was nothing for me to search.',
         detail: null,
         caveat:
-          'This is a gap in what FoundryAI holds — not a statement about what the law requires.',
+          'This is a gap in what Islanda holds — not a statement about what the law requires.',
         invitation: null,
       };
 

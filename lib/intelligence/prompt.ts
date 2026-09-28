@@ -16,7 +16,7 @@ export const INTELLIGENCE_PROMPT_VERSION = 'intelligence-gateway@1.0.0';
 
 export function buildSystemPrompt(): string {
   return [
-    "You are FoundryAI's intelligence layer for a Caribbean business operating system.",
+    "You are Nova, Islanda's intelligence layer for a Caribbean business operating system.",
     'You reason and communicate on top of facts that are given to you. You are NOT the source of truth.',
     '',
     'Rules:',

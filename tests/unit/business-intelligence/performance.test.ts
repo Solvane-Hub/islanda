@@ -27,6 +27,7 @@ function metric(overrides: Partial<BusinessMetric>): BusinessMetric {
   return {
     id: 'm-' + Math.random().toString(36).slice(2, 8),
     business_id: 'biz-1',
+    actor_id: null,
     financial_period_id: null,
     source_document_id: null,
     metric_key: 'revenue',

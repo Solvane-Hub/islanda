@@ -7,7 +7,7 @@ import {
 } from '@/lib/validation/intake';
 
 /**
- * What FoundryAI knows about a business, and how much of it.
+ * What Islanda knows about a business, and how much of it.
  *
  * Intake is five pieces of business knowledge, not five pages a founder has to
  * visit. That distinction is the whole point of this module.
@@ -173,7 +173,7 @@ export function isKnowledgeEstablished(state: KnowledgeState): boolean {
 }
 
 /**
- * How much of the business profile FoundryAI holds.
+ * How much of the business profile Islanda holds.
  *
  * `isComplete` means every slot is known — the condition for finishing intake.
  * It is deliberately NOT the same thing as `completed_at`, which records that

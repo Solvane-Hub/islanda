@@ -8,7 +8,7 @@ import { mayPublish } from '@/services/knowledge/validation';
 /**
  * K7 staged publishing.
  *
- * Publication is the last point at which FoundryAI can decide not to say
+ * Publication is the last point at which Islanda can decide not to say
  * something, so every gate here refuses rather than warns.
  */
 

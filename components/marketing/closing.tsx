@@ -85,8 +85,8 @@ export function Closing() {
             </h2>
 
             <p className="text-on-ink-muted mt-6 max-w-lg text-base text-pretty sm:text-lg">
-              Create an account, set up your business and work through guided intake. FoundryAI
-              builds a structured picture of what you are starting — and will only ever show you a
+              Create an account, set up your business and work through guided intake. Islanda builds
+              a structured picture of what you are starting — and will only ever show you a
               requirement it can cite.
             </p>
 

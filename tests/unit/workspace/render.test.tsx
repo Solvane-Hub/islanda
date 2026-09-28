@@ -8,7 +8,7 @@ import { SurfaceTiles } from '@/app/(app)/_components/surface-tiles';
 import { NovaInvite } from '@/app/(app)/_components/nova-invite';
 import { DashboardPriorities } from '@/app/(app)/_components/dashboard-priorities';
 import { DashboardQuickActions } from '@/app/(app)/_components/dashboard-quick-actions';
-import { NAV_GROUPS, NAV_ITEMS } from '@/app/(app)/_components/nav-items';
+import { NAV_ITEMS, NAV_SECTORS } from '@/app/(app)/_components/nav-items';
 import { RoadmapSurface } from '@/components/ui/roadmap-surface';
 import type { Milestone } from '@/services/progress';
 
@@ -305,15 +305,46 @@ describe('primary navigation', () => {
     expect(nova?.available).toBe(true);
   });
 
-  it('keeps Nova out of the "Coming soon" group', () => {
-    const comingSoon = NAV_GROUPS.find((g) => g.label === 'Coming soon');
-    expect(comingSoon?.items.some((i) => i.href === '/assistant')).toBe(false);
+  it('places Nova in the Intelligence sector, available, alongside the still-unbuilt roadmap items', () => {
+    const intelligence = NAV_SECTORS.find((s) => s.label === 'Intelligence');
+    expect(intelligence, 'Intelligence sector is missing').toBeDefined();
+
+    const nova = intelligence?.items.find((i) => i.href === '/assistant');
+    expect(nova?.available, 'Nova should be available').toBe(true);
+
+    for (const href of ['/compliance', '/timeline', '/funding']) {
+      const item = intelligence?.items.find((i) => i.href === href);
+      expect(item, `${href} should sit in Intelligence`).toBeDefined();
+      expect(item?.available, href).toBe(false);
+    }
   });
 
-  it('places Nova in the primary group, directly after the dashboard', () => {
-    const primary = NAV_GROUPS[0]?.items ?? [];
-    expect(primary[0]?.href).toBe('/dashboard');
-    expect(primary[1]?.href).toBe('/assistant');
+  it('keeps Overview as its own unlabeled sector, pointing at the dashboard', () => {
+    const overview = NAV_SECTORS[0]?.items ?? [];
+    expect(NAV_SECTORS[0]?.label).toBeUndefined();
+    expect(overview).toHaveLength(1);
+    expect(overview[0]?.href).toBe('/dashboard');
+  });
+
+  it('groups Goals and Documents under Business, and Settings under Account', () => {
+    const business = NAV_SECTORS.find((s) => s.label === 'Business');
+    expect(business?.items.some((i) => i.href === '/documents')).toBe(true);
+    expect(business?.items.some((i) => i.href === '/dashboard#goals')).toBe(true);
+
+    const account = NAV_SECTORS.find((s) => s.label === 'Account');
+    expect(account?.items.some((i) => i.href === '/settings')).toBe(true);
+  });
+
+  it('marks Goals and Financials as anchors into Overview, not routes of their own', () => {
+    const goals = NAV_ITEMS.find((i) => i.href === '/dashboard#goals');
+    const financials = NAV_ITEMS.find((i) => i.href === '/dashboard#financials');
+    expect(goals?.isAnchor, 'Goals should be an anchor').toBe(true);
+    expect(financials?.isAnchor, 'Financials should be an anchor').toBe(true);
+    // A hash never appears in `usePathname()`, so neither can ever satisfy the
+    // rail's `pathname === item.href` active-route check — asserted here as
+    // the underlying reason no special-casing is needed for these two hrefs.
+    expect(goals?.href.includes('#')).toBe(true);
+    expect(financials?.href.includes('#')).toBe(true);
   });
 
   it('lists Documents as an available route (secure vault shipped in P3)', () => {

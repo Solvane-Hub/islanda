@@ -1,8 +1,18 @@
 # Changelog
 
-All notable changes to FoundryAI are recorded here.
+All notable changes to Islanda (formerly FoundryAI) are recorded here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project is pre-release; versions are sprint-scoped until first deployment.
+
+---
+
+## [Unreleased] — Post-competition rebrand
+
+**FoundryAI was renamed to Islanda following the competition.** The company remains
+Solvane Hub and the AI agent remains Nova — only the product name changed. Historical
+entries below predate the rename and are preserved as written; they say "FoundryAI"
+because that was the product's actual name at the time. No database identifiers,
+applied migrations, or historical evidence documents were altered by the rename.
 
 ---
 

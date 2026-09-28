@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /*
- * FoundryAI design tokens.
+ * Islanda design tokens.
  *
  * Every colour, radius, shadow and type step lives here. No component may
  * hard-code a value — that rule is what makes a palette change a one-file diff.
@@ -15,6 +15,8 @@
   /* ---- Typography ------------------------------------------------------ */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: var(--font-mono-inter), ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
+  /* Editorial display face — the landing hero's giant "Islanda" wordmark only. */
+  --font-display: var(--font-bricolage), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   /* A real scale. Line-heights are generous on body sizes and tight on display
      sizes — the opposite of Tailwind's defaults, which are tuned for density. */
@@ -113,7 +115,7 @@
   /* ---- Dark surfaces — "deep water" -----------------------------------
      The marketing hero and closing chapter run dark. This is not a theme and
      not a dark mode: it is one half of a deliberate light/dark composition,
-     and it exists because the FoundryAI mark is metallic champagne. The mark
+     and it exists because the Islanda mark is metallic champagne. The mark
      measures 1.84:1 on the light canvas and 10.02:1 on `ink` — the brand asset
      itself decided this. Blue-black rather than navy, so it reads as depth
      rather than as a colour. */
@@ -140,6 +142,39 @@
      two clickable-looking accents would make neither mean anything. */
   --color-champagne: oklch(83% 0.055 85); /* 11.39:1 on ink */
   --color-champagne-dim: oklch(70% 0.055 85); /* 7.20:1 on ink */
+
+  /* ---- Passport paper ---------------------------------------------------
+     The Business Passport's interior pages (Identity/Business/State/Records)
+     are the one place in the authenticated app that is NOT dark — a warm,
+     low-chroma cream at the same hue (85) as champagne, so it reads as "the
+     same gold family, lit differently" rather than a foreign light-mode
+     patch. Text/accent tones are deliberately conservative-dark for contrast
+     against that light ground (ink ~19:1, muted ~7:1, accent ~7:1 — measured
+     against `passport-paper`, not assumed). The Passport's cover keeps the
+     existing dark tokens unchanged; only these four are new. */
+  --color-passport-paper: oklch(93% 0.02 85);
+  --color-passport-paper-raised: oklch(97% 0.014 85);
+  --color-passport-ink: oklch(22% 0.02 85);
+  --color-passport-ink-muted: oklch(42% 0.02 85);
+  --color-passport-line: oklch(80% 0.025 85);
+  --color-passport-accent: oklch(40% 0.09 75);
+
+  /* The cover board and its foil. A passport cover is not the workspace's
+     `abyss` with gold text on it — it is a different, warmer-blue dark, so
+     the two materials read as board and paper rather than as two panels. */
+  --color-passport-cover: oklch(17.5% 0.042 252);
+  --color-passport-cover-deep: oklch(10.5% 0.032 252);
+  --color-passport-foil: oklch(84% 0.072 84);
+  --color-passport-foil-dim: oklch(66% 0.062 82);
+
+  /* Document type sizes. The workspace scale bottoms out at `2xs` (11px),
+     which is a UI label — printed document marks sit below it. */
+  --text-3xs: 0.625rem;
+  --text-3xs--line-height: 0.875rem;
+  --text-3xs--letter-spacing: 0.04em;
+  --text-4xs: 0.5rem;
+  --text-4xs--line-height: 0.75rem;
+  --text-4xs--letter-spacing: 0.08em;
 
   /* ---- Depth surfaces — going further down --------------------------
      The page descends: the hero is the surface, §02 is below it, §03 is inside
@@ -364,6 +399,25 @@
 
 .hero-panel {
   animation: hero-panel-in 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The hero's identity block (wordmark, tagline, copy, CTAs) — a shorter,
+   gentler version of `.hero-panel-in`. This is the first thing a visitor
+   reads, so the entrance stays brief and gets out of the way rather than
+   inviting the eye to wait for it. */
+@keyframes hero-text-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-text-in {
+  animation: hero-text-in 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1043,11 +1097,175 @@
 /* ---- Application frame --------------------------------------------------
    The floating instrument itself. A soft, wide dark shadow seats it into the
    environment, and a very faint blue ambient halo lifts it off the black — the
-   reference's "light behind the application", in FoundryAI's palette. The inset
+   reference's "light behind the application", in Islanda's palette. The inset
    top hairline is the upper-edge reflection. */
 .app-frame {
   box-shadow:
     inset 0 1px 0 oklch(100% 0 0 / 0.06),
     0 44px 120px -44px rgba(0, 0, 0, 0.92),
     0 0 110px -30px oklch(52% 0.09 240 / 0.28);
+}
+
+/* ---- Business Passport · material system --------------------------------
+   The Passport is the one surface in this product rendered as a physical
+   OBJECT rather than assembled from workspace materials. Everything below
+   exists so it survives close reading: a dark grained board with engraved
+   guilloche and foil stamping, bound against warm stock carrying security
+   hairlines, an abstract contour watermark and printed ink.
+
+   No image assets — every layer is CSS over tokens, so the whole document
+   scales and recolours with the palette.
+
+   The governing rule for every layer here: keep it BARELY visible. Security
+   printing reads as texture, never as pattern. If a hairline is legible AS a
+   line at normal distance, it is too strong and the object stops looking
+   printed and starts looking decorated. */
+
+/* --- The cover board ----------------------------------------------------- */
+.passport-cover-material {
+  background-color: var(--color-passport-cover-deep);
+  background-image:
+    repeating-linear-gradient(104deg, oklch(100% 0 0 / 0.02) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(-104deg, oklch(100% 0 0 / 0.015) 0 1px, transparent 1px 5px),
+    radial-gradient(130% 80% at 50% -12%, oklch(32% 0.055 252 / 0.6), transparent 60%),
+    radial-gradient(120% 90% at 50% 112%, oklch(26% 0.05 252 / 0.5), transparent 58%),
+    linear-gradient(168deg, var(--color-passport-cover) 0%, var(--color-passport-cover-deep) 100%);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.07),
+    inset 0 -1px 0 oklch(0% 0 0 / 0.6),
+    inset 0 0 70px oklch(0% 0 0 / 0.45);
+}
+
+/* Engraved concentric rings, masked to a soft disc — the lathe-turned
+   ornament a printed document carries behind its central device. */
+.passport-guilloche {
+  background-image: repeating-radial-gradient(
+    circle at 50% 50%,
+    oklch(84% 0.072 84 / 0.085) 0 1px,
+    transparent 1px 8px
+  );
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, oklch(0% 0 0) 16%, transparent 70%);
+  mask-image: radial-gradient(circle at 50% 50%, oklch(0% 0 0) 16%, transparent 70%);
+}
+
+/* Foil stamping. A gradient clipped to the glyphs, so the type catches
+   "light" across its width the way hot-foil does, rather than being flat
+   gold fill. */
+.passport-foil {
+  background-image: linear-gradient(
+    100deg,
+    oklch(68% 0.055 78) 0%,
+    oklch(92% 0.075 88) 30%,
+    oklch(74% 0.06 78) 52%,
+    oklch(95% 0.06 90) 78%,
+    oklch(72% 0.055 78) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Anything struck INTO the board rather than printed onto it. */
+.passport-deboss {
+  text-shadow: 0 1px 0 oklch(0% 0 0 / 0.65);
+}
+
+/* --- The page stock ------------------------------------------------------ */
+.passport-paper-material {
+  background-color: var(--color-passport-paper);
+  background-image:
+    repeating-linear-gradient(46deg, oklch(40% 0.09 75 / 0.03) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(-46deg, oklch(48% 0.07 252 / 0.022) 0 1px, transparent 1px 8px),
+    radial-gradient(85% 55% at 18% 0%, oklch(98% 0.012 85 / 0.85), transparent 62%),
+    radial-gradient(80% 65% at 100% 100%, oklch(89% 0.022 80 / 0.5), transparent 66%);
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.55);
+}
+
+/* Contour watermark. Deliberately abstract rings — an island form, not a map
+   of any real place, and nothing traceable to any state's document. */
+.passport-watermark {
+  background-image:
+    repeating-radial-gradient(
+      ellipse 58% 40% at 64% 44%,
+      oklch(48% 0.07 252 / 0.075) 0 1px,
+      transparent 1px 11px
+    ),
+    repeating-radial-gradient(
+      ellipse 26% 20% at 32% 66%,
+      oklch(48% 0.07 252 / 0.06) 0 1px,
+      transparent 1px 9px
+    ),
+    repeating-radial-gradient(
+      ellipse 16% 12% at 84% 74%,
+      oklch(48% 0.07 252 / 0.05) 0 1px,
+      transparent 1px 8px
+    );
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 58% 52%, oklch(0% 0 0), transparent 82%);
+  mask-image: radial-gradient(ellipse 80% 70% at 58% 52%, oklch(0% 0 0), transparent 82%);
+}
+
+/* --- The binding --------------------------------------------------------- */
+.passport-spine {
+  background-image: linear-gradient(
+    90deg,
+    oklch(0% 0 0 / 0.42) 0%,
+    oklch(0% 0 0 / 0.72) 30%,
+    oklch(0% 0 0 / 0.92) 50%,
+    oklch(0% 0 0 / 0.68) 70%,
+    oklch(0% 0 0 / 0.38) 100%
+  );
+}
+
+.passport-stitch {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    oklch(84% 0.072 84 / 0.2) 0 5px,
+    transparent 5px 13px
+  );
+}
+
+/* Gutter falloff: each page darkens as it curves into the binding. Applied
+   to an overlay pinned to the page's inner edge. */
+.passport-gutter-inner-right {
+  background-image: linear-gradient(to left, oklch(0% 0 0 / 0.5), transparent 5rem);
+}
+
+.passport-gutter-inner-left {
+  background-image: linear-gradient(to right, oklch(0% 0 0 / 0.16), transparent 5rem);
+}
+
+/* A printed page has no scrollbar down its fore-edge. The leaf still scrolls
+   by wheel, trackpad, touch and keyboard — only the browser's own chrome is
+   suppressed, because a scrollbar drawn inside the document is the single
+   most app-like thing that can happen to it. Content that continues past the
+   fold is cut mid-line, which is the page's own affordance. */
+.passport-leaf-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.passport-leaf-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* --- Page-turn motion ---------------------------------------------------- */
+/* `--passport-enter-x` is set inline per navigation (positive moving forward
+   through the document, negative moving back), so the motion reads as paging
+   rather than as a generic fade. `prefers-reduced-motion: reduce` is already
+   handled globally in this file, so no separate guard is needed. */
+.passport-page-in {
+  animation: passport-page-in var(--duration-settle) var(--ease-enter) both;
+}
+
+@keyframes passport-page-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--passport-enter-x, 14px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }

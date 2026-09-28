@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test.describe('Smoke', () => {
   test('application boots and renders', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'FoundryAI' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Islanda' })).toBeVisible();
   });
 
   test('unknown routes return a helpful not-found page', async ({ page }) => {

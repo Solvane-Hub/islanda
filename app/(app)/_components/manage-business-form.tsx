@@ -164,7 +164,7 @@ export function ManageBusinessForm({ countries }: { countries: { code: string; n
           <span className="flex items-start gap-2">
             <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
             <span className="text-sm">
-              These identifiers are private to your business and stored securely. FoundryAI records
+              These identifiers are private to your business and stored securely. Islanda records
               them as <strong>Founder provided · Not verified</strong> — it does not (and cannot
               yet) check them against any registry, and will never imply it has.
             </span>

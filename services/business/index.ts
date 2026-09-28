@@ -189,7 +189,7 @@ export async function createBusiness(
   if (!countries.some((c) => c.code === input.countryCode)) {
     throw new AppError({
       code: 'VALIDATION_FAILED',
-      humanMessage: 'FoundryAI does not support that country yet.',
+      humanMessage: 'Islanda does not support that country yet.',
       developerMessage: `Inactive or unknown country_code: ${input.countryCode}`,
       correlationId,
     });
@@ -296,6 +296,131 @@ export async function renameBusiness(
   });
 
   return data;
+}
+
+/** The private bucket backing a business's own uploaded logo (P7 Business Passport). */
+export const BUSINESS_LOGOS_BUCKET = 'business-logos';
+
+/**
+ * Set (or replace) a business's logo path after the file has already been
+ * uploaded to `<businessId>/logo.png` in `BUSINESS_LOGOS_BUCKET` — this only
+ * records where it landed. Mirrors `renameBusiness`'s ownership/lifecycle
+ * checks exactly; reuses the same `business.updated` audit event rather than
+ * inventing a logo-specific one, since this is still just an edit to the
+ * business row.
+ */
+export async function setBusinessLogo(
+  db: SupabaseClient<Database>,
+  ownerId: string,
+  businessId: string,
+  logoStoragePath: string,
+  ctx: RequestContext = {},
+): Promise<Business> {
+  const correlationId = ctx.correlationId ?? newCorrelationId();
+
+  const existing = await findBusinessById(db, businessId);
+  if (!existing) {
+    throw new AppError({
+      code: 'NOT_FOUND',
+      humanMessage: 'We could not find that business.',
+      correlationId,
+    });
+  }
+  if (existing.status === 'archived') {
+    throw new AppError({
+      code: 'FORBIDDEN',
+      humanMessage: 'Archived businesses cannot be edited.',
+      correlationId,
+    });
+  }
+
+  const { data, error } = await updateBusiness(db, businessId, {
+    logo_storage_path: logoStoragePath,
+  });
+  if (error || !data) {
+    throw new AppError({
+      code: 'UNEXPECTED',
+      humanMessage: 'We could not save that logo. Please try again.',
+      developerMessage: error ?? 'update returned no row',
+      correlationId,
+    });
+  }
+
+  await recordAuditEvent({
+    event: 'business.updated',
+    actorId: ownerId,
+    businessId: data.id,
+    correlationId,
+    ipAddress: ctx.ipAddress ?? null,
+    userAgent: ctx.userAgent ?? null,
+  });
+
+  return data;
+}
+
+/**
+ * Remove a business's logo. The caller deletes the storage object first (see
+ * the Passport logo Server Action), then calls this to clear the column —
+ * same order `finalizeDocumentUpload`-style flows use elsewhere: storage
+ * first, then the row that points at it.
+ */
+export async function removeBusinessLogo(
+  db: SupabaseClient<Database>,
+  ownerId: string,
+  businessId: string,
+  ctx: RequestContext = {},
+): Promise<Business> {
+  const correlationId = ctx.correlationId ?? newCorrelationId();
+
+  const existing = await findBusinessById(db, businessId);
+  if (!existing) {
+    throw new AppError({
+      code: 'NOT_FOUND',
+      humanMessage: 'We could not find that business.',
+      correlationId,
+    });
+  }
+
+  const { data, error } = await updateBusiness(db, businessId, { logo_storage_path: null });
+  if (error || !data) {
+    throw new AppError({
+      code: 'UNEXPECTED',
+      humanMessage: 'We could not remove that logo. Please try again.',
+      developerMessage: error ?? 'update returned no row',
+      correlationId,
+    });
+  }
+
+  await recordAuditEvent({
+    event: 'business.updated',
+    actorId: ownerId,
+    businessId: data.id,
+    correlationId,
+    ipAddress: ctx.ipAddress ?? null,
+    userAgent: ctx.userAgent ?? null,
+  });
+
+  return data;
+}
+
+/**
+ * A short-lived URL to display a business's logo — the bucket is private
+ * (matches `business-documents`'s access model, ADR-0006/ADR-0009), so
+ * display always goes through a signed URL minted server-side, never a
+ * public one. `null` when the business has no logo or the signing call
+ * fails; callers fall back to the monogram either way.
+ */
+export async function getBusinessLogoViewUrl(
+  db: SupabaseClient<Database>,
+  logoStoragePath: string | null,
+  expiresInSeconds = 3600,
+): Promise<string | null> {
+  if (!logoStoragePath) return null;
+  const { data, error } = await db.storage
+    .from(BUSINESS_LOGOS_BUCKET)
+    .createSignedUrl(logoStoragePath, expiresInSeconds);
+  if (error || !data) return null;
+  return data.signedUrl;
 }
 
 export async function archiveBusiness(

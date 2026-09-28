@@ -117,7 +117,7 @@ export default async function DocumentsPage() {
             <p className="text-on-ink text-sm font-medium">No documents yet</p>
             <p className="text-on-ink-muted max-w-prose text-sm">
               Add your first business record above — a financial statement, a licence, a
-              registration. FoundryAI keeps it private to your business.
+              registration. Islanda keeps it private to your business.
             </p>
           </div>
         )}

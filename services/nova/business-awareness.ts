@@ -195,7 +195,7 @@ interface Detector {
 const DETECTORS: readonly Detector[] = [
   {
     id: 'turnover',
-    // FoundryAI never collects turnover, so this is always a genuine gap when the
+    // Islanda never collects turnover, so this is always a genuine gap when the
     // question/evidence is about VAT or a monetary threshold. Kept narrow: a bare
     // "register" (e.g. registering employees) must not trigger a turnover gap.
     test: /\b(vat|value added tax|turnover|taxable suppl(?:y|ies)|threshold)\b/i,

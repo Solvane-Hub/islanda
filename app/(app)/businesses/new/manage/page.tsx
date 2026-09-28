@@ -27,18 +27,18 @@ export default async function ManageBusinessPage() {
           Manage my business
         </p>
         <h1 className="text-on-ink text-2xl font-semibold tracking-[-0.02em] text-balance sm:text-3xl">
-          Bring your business into FoundryAI
+          Bring your business into Islanda
         </h1>
         <p className="text-on-ink-muted max-w-prose text-sm">
-          Tell FoundryAI about your existing business. Share as much or as little as you have —
-          FoundryAI shows exactly where every detail came from, and never treats anything as
-          verified until an official check is possible.
+          Tell Islanda about your existing business. Share as much or as little as you have —
+          Islanda shows exactly where every detail came from, and never treats anything as verified
+          until an official check is possible.
         </p>
       </div>
 
       {countries.length === 0 ? (
         <Alert tone="info" title="No jurisdictions are available yet">
-          FoundryAI needs an active country before a business can be added. Please contact support.
+          Islanda needs an active country before a business can be added. Please contact support.
         </Alert>
       ) : (
         <ManageBusinessForm countries={countries.map((c) => ({ code: c.code, name: c.name }))} />

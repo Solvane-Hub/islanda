@@ -37,10 +37,10 @@ export function ChoiceGrid({
   /** The question. Rendered as the group's accessible name. */
   label: string;
   /**
-   * Why Foundry is asking.
+   * Why Islanda is asking.
    *
    * Optional in the type and expected in practice. A founder handing over
-   * business facts is owed a reason, and "this helps Foundry narrow down which
+   * business facts is owed a reason, and "this helps Islanda narrow down which
    * requirements may apply" is a better answer than a tooltip.
    */
   description?: string;

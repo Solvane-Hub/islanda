@@ -1,8 +1,8 @@
 {
-  "name": "foundryai",
+  "name": "islanda",
   "version": "0.1.0",
   "private": true,
-  "description": "FoundryAI — an AI-native operating system for entrepreneurship. Solvane Hub.",
+  "description": "Islanda — an AI-native operating system for entrepreneurship, by Solvane Hub.",
   "engines": {
     "node": ">=22.0.0"
   },

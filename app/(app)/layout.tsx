@@ -8,7 +8,7 @@ import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
 import { Logo } from '@/components/brand/logo-mark';
 import { Environment } from './_components/environment';
 import { SidebarNav } from './_components/sidebar-nav';
-import { MobileNav } from './_components/mobile-nav';
+import { MobileBottomNav } from './_components/mobile-bottom-nav';
 import { BusinessSelector } from './_components/business-selector';
 import { UserMenu } from './_components/user-menu';
 
@@ -34,6 +34,14 @@ import { UserMenu } from './_components/user-menu';
  * `.workspace-env` (dashboard, Nova, intake), and the long-form surfaces use
  * `WorkspaceCanvas`, which is itself a dark glass panel carrying the same scope.
  * The root stays neutral so a route is free to choose.
+ *
+ * On mobile, primary navigation moves from a hamburger-triggered copy of the
+ * desktop rail into `MobileBottomNav` — a compact tab bar for the routes a
+ * founder reaches most, with everything else one tap away in "More", grouped
+ * by the same `NAV_SECTORS` the desktop rail uses (P7 Phase 1). The business
+ * switcher used to disappear below `sm` with no replacement; it is now in the
+ * header at every width, since it is a control a founder needs as often on a
+ * phone as on a desktop.
  *
  * Middleware already redirects unauthenticated requests; this checks again.
  * Security Architecture: "No layer assumes another layer has already performed
@@ -74,22 +82,29 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         live INSIDE it, and the workspace scrolls within it — so the shell reads
         as a desktop application, not a full-bleed website with a sidebar. On
         mobile the frame goes full-bleed (no margin, no corners) and the rail
-        collapses into `MobileNav`.
+        collapses into `MobileBottomNav`.
+
+        The frame used to cap its own height at `min(74vh, 880px)` regardless of
+        the actual viewport — on a 1440×900 screen that left roughly 610px of
+        usable height and forced the whole workspace to scroll inside a box
+        shorter than the window around it (P7 audit, "nested scrolling"). It now
+        fills the space the outer padded wrapper actually gives it (`h-full`
+        against that wrapper's `h-dvh` minus its own `p-6`/`p-8`) at every
+        breakpoint, so the frame still reads as an inset, floating object — just
+        sized to the screen it is on rather than to a fixed number.
 
         `.workspace-env` is on the frame, so every route inside inherits the
-        dark-surface token remap. The frame owns the height (`h-dvh` on the
-        padded wrapper, `flex-1` here) and clips its own scroll, so the header
-        and rail stay put while `main` scrolls.
+        dark-surface token remap. The frame owns the height and clips its own
+        scroll, so the header, rail and mobile tab bar stay put while `main`
+        scrolls.
       */}
       <div className="relative z-10 flex h-dvh items-stretch justify-center p-0 sm:items-center sm:p-6 lg:p-8">
-        <div className="workspace-env app-frame bg-glass-deep/70 flex h-full w-full flex-col overflow-hidden border-white/12 backdrop-blur-2xl sm:h-[min(74vh,880px)] sm:w-[88vw] sm:max-w-[1600px] sm:rounded-3xl sm:border">
+        <div className="workspace-env app-frame bg-glass-deep/70 flex h-full w-full flex-col overflow-hidden border-white/12 backdrop-blur-2xl sm:w-[88vw] sm:max-w-[1600px] sm:rounded-3xl sm:border">
           {/* Internal top bar. */}
           <header className="bg-abyss/40 flex h-14 shrink-0 items-center gap-3 border-b border-white/8 px-4 sm:px-6">
-            <MobileNav />
-
             <Link
               href="/dashboard"
-              aria-label="FoundryAI dashboard"
+              aria-label="Islanda dashboard"
               className="text-on-ink shrink-0 rounded-sm"
             >
               <Logo height={20} />
@@ -97,8 +112,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
             {current ? (
               <>
-                <span aria-hidden="true" className="hidden h-4 w-px bg-white/12 sm:block" />
-                <div className="hidden min-w-0 sm:block">
+                <span aria-hidden="true" className="h-4 w-px shrink-0 bg-white/12" />
+                <div className="min-w-0">
                   <BusinessSelector businesses={businesses} currentId={current.id} />
                 </div>
               </>
@@ -121,6 +136,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               </div>
             </main>
           </div>
+
+          <MobileBottomNav />
         </div>
       </div>
     </div>
