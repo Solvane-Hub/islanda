@@ -26,9 +26,7 @@ describe('waitlist confirmation email', () => {
     expect(message.html).toContain('A Solvane Hub product');
     expect(message.html).toContain(`href="${ISLANDA_PUBLIC_URL}"`);
     expect(message.html).toContain(`href="${SOLVANE_HUB_URL}"`);
-    expect(message.html).toContain(
-      `href="${SOLVANE_HUB_INSTAGRAM_URL}"`,
-    );
+    expect(message.html).toContain(`href="${SOLVANE_HUB_INSTAGRAM_URL}"`);
   });
 
   it('personalizes with first and last name and escapes user values', () => {
@@ -38,9 +36,7 @@ describe('waitlist confirmation email', () => {
       lastName: "O'Connor & Co",
     });
 
-    expect(message.html).toContain(
-      'Hi &lt;img src=x onerror=alert(1)&gt; O&#39;Connor &amp; Co,',
-    );
+    expect(message.html).toContain('Hi &lt;img src=x onerror=alert(1)&gt; O&#39;Connor &amp; Co,');
     expect(message.html).not.toContain('<img src=x onerror=alert(1)>');
     expect(message.text).toContain("Hi <img src=x onerror=alert(1)> O'Connor & Co,");
   });

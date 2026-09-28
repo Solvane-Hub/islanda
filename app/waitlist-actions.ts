@@ -6,10 +6,7 @@ import { AppError, fail, newCorrelationId, ok, type Result } from '@/lib/errors'
 import { toFieldErrors } from '@/lib/validation/field-errors';
 import { joinWaitlistSchema } from '@/lib/validation/waitlist';
 import { logger } from '@/lib/logger';
-import {
-  sendWaitlistConfirmation,
-  sendWaitlistNotification,
-} from '@/lib/email/resend';
+import { sendWaitlistConfirmation, sendWaitlistNotification } from '@/lib/email/resend';
 import {
   consumeWaitlistRateLimit,
   joinWaitlist,
@@ -116,10 +113,7 @@ export async function joinWaitlistAction(
         if (delivery.status === 'rejected') {
           logger.error('waitlist.email_failed', {
             correlationId,
-            code:
-              delivery.reason instanceof Error
-                ? delivery.reason.name
-                : 'unknown',
+            code: delivery.reason instanceof Error ? delivery.reason.name : 'unknown',
           });
         }
       }

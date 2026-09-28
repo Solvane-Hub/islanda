@@ -3,8 +3,7 @@ import type { WaitlistEmailData } from '@/lib/email/resend';
 export const WAITLIST_LOGO_CONTENT_ID = 'islanda-mark';
 export const ISLANDA_PUBLIC_URL = 'https://solvanehub.us/islanda';
 export const SOLVANE_HUB_URL = 'https://solvanehub.us';
-export const SOLVANE_HUB_INSTAGRAM_URL =
-  'https://www.instagram.com/solvanehubtech/';
+export const SOLVANE_HUB_INSTAGRAM_URL = 'https://www.instagram.com/solvanehubtech/';
 
 export interface WaitlistConfirmationMessage {
   to: string;

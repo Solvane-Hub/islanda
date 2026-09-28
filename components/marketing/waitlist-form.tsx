@@ -2,10 +2,7 @@
 
 import { useActionState } from 'react';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
-import {
-  joinWaitlistAction,
-  type JoinWaitlistResult,
-} from '@/app/waitlist-actions';
+import { joinWaitlistAction, type JoinWaitlistResult } from '@/app/waitlist-actions';
 import type { Result } from '@/lib/errors';
 
 /**
@@ -19,24 +16,20 @@ import type { Result } from '@/lib/errors';
  * The form writes to the real waitlist database through the server action.
  */
 export function WaitlistForm() {
-  const [state, formAction, pending] = useActionState<
-    Result<JoinWaitlistResult> | null,
-    FormData
-  >(joinWaitlistAction, null);
+  const [state, formAction, pending] = useActionState<Result<JoinWaitlistResult> | null, FormData>(
+    joinWaitlistAction,
+    null,
+  );
 
   const joined = state?.ok;
 
-  const firstNameError =
-    state && !state.ok ? state.fieldErrors?.firstName?.[0] : undefined;
+  const firstNameError = state && !state.ok ? state.fieldErrors?.firstName?.[0] : undefined;
 
-  const lastNameError =
-    state && !state.ok ? state.fieldErrors?.lastName?.[0] : undefined;
+  const lastNameError = state && !state.ok ? state.fieldErrors?.lastName?.[0] : undefined;
 
-  const emailError =
-    state && !state.ok ? state.fieldErrors?.email?.[0] : undefined;
+  const emailError = state && !state.ok ? state.fieldErrors?.email?.[0] : undefined;
 
-  const formError =
-    state && !state.ok && !state.fieldErrors ? state.message : undefined;
+  const formError = state && !state.ok && !state.fieldErrors ? state.message : undefined;
 
   if (joined) {
     return (
@@ -48,13 +41,10 @@ export function WaitlistForm() {
         />
 
         <div>
-          <p className="text-on-ink text-base font-semibold">
-            You&apos;re on the list.
-          </p>
+          <p className="text-on-ink text-base font-semibold">You&apos;re on the list.</p>
 
           <p className="text-on-ink-muted mt-1 text-sm text-pretty">
-            Welcome to Islanda — we&apos;ll be in touch when early access
-            opens.
+            Welcome to Islanda — we&apos;ll be in touch when early access opens.
           </p>
         </div>
       </div>
@@ -65,10 +55,7 @@ export function WaitlistForm() {
     <form action={formAction} className="flex w-full max-w-md flex-col gap-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="waitlist-first-name"
-            className="text-on-ink-muted text-xs font-medium"
-          >
+          <label htmlFor="waitlist-first-name" className="text-on-ink-muted text-xs font-medium">
             First name
           </label>
 
@@ -80,9 +67,7 @@ export function WaitlistForm() {
             autoComplete="given-name"
             placeholder="First name"
             aria-invalid={Boolean(firstNameError)}
-            aria-describedby={
-              firstNameError ? 'waitlist-first-name-error' : undefined
-            }
+            aria-describedby={firstNameError ? 'waitlist-first-name-error' : undefined}
             className="text-on-ink placeholder:text-on-ink-subtle h-12 w-full rounded-xl border border-white/15 bg-white/10 px-4 text-sm backdrop-blur-md transition-colors outline-none focus-visible:border-white/40 aria-[invalid=true]:border-red-400/60"
           />
 
@@ -98,10 +83,7 @@ export function WaitlistForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="waitlist-last-name"
-            className="text-on-ink-muted text-xs font-medium"
-          >
+          <label htmlFor="waitlist-last-name" className="text-on-ink-muted text-xs font-medium">
             Last name
           </label>
 
@@ -113,9 +95,7 @@ export function WaitlistForm() {
             autoComplete="family-name"
             placeholder="Last name"
             aria-invalid={Boolean(lastNameError)}
-            aria-describedby={
-              lastNameError ? 'waitlist-last-name-error' : undefined
-            }
+            aria-describedby={lastNameError ? 'waitlist-last-name-error' : undefined}
             className="text-on-ink placeholder:text-on-ink-subtle h-12 w-full rounded-xl border border-white/15 bg-white/10 px-4 text-sm backdrop-blur-md transition-colors outline-none focus-visible:border-white/40 aria-[invalid=true]:border-red-400/60"
           />
 
@@ -132,10 +112,7 @@ export function WaitlistForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="waitlist-email"
-          className="text-on-ink-muted text-xs font-medium"
-        >
+        <label htmlFor="waitlist-email" className="text-on-ink-muted text-xs font-medium">
           Email address
         </label>
 
@@ -147,18 +124,12 @@ export function WaitlistForm() {
           autoComplete="email"
           placeholder="you@yourbusiness.com"
           aria-invalid={Boolean(emailError)}
-          aria-describedby={
-            emailError ? 'waitlist-email-error' : undefined
-          }
+          aria-describedby={emailError ? 'waitlist-email-error' : undefined}
           className="text-on-ink placeholder:text-on-ink-subtle h-12 w-full rounded-xl border border-white/15 bg-white/10 px-4 text-sm backdrop-blur-md transition-colors outline-none focus-visible:border-white/40 aria-[invalid=true]:border-red-400/60"
         />
 
         {emailError ? (
-          <p
-            id="waitlist-email-error"
-            role="alert"
-            className="text-xs font-medium text-red-300"
-          >
+          <p id="waitlist-email-error" role="alert" className="text-xs font-medium text-red-300">
             {emailError}
           </p>
         ) : null}
@@ -171,13 +142,7 @@ export function WaitlistForm() {
       >
         {pending ? 'Joining…' : 'Join the waitlist'}
 
-        {!pending ? (
-          <ArrowRight
-            aria-hidden="true"
-            className="size-4"
-            strokeWidth={2}
-          />
-        ) : null}
+        {!pending ? <ArrowRight aria-hidden="true" className="size-4" strokeWidth={2} /> : null}
       </button>
 
       {formError ? (

@@ -14,11 +14,7 @@ export const joinWaitlistSchema = z.object({
     .min(1, 'First name is required.')
     .max(100, 'First name is too long.'),
 
-  lastName: z
-    .string()
-    .trim()
-    .min(1, 'Last name is required.')
-    .max(100, 'Last name is too long.'),
+  lastName: z.string().trim().min(1, 'Last name is required.').max(100, 'Last name is too long.'),
 });
 
 export type JoinWaitlistInput = z.infer<typeof joinWaitlistSchema>;

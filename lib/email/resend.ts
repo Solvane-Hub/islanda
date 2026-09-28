@@ -18,11 +18,9 @@ function getResend(): Resend {
   return new Resend(apiKey);
 }
 
-const fromEmail =
-  process.env.WAITLIST_FROM_EMAIL ?? 'Islanda <waitlist@solvanehub.us>';
+const fromEmail = process.env.WAITLIST_FROM_EMAIL ?? 'Islanda <waitlist@solvanehub.us>';
 
-const notificationEmail =
-  process.env.WAITLIST_NOTIFICATION_EMAIL ?? 'info@solvanehub.us';
+const notificationEmail = process.env.WAITLIST_NOTIFICATION_EMAIL ?? 'info@solvanehub.us';
 
 export interface WaitlistEmailData {
   email: string;
@@ -32,14 +30,10 @@ export interface WaitlistEmailData {
   source?: string;
 }
 
-export async function sendWaitlistConfirmation(
-  data: WaitlistEmailData,
-): Promise<void> {
+export async function sendWaitlistConfirmation(data: WaitlistEmailData): Promise<void> {
   const resend = getResend();
   const message = buildWaitlistConfirmationMessage(data);
-  const logo = await readFile(
-    join(process.cwd(), 'lib', 'email', 'assets', 'islanda-stamp.png'),
-  );
+  const logo = await readFile(join(process.cwd(), 'lib', 'email', 'assets', 'islanda-stamp.png'));
 
   await resend.emails.send({
     from: fromEmail,
@@ -58,9 +52,7 @@ export async function sendWaitlistConfirmation(
   });
 }
 
-export async function sendWaitlistNotification(
-  data: WaitlistEmailData,
-): Promise<void> {
+export async function sendWaitlistNotification(data: WaitlistEmailData): Promise<void> {
   const resend = getResend();
 
   await resend.emails.send({
