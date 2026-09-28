@@ -5,7 +5,11 @@ export default defineConfig({
   plugins: [react()],
   // Vite resolves the `@/*` alias from tsconfig.json natively (Vitest 4+),
   // so no path-mapping plugin is needed.
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    tsconfigPaths: true,
+    // Unit tests execute in Node; Next's server-only marker is compile-time.
+    alias: { 'server-only': 'next/dist/compiled/server-only/empty.js' },
+  },
   test: {
     environment: 'jsdom',
     globals: true,

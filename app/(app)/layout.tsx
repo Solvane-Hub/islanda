@@ -11,6 +11,7 @@ import { SidebarNav } from './_components/sidebar-nav';
 import { MobileBottomNav } from './_components/mobile-bottom-nav';
 import { BusinessSelector } from './_components/business-selector';
 import { UserMenu } from './_components/user-menu';
+import { serverEnv } from '@/lib/env';
 
 /**
  * Authenticated application shell.
@@ -49,6 +50,7 @@ import { UserMenu } from './_components/user-menu';
  * protected route.
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  if (serverEnv.WAITLIST_ONLY_MODE) redirect('/?access=waitlist');
   const db = await createClient();
   const user = await getCurrentUser(db);
   if (!user) redirect('/login');

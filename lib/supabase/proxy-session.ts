@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { Database } from '@/types/database';
+import { serverEnv } from '@/lib/env';
 
 /**
  * Refreshes the auth session on every request and enforces route protection.
@@ -10,6 +11,23 @@ import type { Database } from '@/types/database';
  * "not signed in" rather than being transparently renewed.
  */
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
+  const { pathname } = request.nextUrl;
+  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+  const isAuthRoute = AUTH_ROUTES.some((p) => pathname.startsWith(p));
+
+  if (serverEnv.WAITLIST_ONLY_MODE) {
+    if (isProtected || isAuthRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      url.search = '';
+      url.searchParams.set('access', 'waitlist');
+      return NextResponse.redirect(url);
+    }
+
+    // Public pages do not need an auth-provider round trip in waitlist mode.
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(
@@ -39,10 +57,6 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
-  const isAuthRoute = AUTH_ROUTES.some((p) => pathname.startsWith(p));
-
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
@@ -70,6 +84,10 @@ export const PROTECTED_PREFIXES = [
   '/documents',
   '/assistant',
   '/settings',
+  '/businesses',
+  '/passport',
+  '/welcome',
+  '/intelligence',
 ] as const;
 
 export const AUTH_ROUTES = ['/login', '/signup'] as const;

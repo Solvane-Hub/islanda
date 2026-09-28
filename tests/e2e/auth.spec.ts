@@ -23,9 +23,25 @@ test.describe('route protection', () => {
   });
 
   test('every protected route redirects when unauthenticated', async ({ page }) => {
-    for (const route of ['/intake', '/settings', '/funding', '/compliance']) {
+    const protectedRoutes = [
+      '/intake',
+      '/intake/review',
+      '/settings',
+      '/funding',
+      '/compliance',
+      '/timeline',
+      '/documents',
+      '/assistant',
+      '/assistant/about',
+      '/businesses/new',
+      '/businesses/new/manage',
+      '/passport',
+      '/welcome',
+    ];
+
+    for (const route of protectedRoutes) {
       await page.goto(route);
-      await expect(page).toHaveURL(/\/login/);
+      await expect(page).toHaveURL(/\/login/, { timeout: 10_000 });
     }
   });
 });

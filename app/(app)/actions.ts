@@ -28,6 +28,7 @@ import {
 import { resolveMetricEntry } from '@/lib/business-intelligence/performance';
 import { getCurrentUser, type RequestContext } from '@/services/auth';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
+import { serverEnv } from '@/lib/env';
 
 const CURRENT_BUSINESS_COOKIE_OPTIONS = {
   httpOnly: true,
@@ -316,6 +317,7 @@ export async function archiveBusinessAction(
 
 /** Switches the active business. Ownership is enforced by RLS on the next read. */
 export async function selectBusinessAction(formData: FormData): Promise<void> {
+  if (serverEnv.WAITLIST_ONLY_MODE) redirect('/?access=waitlist');
   const businessId = String(formData.get('businessId') ?? '');
   if (businessId) {
     const store = await cookies();

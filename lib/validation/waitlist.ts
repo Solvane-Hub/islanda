@@ -1,22 +1,24 @@
 import { z } from 'zod';
 
-/**
- * Public waitlist signup — deliberately minimal (conversion over completeness).
- * Only email is required; a first name is a nice-to-have personalization.
- */
 export const joinWaitlistSchema = z.object({
   email: z
     .string()
     .trim()
-    .min(3, 'Enter a valid email address.')
-    .max(255, 'Enter a valid email address.')
+    .min(1, 'Email is required.')
+    .max(255, 'Email is too long.')
     .email('Enter a valid email address.'),
+
   firstName: z
     .string()
     .trim()
-    .max(100, 'That name is too long.')
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
+    .min(1, 'First name is required.')
+    .max(100, 'First name is too long.'),
+
+  lastName: z
+    .string()
+    .trim()
+    .min(1, 'Last name is required.')
+    .max(100, 'Last name is too long.'),
 });
 
 export type JoinWaitlistInput = z.infer<typeof joinWaitlistSchema>;

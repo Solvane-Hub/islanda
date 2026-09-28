@@ -7,6 +7,10 @@ import { toFieldErrors } from '@/lib/validation/field-errors';
 import { joinWaitlistSchema } from '@/lib/validation/waitlist';
 import { logger } from '@/lib/logger';
 import {
+  sendWaitlistConfirmation,
+  sendWaitlistNotification,
+} from '@/lib/email/resend';
+import {
   consumeWaitlistRateLimit,
   joinWaitlist,
   type JoinWaitlistResult,
@@ -39,6 +43,7 @@ export async function joinWaitlistAction(
   const parsed = joinWaitlistSchema.safeParse({
     email: formData.get('email'),
     firstName: formData.get('firstName'),
+    lastName: formData.get('lastName'),
   });
   if (!parsed.success) {
     return fail(
@@ -82,11 +87,44 @@ export async function joinWaitlistAction(
   }
 
   try {
+    const source = 'landing_page';
     const result = await joinWaitlist(db, {
       email: parsed.data.email,
       firstName: parsed.data.firstName,
-      source: 'landing_page',
+      lastName: parsed.data.lastName,
+      source,
     });
+
+    if (result.status === 'joined') {
+      const deliveries = await Promise.allSettled([
+        sendWaitlistConfirmation({
+          email: parsed.data.email,
+          firstName: parsed.data.firstName,
+          lastName: parsed.data.lastName,
+          status: result.status,
+        }),
+        sendWaitlistNotification({
+          email: parsed.data.email,
+          firstName: parsed.data.firstName,
+          lastName: parsed.data.lastName,
+          status: result.status,
+          source,
+        }),
+      ]);
+
+      for (const delivery of deliveries) {
+        if (delivery.status === 'rejected') {
+          logger.error('waitlist.email_failed', {
+            correlationId,
+            code:
+              delivery.reason instanceof Error
+                ? delivery.reason.name
+                : 'unknown',
+          });
+        }
+      }
+    }
+
     return ok(result);
   } catch (error) {
     logger.error('waitlist.join_failed', {

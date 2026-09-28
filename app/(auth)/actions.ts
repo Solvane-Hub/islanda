@@ -15,6 +15,7 @@ import type { RequestContext } from '@/services/auth';
 import { isSafeInternalPath } from '@/lib/utils/safe-path';
 import { toFieldErrors } from '@/lib/validation/field-errors';
 import { logger } from '@/lib/logger';
+import { serverEnv } from '@/lib/env';
 
 /**
  * Auth Server Actions.
@@ -33,6 +34,17 @@ async function requestContext(): Promise<RequestContext> {
     ipAddress: h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
     userAgent: h.get('user-agent'),
   };
+}
+
+function waitlistOnlyAuthFailure(ctx: RequestContext): Result<never> {
+  return fail(
+    new AppError({
+      code: 'FORBIDDEN',
+      humanMessage:
+        'Islanda is currently available by waitlist invitation. Join the waitlist to be notified when access opens.',
+      correlationId: ctx.correlationId,
+    }),
+  );
 }
 
 function flatten(error: unknown, ctx: RequestContext): Result<never> {
@@ -56,6 +68,7 @@ export async function signUpAction(
   formData: FormData,
 ): Promise<Result<{ requiresEmailConfirmation: boolean }>> {
   const ctx = await requestContext();
+  if (serverEnv.WAITLIST_ONLY_MODE) return waitlistOnlyAuthFailure(ctx);
 
   const parsed = signUpSchema.safeParse({
     fullName: formData.get('fullName'),
@@ -88,6 +101,7 @@ export async function signInAction(
   formData: FormData,
 ): Promise<Result<{ next: string }>> {
   const ctx = await requestContext();
+  if (serverEnv.WAITLIST_ONLY_MODE) return waitlistOnlyAuthFailure(ctx);
 
   const parsed = signInSchema.safeParse({
     email: formData.get('email'),

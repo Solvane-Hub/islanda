@@ -35,9 +35,9 @@ export async function consumeWaitlistRateLimit(
 }
 export interface JoinWaitlistInput {
   email: string;
-  firstName?: string | undefined;
-  /** Auto-captured context (e.g. 'landing_page'), never asked of the visitor. */
-  source?: string | undefined;
+  firstName: string;
+  lastName: string;
+  source: string;
 }
 
 export interface JoinWaitlistResult {
@@ -55,8 +55,9 @@ export async function joinWaitlist(
 
   const { error } = await db.from('waitlist_signups').insert({
     email,
-    first_name: input.firstName?.trim() || null,
-    source: input.source ?? null,
+    first_name: input.firstName.trim(),
+    last_name: input.lastName.trim(),
+    source: input.source,
   });
 
   if (error) {

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { SignInForm } from '../_components/sign-in-form';
+import { redirect } from 'next/navigation';
+import { serverEnv } from '@/lib/env';
 
 export const metadata: Metadata = { title: 'Sign in' };
 
@@ -9,6 +11,7 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ next?: string }>;
 }) {
+  if (serverEnv.WAITLIST_ONLY_MODE) redirect('/?access=waitlist');
   const { next } = await searchParams;
 
   return (

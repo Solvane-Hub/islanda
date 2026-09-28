@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { z } from 'zod';
 
 /**
@@ -12,6 +14,7 @@ import { z } from 'zod';
  */
 const serverSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  WAITLIST_ONLY_MODE: z.enum(['true', 'false']).transform((value) => value === 'true'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   /**
    * Fish Audio — Nova's optional speaking voice.
@@ -110,6 +113,10 @@ function parseClientEnv(source: EnvSource): z.infer<typeof clientSchema> {
 function parseServerEnv(source: EnvSource): z.infer<typeof serverSchema> {
   const parsed = serverSchema.safeParse({
     NODE_ENV: source.NODE_ENV,
+    // Fail closed for production deployments if the explicit flag is omitted.
+    // Local development and tests retain the existing auth flow by default.
+    WAITLIST_ONLY_MODE:
+      source.WAITLIST_ONLY_MODE ?? (source.NODE_ENV === 'production' ? 'true' : 'false'),
     SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY,
     FISH_API_KEY: source.FISH_API_KEY,
     FISH_NOVA_VOICE_ID: source.FISH_NOVA_VOICE_ID,

@@ -14,6 +14,7 @@ import { Territory } from '@/components/marketing/territory';
 import { WaitlistCta } from '@/components/marketing/waitlist-cta';
 import { Closing } from '@/components/marketing/closing';
 import { SiteFooter } from '@/components/marketing/site-footer';
+import { serverEnv } from '@/lib/env';
 
 export const metadata: Metadata = {
   title: "Islanda — Navigate What's Next.",
@@ -78,7 +79,13 @@ const EXAMPLE_MILESTONES: Milestone[] = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ access?: string }>;
+}) {
+  const { access } = await searchParams;
+  const showWaitlistNotice = serverEnv.WAITLIST_ONLY_MODE && access === 'waitlist';
   return (
     <>
       {/* The landing page has no app chrome, so it carries its own skip link. */}
@@ -95,6 +102,12 @@ export default function HomePage() {
       <div className="relative">
         <SiteHeader />
         <main id="main">
+          {showWaitlistNotice ? (
+            <p role="status" className="bg-abyss text-on-ink px-6 py-4 text-center text-sm">
+              Islanda is currently available by waitlist invitation. Join the waitlist below to be
+              notified when access opens.
+            </p>
+          ) : null}
           <Hero />
 
           <EnterIslanda />

@@ -3,6 +3,7 @@ import type { Database } from '@/types/database';
 import { AppError, newCorrelationId } from '@/lib/errors';
 import { recordAuditEvent } from '@/services/audit';
 import { logger } from '@/lib/logger';
+import { serverEnv } from '@/lib/env';
 import type {
   RequestPasswordResetInput,
   ResetPasswordInput,
@@ -210,6 +211,7 @@ export async function resetPassword(
 
 /** Returns the authenticated user, or null. Uses getUser(), never getSession(). */
 export async function getCurrentUser(db: SupabaseClient<Database>) {
+  if (serverEnv.WAITLIST_ONLY_MODE) return null;
   const {
     data: { user },
   } = await db.auth.getUser();

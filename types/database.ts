@@ -1872,6 +1872,7 @@ export type Database = {
           email: string;
           first_name: string | null;
           id: string;
+          last_name: string | null;
           role: string | null;
           source: string | null;
           status: Database['public']['Enums']['waitlist_signup_status'];
@@ -1883,6 +1884,7 @@ export type Database = {
           email: string;
           first_name?: string | null;
           id?: string;
+          last_name?: string | null;
           role?: string | null;
           source?: string | null;
           status?: Database['public']['Enums']['waitlist_signup_status'];
@@ -1894,6 +1896,7 @@ export type Database = {
           email?: string;
           first_name?: string | null;
           id?: string;
+          last_name?: string | null;
           role?: string | null;
           source?: string | null;
           status?: Database['public']['Enums']['waitlist_signup_status'];
