@@ -31,6 +31,9 @@ const rlsEnvKeys = [
   'RLS_TEST_USER_A_PASSWORD',
   'RLS_TEST_USER_B_EMAIL',
   'RLS_TEST_USER_B_PASSWORD',
+  // Fixture seeding only (tests/rls/business-evidence.test.ts) — never used by
+  // an assertion about what a tenant can see.
+  'SUPABASE_SERVICE_ROLE_KEY',
 ] as const;
 
 // Vitest merges `test.env` over the inherited process environment in workers.
@@ -49,6 +52,10 @@ export default mergeConfig(
     test: {
       // The `test:rls` script narrows execution to tests/rls with a positional
       // filter; this config only supplies the environment those tests need.
+      // Every test here makes real network calls (auth, PostgREST, Storage),
+      // which from a CI runner routinely exceed Vitest's 5s default.
+      testTimeout: 30_000,
+      hookTimeout: 30_000,
       env: {
         ...fileEnv,
         ...runnerRlsEnv,

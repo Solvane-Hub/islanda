@@ -90,6 +90,9 @@ jobs:
           RLS_TEST_USER_A_PASSWORD: ${{ secrets.RLS_TEST_USER_A_PASSWORD }}
           RLS_TEST_USER_B_EMAIL: ${{ secrets.RLS_TEST_USER_B_EMAIL }}
           RLS_TEST_USER_B_PASSWORD: ${{ secrets.RLS_TEST_USER_B_PASSWORD }}
+          # Seeds fixture rows in business-evidence.test.ts only. Scoped to this
+          # step; no other job or the app build receives it.
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
   a11y:
     name: Accessibility (WCAG 2.1 AA)
