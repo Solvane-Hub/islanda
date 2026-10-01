@@ -24,6 +24,24 @@ import base from './vitest.config.mts';
  * No secret is committed here: values are read from `.env.local` at runtime.
  */
 const fileEnv = loadEnv('', process.cwd(), '');
+const rlsEnvKeys = [
+  'NEXT_PUBLIC_SUPABASE_URL',
+  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+  'RLS_TEST_USER_A_EMAIL',
+  'RLS_TEST_USER_A_PASSWORD',
+  'RLS_TEST_USER_B_EMAIL',
+  'RLS_TEST_USER_B_PASSWORD',
+] as const;
+
+// Vitest merges `test.env` over the inherited process environment in workers.
+// Preserve the runner-provided values (including GitHub Actions secrets) over
+// dotenv values so a local .env file cannot shadow CI configuration.
+const runnerRlsEnv = Object.fromEntries(
+  rlsEnvKeys.flatMap((key) => {
+    const value = process.env[key];
+    return value === undefined ? [] : [[key, value]];
+  }),
+);
 
 export default mergeConfig(
   base,
@@ -33,6 +51,7 @@ export default mergeConfig(
       // filter; this config only supplies the environment those tests need.
       env: {
         ...fileEnv,
+        ...runnerRlsEnv,
         // A missing credential must fail this suite, never skip it.
         RLS_TESTS_REQUIRED: '1',
       },

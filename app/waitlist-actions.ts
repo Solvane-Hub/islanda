@@ -31,6 +31,52 @@ async function requestIp(): Promise<string> {
   return h.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
 }
 
+function logErrorContext(
+  error: unknown,
+  correlationId: string,
+  operation: string,
+  sensitiveValues: string[],
+) {
+  const cause = error instanceof Error && 'cause' in error ? error.cause : undefined;
+  const databaseError =
+    cause && typeof cause === 'object'
+      ? (cause as { code?: unknown; message?: unknown })
+      : undefined;
+  const errorObject =
+    error && typeof error === 'object'
+      ? (error as { code?: unknown; databaseCode?: unknown; message?: unknown })
+      : undefined;
+  const context = {
+    correlationId,
+    operation,
+    code: error instanceof Error ? error.name : 'unknown',
+  };
+
+  if (process.env.NODE_ENV === 'production') return context;
+
+  const rawMessage =
+    typeof (databaseError?.message ?? errorObject?.message) === 'string'
+      ? String(databaseError?.message ?? errorObject?.message)
+      : error instanceof Error
+        ? error.message
+        : undefined;
+  const errorMessage = sensitiveValues.reduce(
+    (message, value) => (value ? message.replaceAll(value, '[redacted]') : message),
+    rawMessage ?? '',
+  );
+
+  return {
+    ...context,
+    databaseCode:
+      typeof errorObject?.databaseCode === 'string'
+        ? errorObject.databaseCode
+        : typeof (databaseError?.code ?? errorObject?.code) === 'string'
+          ? String(databaseError?.code ?? errorObject?.code)
+          : undefined,
+    errorMessage: rawMessage ? errorMessage : undefined,
+  };
+}
+
 export async function joinWaitlistAction(
   _previous: Result<JoinWaitlistResult> | null,
   formData: FormData,
@@ -70,8 +116,7 @@ export async function joinWaitlistAction(
   } catch (error) {
     // Fails closed: an unreachable limiter is a denial, never a silent pass.
     logger.error('waitlist.rate_limit_unavailable', {
-      correlationId,
-      code: error instanceof Error ? error.name : 'unknown',
+      ...logErrorContext(error, correlationId, 'consume_rate_limit', Object.values(parsed.data)),
     });
     return fail(
       new AppError({
@@ -109,11 +154,15 @@ export async function joinWaitlistAction(
         }),
       ]);
 
-      for (const delivery of deliveries) {
+      for (const [index, delivery] of deliveries.entries()) {
         if (delivery.status === 'rejected') {
           logger.error('waitlist.email_failed', {
-            correlationId,
-            code: delivery.reason instanceof Error ? delivery.reason.name : 'unknown',
+            ...logErrorContext(
+              delivery.reason,
+              correlationId,
+              index === 0 ? 'waitlist_confirmation_email' : 'waitlist_notification_email',
+              Object.values(parsed.data),
+            ),
           });
         }
       }
@@ -122,8 +171,12 @@ export async function joinWaitlistAction(
     return ok(result);
   } catch (error) {
     logger.error('waitlist.join_failed', {
-      correlationId,
-      code: error instanceof Error ? error.name : 'unknown',
+      ...logErrorContext(
+        error,
+        correlationId,
+        'waitlist_signups.insert',
+        Object.values(parsed.data),
+      ),
     });
     return fail(
       new AppError({

@@ -20,9 +20,13 @@ export interface RateLimitDecision {
 }
 
 export class RateLimitUnavailableError extends Error {
-  constructor(message: string) {
+  readonly databaseCode?: string;
+
+  constructor(message: string, options?: { databaseCode?: string; cause?: unknown }) {
     super(message);
     this.name = 'RateLimitUnavailableError';
+    this.databaseCode = options?.databaseCode;
+    if (options && 'cause' in options) this.cause = options.cause;
   }
 }
 
@@ -48,6 +52,7 @@ export async function consumeRateLimit(
   if (error) {
     throw new RateLimitUnavailableError(
       `consume_rate_limit failed for ${params.scope}: ${error.message}`,
+      { databaseCode: error.code, cause: error },
     );
   }
 

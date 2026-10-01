@@ -20,6 +20,7 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist_signups', () =>
     const { error } = await anon.from('waitlist_signups').insert({
       email,
       first_name: 'Founder',
+      last_name: 'Founder',
       source: 'landing_page',
     });
     expect(error).toBeNull();
@@ -29,6 +30,8 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist_signups', () =>
     const anon = anonClient();
     const { error } = await anon.from('waitlist_signups').insert({
       email: email.toUpperCase(),
+      first_name: 'Founder',
+      last_name: 'Founder',
       source: 'landing_page',
     });
     expect(error).not.toBeNull(); // waitlist_signups_email_unique_idx on lower(email)
@@ -38,6 +41,8 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist_signups', () =>
     const anon = anonClient();
     const { error } = await anon.from('waitlist_signups').insert({
       email: `${RUN}-not-an-email`,
+      first_name: 'Founder',
+      last_name: 'Founder',
       source: 'landing_page',
     });
     expect(error).not.toBeNull(); // ws_email_format
@@ -81,6 +86,8 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist_signups', () =>
     const { db } = await signIn('B');
     const { error } = await db.from('waitlist_signups').insert({
       email: `${RUN}-founder-b@example.dev`.toLowerCase(),
+      first_name: 'Founder',
+      last_name: 'B',
       source: 'landing_page',
     });
     expect(error).toBeNull();

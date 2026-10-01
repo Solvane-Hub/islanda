@@ -52,7 +52,9 @@ test.describe('sign-in validation', () => {
     await page.getByLabel('Email').fill('not-an-email');
     await page.getByLabel('Password').fill('whatever');
     await page.getByRole('button', { name: 'Sign in' }).click();
-    await expect(page.getByRole('alert')).toContainText('valid email');
+    // Next.js also renders an empty role="alert" route announcer, so match the
+    // field error by its text rather than assuming it is the only alert.
+    await expect(page.getByRole('alert').filter({ hasText: 'valid email' })).toBeVisible();
   });
 
   test('wrong credentials do not reveal whether the account exists', async ({ page }) => {
@@ -74,7 +76,9 @@ test.describe('sign-up validation', () => {
     await page.getByLabel('Email').fill('someone@foundryai-test.dev');
     await page.getByLabel('Password').fill('short');
     await page.getByRole('button', { name: 'Create account' }).click();
-    await expect(page.getByRole('alert')).toContainText('at least 12 characters');
+    await expect(
+      page.getByRole('alert').filter({ hasText: 'at least 12 characters' }),
+    ).toBeVisible();
   });
 
   test('reports multiple field errors at once', async ({ page }) => {

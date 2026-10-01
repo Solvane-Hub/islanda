@@ -29,16 +29,33 @@ describe('waitlist confirmation email', () => {
     expect(message.html).toContain(`href="${SOLVANE_HUB_INSTAGRAM_URL}"`);
   });
 
-  it('personalizes with first and last name and escapes user values', () => {
+  it('greets by first name only', () => {
+    const message = buildWaitlistConfirmationMessage(data);
+
+    expect(message.html).toContain('Hi Jamil,');
+    expect(message.html).not.toContain('Nash');
+    expect(message.text).toContain('Hi Jamil,');
+  });
+
+  it('escapes user values in the greeting', () => {
     const message = buildWaitlistConfirmationMessage({
       ...data,
-      firstName: '<img src=x onerror=alert(1)>',
-      lastName: "O'Connor & Co",
+      firstName: "<img src=x onerror=alert(1)> O'Connor & Co",
     });
 
     expect(message.html).toContain('Hi &lt;img src=x onerror=alert(1)&gt; O&#39;Connor &amp; Co,');
     expect(message.html).not.toContain('<img src=x onerror=alert(1)>');
     expect(message.text).toContain("Hi <img src=x onerror=alert(1)> O'Connor & Co,");
+  });
+
+  it('labels the Instagram link without exposing the handle', () => {
+    const message = buildWaitlistConfirmationMessage(data);
+    const parsed = new DOMParser().parseFromString(message.html, 'text/html');
+
+    expect(parsed.querySelector(`a[href="${SOLVANE_HUB_INSTAGRAM_URL}"]`)?.textContent).toBe(
+      'Instagram',
+    );
+    expect(message.html).not.toContain('@solvanehubtech');
   });
 
   it('renders well-formed HTML markup', () => {
@@ -48,7 +65,7 @@ describe('waitlist confirmation email', () => {
     expect(parsed.querySelector('parsererror')).toBeNull();
     expect(parsed.querySelectorAll('table').length).toBeGreaterThan(0);
     expect(parsed.querySelector('a[href="https://solvanehub.us/islanda"]')?.textContent).toBe(
-      'Visit Islanda',
+      'Explore Islanda →',
     );
   });
 });

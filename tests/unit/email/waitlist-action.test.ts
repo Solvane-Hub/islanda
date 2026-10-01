@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   joinWaitlist: vi.fn(),
   sendWaitlistConfirmation: vi.fn(),
   sendWaitlistNotification: vi.fn(),
+  logError: vi.fn(),
 }));
 
 vi.mock('next/headers', () => ({
@@ -24,6 +25,10 @@ vi.mock('@/services/waitlist', () => ({
 vi.mock('@/lib/email/resend', () => ({
   sendWaitlistConfirmation: mocks.sendWaitlistConfirmation,
   sendWaitlistNotification: mocks.sendWaitlistNotification,
+}));
+
+vi.mock('@/lib/logger', () => ({
+  logger: { error: mocks.logError },
 }));
 
 import { joinWaitlistAction } from '@/app/waitlist-actions';
@@ -63,5 +68,48 @@ describe('waitlist email dispatch', () => {
     expect(result).toMatchObject({ ok: true, data: { status: 'joined' } });
     expect(mocks.sendWaitlistConfirmation).toHaveBeenCalledOnce();
     expect(mocks.sendWaitlistNotification).toHaveBeenCalledOnce();
+  });
+
+  it('logs local database diagnostics while keeping the browser error generic', async () => {
+    mocks.joinWaitlist.mockRejectedValue({
+      code: '42703',
+      message: 'column waitlist_signups.last_name does not exist',
+    });
+
+    const result = await joinWaitlistAction(null, submission());
+
+    expect(result).toMatchObject({
+      ok: false,
+      code: 'UNEXPECTED',
+      message: 'We could not add you to the waitlist. Please try again.',
+      correlationId: expect.any(String),
+    });
+    expect(mocks.logError).toHaveBeenCalledWith(
+      'waitlist.join_failed',
+      expect.objectContaining({
+        correlationId: expect.any(String),
+        operation: 'waitlist_signups.insert',
+        databaseCode: '42703',
+        errorMessage: 'column waitlist_signups.last_name does not exist',
+      }),
+    );
+  });
+
+  it('keeps a successful signup successful if email delivery fails', async () => {
+    mocks.joinWaitlist.mockResolvedValue({ status: 'joined' });
+    mocks.sendWaitlistConfirmation.mockRejectedValue(new Error('provider unavailable'));
+
+    const result = await joinWaitlistAction(null, submission());
+
+    expect(result).toMatchObject({ ok: true, data: { status: 'joined' } });
+    expect(mocks.sendWaitlistConfirmation).toHaveBeenCalledOnce();
+    expect(mocks.sendWaitlistNotification).toHaveBeenCalledOnce();
+    expect(mocks.logError).toHaveBeenCalledWith(
+      'waitlist.email_failed',
+      expect.objectContaining({
+        operation: 'waitlist_confirmation_email',
+        errorMessage: 'provider unavailable',
+      }),
+    );
   });
 });
