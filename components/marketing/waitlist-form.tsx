@@ -31,6 +31,40 @@ export function WaitlistForm() {
 
   const formError = state && !state.ok && !state.fieldErrors ? state.message : undefined;
 
+  if (state?.ok && state.data.status === 'joined') {
+    return (
+      <div
+        role="status"
+        className="border-bahama-turquoise/30 bg-bahama-turquoise/10 flex w-full max-w-md items-start gap-4 rounded-2xl border px-5 py-6 text-left sm:px-6"
+      >
+        <CheckCircle2
+          aria-hidden="true"
+          className="text-bahama-turquoise mt-0.5 size-6 shrink-0"
+          strokeWidth={2}
+        />
+
+        <div>
+          <p className="text-on-ink text-lg font-semibold">You&apos;re on the list!</p>
+
+          <p className="text-on-ink-muted mt-2 text-sm text-pretty">
+            Thanks for joining the Islanda waitlist. A confirmation email is on its way to you.
+          </p>
+
+          <p className="text-on-ink-muted mt-3 text-sm text-pretty">
+            Don&apos;t see it? Check your Spam or Junk folder and add{' '}
+            <a
+              href="mailto:waitlist@solvanehub.us"
+              className="text-on-ink font-medium break-all underline underline-offset-2"
+            >
+              waitlist@solvanehub.us
+            </a>{' '}
+            to your contacts so you don&apos;t miss future updates.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (joined) {
     return (
       <div className="border-bahama-turquoise/30 bg-bahama-turquoise/10 flex items-start gap-3 rounded-2xl border px-6 py-5 text-left">
