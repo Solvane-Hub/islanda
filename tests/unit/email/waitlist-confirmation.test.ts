@@ -64,7 +64,7 @@ describe('waitlist confirmation email', () => {
 
     expect(parsed.querySelector('parsererror')).toBeNull();
     expect(parsed.querySelectorAll('table').length).toBeGreaterThan(0);
-    expect(parsed.querySelector('a[href="https://solvanehub.us/islanda"]')?.textContent).toBe(
+    expect(parsed.querySelector('a[href="https://islanda.app"]')?.textContent).toBe(
       'Explore Islanda →',
     );
   });
