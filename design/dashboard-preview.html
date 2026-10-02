@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FoundryAI dashboard — static composition prototype</title>
+    <style>
+      /* ─────────────────────────────────────────────────────────────
+         FoundryAI dashboard — static visual prototype
+         Target viewport 1920×1032. Floating application ~82vw × ~68vh,
+         suspended in a near-black ocean environment. Single dark world.
+         No React, no data, no JS. SVG only for Nova.
+         ───────────────────────────────────────────────────────────── */
+      :root {
+        --env: #02060c;
+        --frame: rgba(10, 16, 23, 0.72);
+        --surface: rgba(21, 32, 42, 0.5);
+        --surface-2: rgba(24, 37, 48, 0.6);
+        --float: rgba(28, 43, 56, 0.82);
+        --abyss: rgba(2, 6, 12, 0.55);
+
+        --on-ink: #f1f1ee;
+        --on-muted: #a7b6c1;
+        --on-subtle: #7c8c98;
+
+        --champagne: #d8c9a8;
+        --turquoise: #2ec8d4;
+        --cyan: #0ba5cc;
+
+        --hair: rgba(255, 255, 255, 0.07);
+        --hair-2: rgba(255, 255, 255, 0.12);
+
+        --font:
+          ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family: var(--font);
+        color: var(--on-ink);
+        background: var(--env);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      /* DEPTH 0 — atmospheric environment ------------------------------- */
+      .environment {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background:
+          radial-gradient(70% 55% at 76% 16%, rgba(24, 78, 120, 0.45), transparent 60%),
+          radial-gradient(60% 55% at 20% 92%, rgba(12, 44, 74, 0.32), transparent 62%),
+          radial-gradient(120% 120% at 50% 40%, #050b12 0%, #02060c 55%, #01040a 100%);
+      }
+      .environment::after {
+        /* pull the corners back to black so the app reads as suspended */
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(85% 70% at 50% 46%, transparent 42%, rgba(0, 0, 0, 0.66));
+      }
+
+      /* DEPTH 1 — floating application frame ---------------------------- */
+      .app {
+        position: relative;
+        z-index: 1;
+        width: min(82vw, 1600px);
+        height: min(68vh, 760px);
+        display: grid;
+        grid-template-rows: 56px 1fr;
+        border: 1px solid var(--hair-2);
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(13, 20, 28, 0.78), rgba(6, 11, 17, 0.86));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 50px 120px -40px rgba(0, 0, 0, 0.95),
+          0 10px 40px -20px rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(22px);
+        overflow: visible; /* lets the floating panel overhang the edge */
+      }
+      .app::before {
+        /* faint upper-edge internal reflection */
+        content: '';
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 40%;
+        border-radius: 22px 22px 0 0;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent);
+        pointer-events: none;
+      }
+      .app > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* DEPTH 1 — internal top bar -------------------------------------- */
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 0 20px;
+        border-bottom: 1px solid var(--hair);
+        border-radius: 22px 22px 0 0;
+        background: rgba(2, 6, 12, 0.35);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: -0.01em;
+      }
+      .brand .glyph {
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        background: conic-gradient(from 130deg, var(--turquoise), var(--champagne), var(--cyan));
+        box-shadow: 0 0 14px -3px rgba(46, 200, 212, 0.6);
+      }
+      .divider {
+        width: 1px;
+        height: 18px;
+        background: var(--hair-2);
+      }
+      .biz {
+        font-size: 13px;
+        color: var(--on-muted);
+      }
+      .biz b {
+        color: var(--on-ink);
+        font-weight: 500;
+      }
+      .topbar .right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: var(--on-subtle);
+      }
+      .bell {
+        position: relative;
+        font-size: 14px;
+      }
+      .bell::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--turquoise);
+      }
+      .avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid var(--hair-2);
+        background: linear-gradient(135deg, #22323f, #0d1720);
+        display: grid;
+        place-items: center;
+        font-size: 10.5px;
+        color: var(--on-muted);
+      }
+
+      /* body: nav rail + workspace ------------------------------------- */
+      .body {
+        display: grid;
+        grid-template-columns: 198px 1fr;
+        min-height: 0;
+      }
+
+      /* DEPTH 1 — internal navigation ---------------------------------- */
+      .rail {
+        border-right: 1px solid var(--hair);
+        padding: 14px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        background: rgba(2, 6, 12, 0.28);
+        border-radius: 0 0 0 22px;
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 9px;
+        font-size: 13px;
+        color: var(--on-muted);
+      }
+      .nav .i {
+        width: 14px;
+        height: 14px;
+        border: 1.4px solid currentColor;
+        border-radius: 4px;
+        opacity: 0.65;
+      }
+      .nav.active {
+        background: rgba(46, 200, 212, 0.09);
+        color: var(--on-ink);
+        box-shadow: inset 2px 0 0 var(--turquoise);
+      }
+      .nav.active .i {
+        border-color: var(--turquoise);
+        opacity: 1;
+      }
+      .nav.muted {
+        color: var(--on-subtle);
+        font-size: 12.5px;
+      }
+      .rail .group {
+        font-size: 9.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--on-subtle);
+        padding: 14px 10px 6px;
+      }
+      .rail .spacer {
+        flex: 1;
+      }
+
+      /* workspace ------------------------------------------------------ */
+      .workspace {
+        min-height: 0;
+        padding: 20px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow: hidden;
+      }
+      .eyebrow {
+        font-size: 9.5px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--champagne);
+        font-weight: 600;
+      }
+      .head h1 {
+        font-size: 25px;
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        margin-top: 6px;
+      }
+      .head .ctx {
+        margin-top: 7px;
+        font-size: 13px;
+        color: var(--on-muted);
+        display: flex;
+        gap: 9px;
+        align-items: center;
+      }
+      .head .ctx b {
+        color: var(--on-ink);
+        font-weight: 500;
+      }
+      .dotsep {
+        color: var(--on-subtle);
+      }
+
+      /* asymmetric grid: attention | primary+journey | nova ----------- */
+      .grid {
+        position: relative;
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 236px minmax(0, 1.75fr) minmax(0, 1.02fr);
+        grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr);
+        gap: 16px;
+      }
+      /* DEPTH 2 — internal surfaces */
+      .panel {
+        border: 1px solid var(--hair);
+        border-radius: 14px;
+        background: var(--surface);
+        padding: 18px;
+        min-height: 0;
+      }
+      .label {
+        font-size: 9.5px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--champagne);
+        font-weight: 600;
+      }
+
+      /* col 1 — attention (tall, narrow) */
+      .attention {
+        grid-row: 1 / span 2;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .signal {
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--hair);
+      }
+      .signal:last-child {
+        border-bottom: 0;
+      }
+      .signal .k {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--on-subtle);
+      }
+      .signal .v {
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin-top: 6px;
+      }
+      .signal .v .u {
+        font-size: 13px;
+        color: var(--on-subtle);
+        font-weight: 400;
+      }
+      .signal .s {
+        font-size: 11.5px;
+        margin-top: 4px;
+      }
+      .s.turq {
+        color: var(--turquoise);
+      }
+      .s.need {
+        color: var(--champagne);
+      }
+      .seg {
+        display: flex;
+        gap: 3px;
+        margin-top: 8px;
+      }
+      .seg span {
+        height: 3px;
+        flex: 1;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .seg span.on {
+        background: var(--turquoise);
+      }
+      .attention .foot {
+        margin-top: auto;
+        font-size: 11.5px;
+        color: var(--on-subtle);
+      }
+
+      /* col 2 row 1 — PRIMARY: what FoundryAI knows (dominant) */
+      .primary {
+        grid-column: 2;
+        grid-row: 1;
+        background: linear-gradient(180deg, rgba(24, 37, 49, 0.62), rgba(12, 20, 28, 0.7));
+        display: flex;
+        flex-direction: column;
+      }
+      .primary .lead {
+        margin-top: 12px;
+        font-size: 15px;
+        font-style: italic;
+        color: var(--on-muted);
+        max-width: 52ch;
+      }
+      .knows {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px 26px;
+      }
+      .kn .k {
+        font-size: 9.5px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--on-subtle);
+      }
+      .kn .val {
+        font-size: 16px;
+        font-weight: 500;
+        margin-top: 7px;
+        letter-spacing: -0.01em;
+      }
+      .kn .val.empty {
+        color: var(--on-subtle);
+        font-weight: 400;
+      }
+      .kn .val.now {
+        color: var(--turquoise);
+      }
+
+      /* col 2 row 2 — JOURNEY band */
+      .journey {
+        grid-column: 2;
+        grid-row: 2;
+        display: flex;
+        flex-direction: column;
+      }
+      .rail-stages {
+        margin-top: auto;
+        margin-bottom: auto;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        gap: 6px;
+      }
+      .stage {
+        position: relative;
+        padding-top: 22px;
+      }
+      .stage .line {
+        position: absolute;
+        top: 6px;
+        left: 7px;
+        right: -3px;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .stage:last-child .line {
+        display: none;
+      }
+      .stage .node {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--abyss);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+      }
+      .stage.done .node {
+        background: rgba(46, 200, 212, 0.55);
+        border-color: var(--turquoise);
+      }
+      .stage.now .node {
+        background: var(--turquoise);
+        border-color: var(--turquoise);
+        box-shadow: 0 0 0 5px rgba(46, 200, 212, 0.18);
+      }
+      .stage .nm {
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--on-subtle);
+      }
+      .stage.now .nm {
+        color: var(--turquoise);
+        font-weight: 600;
+      }
+      .stage.done .nm {
+        color: var(--on-muted);
+      }
+      .stage .st {
+        font-size: 9.5px;
+        color: var(--on-subtle);
+        margin-top: 3px;
+      }
+
+      /* col 3 — NOVA (elevated intelligence, tall) */
+      .nova {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+        background:
+          radial-gradient(60% 40% at 50% 30%, rgba(46, 200, 212, 0.1), transparent 70%),
+          linear-gradient(180deg, rgba(16, 26, 34, 0.72), rgba(7, 12, 18, 0.82));
+        border-color: var(--hair-2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .nova .idlabel {
+        font-size: 9.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--turquoise);
+        font-weight: 600;
+        align-self: flex-start;
+      }
+      .crystal {
+        margin: 6px 0 4px;
+        filter: drop-shadow(0 8px 30px rgba(46, 200, 212, 0.35));
+      }
+      .nova h3 {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .nova p {
+        font-size: 12.5px;
+        color: var(--on-muted);
+        margin-top: 8px;
+        line-height: 1.5;
+        max-width: 30ch;
+      }
+      .cta {
+        margin-top: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 16px;
+        border-radius: 999px;
+        background: var(--turquoise);
+        color: #04121a;
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+
+      /* DEPTH 3 — floating quick-actions, overlapping + overhanging ---- */
+      .floating {
+        position: absolute;
+        right: -14px;
+        bottom: -22px;
+        width: 216px;
+        border: 1px solid var(--hair-2);
+        border-radius: 14px;
+        background: var(--float);
+        backdrop-filter: blur(18px);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 30px 70px -22px rgba(0, 0, 0, 0.9);
+        padding: 15px;
+        z-index: 5;
+      }
+      .floating .label {
+        margin-bottom: 10px;
+      }
+      .qa {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 6px;
+        font-size: 12.5px;
+        color: var(--on-muted);
+      }
+      .qa + .qa {
+        border-top: 1px solid var(--hair);
+      }
+      .qa .i {
+        width: 14px;
+        height: 14px;
+        border: 1.4px solid var(--champagne);
+        border-radius: 4px;
+      }
+      .qa .arr {
+        margin-left: auto;
+        color: var(--on-subtle);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="environment"></div>
+
+    <!-- DEPTH 1 — the floating application -->
+    <main class="app" aria-label="FoundryAI dashboard prototype">
+      <!-- top bar -->
+      <div class="topbar">
+        <span class="brand"><span class="glyph"></span> FoundryAI</span>
+        <span class="divider"></span>
+        <span class="biz"><b>Bahama Reef Co.</b> ▾</span>
+        <span class="right">
+          <span class="bell">◔</span>
+          <span class="avatar">JN</span>
+        </span>
+      </div>
+
+      <div class="body">
+        <!-- navigation rail -->
+        <nav class="rail">
+          <div class="nav active"><span class="i"></span> Dashboard</div>
+          <div class="nav"><span class="i"></span> Nova</div>
+          <div class="nav"><span class="i"></span> Business</div>
+          <div class="nav"><span class="i"></span> Business intake</div>
+          <div class="group">Coming soon</div>
+          <div class="nav muted"><span class="i"></span> Timeline</div>
+          <div class="nav muted"><span class="i"></span> Compliance</div>
+          <div class="nav muted"><span class="i"></span> Funding</div>
+          <div class="nav muted"><span class="i"></span> Documents</div>
+          <div class="spacer"></div>
+          <div class="nav"><span class="i"></span> Settings</div>
+        </nav>
+
+        <!-- workspace -->
+        <section class="workspace">
+          <header class="head">
+            <div class="eyebrow">Jamil’s workspace</div>
+            <h1>Business overview</h1>
+            <div class="ctx">
+              <b>Bahama Reef Co.</b><span class="divider"></span>The Bahamas
+              <span class="dotsep">·</span> Hospitality <span class="divider"></span>
+              <span style="color: var(--turquoise)">Validation</span>
+            </div>
+          </header>
+
+          <div class="grid">
+            <!-- col 1 — what needs attention -->
+            <aside class="panel attention">
+              <div class="label">What needs attention</div>
+              <div class="signal">
+                <div class="k">Intake</div>
+                <div class="v">3 <span class="u">/ 5 answered</span></div>
+                <div class="seg">
+                  <span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span>
+                </div>
+                <div class="s turq">Two questions remain</div>
+              </div>
+              <div class="signal">
+                <div class="k">Funding</div>
+                <div class="v" style="font-size: 15px">Information needed</div>
+                <div class="s need">Add to sharpen your route</div>
+              </div>
+              <div class="signal">
+                <div class="k">Goals</div>
+                <div class="v" style="font-size: 15px">Information needed</div>
+                <div class="s need">Tell Nova what you’re building</div>
+              </div>
+              <div class="foot">Signals from your business context — not a to‑do list.</div>
+            </aside>
+
+            <!-- col 2 row 1 — PRIMARY -->
+            <section class="panel primary">
+              <div class="label">What FoundryAI knows</div>
+              <p class="lead">“A boutique reef‑diving and charter operation based in Nassau.”</p>
+              <div class="knows">
+                <div class="kn"><div class="k">Business</div><div class="val">Reef diving & charters</div></div>
+                <div class="kn"><div class="k">Location</div><div class="val">Nassau, The Bahamas</div></div>
+                <div class="kn"><div class="k">Industry</div><div class="val">Hospitality</div></div>
+                <div class="kn"><div class="k">Stage</div><div class="val now">Validation</div></div>
+                <div class="kn"><div class="k">Team</div><div class="val">3 people</div></div>
+                <div class="kn"><div class="k">Funding</div><div class="val empty">Not answered yet</div></div>
+                <div class="kn"><div class="k">Goals</div><div class="val empty">Not answered yet</div></div>
+                <div class="kn"><div class="k">Jurisdiction</div><div class="val">The Bahamas</div></div>
+              </div>
+            </section>
+
+            <!-- col 2 row 2 — JOURNEY -->
+            <section class="panel journey">
+              <div class="label">Founder journey</div>
+              <div class="rail-stages">
+                <div class="stage done"><span class="node"></span><span class="line"></span><div class="nm">Idea</div><div class="st">Business created</div></div>
+                <div class="stage now"><span class="node"></span><span class="line"></span><div class="nm">Validation</div><div class="st">You are here</div></div>
+                <div class="stage"><span class="node"></span><span class="line"></span><div class="nm">Formation</div><div class="st">Registrations</div></div>
+                <div class="stage"><span class="node"></span><span class="line"></span><div class="nm">Compliance</div><div class="st">Requirements</div></div>
+                <div class="stage"><span class="node"></span><span class="line"></span><div class="nm">Operations</div><div class="st">—</div></div>
+                <div class="stage"><span class="node"></span><span class="line"></span><div class="nm">Growth</div><div class="st">—</div></div>
+                <div class="stage"><span class="node"></span><div class="nm">Scale</div><div class="st">—</div></div>
+              </div>
+            </section>
+
+            <!-- col 3 — NOVA -->
+            <section class="panel nova">
+              <div class="idlabel">Nova · Intelligence layer</div>
+              <svg class="crystal" width="150" height="168" viewBox="0 0 150 168" aria-hidden="true">
+                <defs>
+                  <radialGradient id="core" cx="50%" cy="46%" r="42%">
+                    <stop offset="0%" stop-color="#fef7ea" />
+                    <stop offset="38%" stop-color="#e6cf9d" />
+                    <stop offset="100%" stop-color="#8a6f3f" stop-opacity="0" />
+                  </radialGradient>
+                  <linearGradient id="fa" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#3fd3de" />
+                    <stop offset="100%" stop-color="#0b8fb4" />
+                  </linearGradient>
+                  <linearGradient id="fb" x1="1" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1f9fb8" />
+                    <stop offset="100%" stop-color="#0a6f92" />
+                  </linearGradient>
+                  <linearGradient id="fc" x1="0" y1="1" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#59e0e9" />
+                    <stop offset="100%" stop-color="#178ba8" />
+                  </linearGradient>
+                </defs>
+                <!-- faceted crystal (octahedron-like), asymmetric -->
+                <g stroke="rgba(220,230,235,0.28)" stroke-width="0.8" stroke-linejoin="round">
+                  <polygon points="75,10 108,58 75,72" fill="url(#fa)" opacity="0.92" />
+                  <polygon points="75,10 42,58 75,72" fill="url(#fb)" opacity="0.85" />
+                  <polygon points="42,58 75,72 60,120" fill="url(#fc)" opacity="0.8" />
+                  <polygon points="108,58 75,72 92,122" fill="url(#fa)" opacity="0.78" />
+                  <polygon points="60,120 75,72 92,122 75,158" fill="url(#fb)" opacity="0.9" />
+                  <polygon points="42,58 108,58 75,72" fill="url(#fc)" opacity="0.55" />
+                </g>
+                <!-- molten champagne core -->
+                <ellipse cx="75" cy="78" rx="34" ry="40" fill="url(#core)" />
+                <circle cx="75" cy="74" r="7" fill="#fff6e6" opacity="0.9" />
+                <!-- particles -->
+                <g fill="#5fe0e9">
+                  <circle cx="30" cy="40" r="1.5" opacity="0.8" />
+                  <circle cx="122" cy="34" r="1.6" opacity="0.7" />
+                  <circle cx="128" cy="96" r="1.3" opacity="0.6" />
+                  <circle cx="22" cy="104" r="1.4" opacity="0.6" />
+                  <circle cx="112" cy="140" r="1.5" opacity="0.7" />
+                  <circle cx="40" cy="150" r="1.3" opacity="0.55" />
+                </g>
+              </svg>
+              <h3>Investigate with Nova</h3>
+              <p>Answers drawn only from published sources for your jurisdiction — every one cited.</p>
+              <span class="cta">Investigate with Nova →</span>
+            </section>
+
+            <!-- DEPTH 3 — floating quick actions, overhanging bottom-right -->
+            <aside class="floating">
+              <div class="label">Quick actions</div>
+              <div class="qa"><span class="i"></span> Continue intake <span class="arr">↗</span></div>
+              <div class="qa"><span class="i"></span> Investigate with Nova <span class="arr">↗</span></div>
+              <div class="qa"><span class="i"></span> Add a business <span class="arr">↗</span></div>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

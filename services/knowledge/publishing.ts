@@ -1,10 +1,14 @@
-import type { KnowledgePackStatus, ValidationOutcome } from '@/types/knowledge';
+import type {
+  CommercialPublicationEligibility,
+  KnowledgePackStatus,
+  ValidationOutcome,
+} from '@/types/knowledge';
 import { mayPublish } from '@/services/knowledge/validation';
 
 /**
  * K7 staged publishing.
  *
- * Publication is the last point at which FoundryAI can decide not to say
+ * Publication is the last point at which Islanda can decide not to say
  * something, so every gate here refuses rather than warns.
  */
 
@@ -41,6 +45,25 @@ export class PublicationError extends Error {
 export function assertPackTransition(from: KnowledgePackStatus, to: KnowledgePackStatus): void {
   if (!canTransitionPack(from, to)) {
     throw new PublicationError(`K7 §4: illegal Knowledge Pack transition ${from} -> ${to}`);
+  }
+}
+
+/**
+ * G11 — a pack may only be PUBLISHED once cleared for commercial reuse.
+ *
+ * Application-level mirror of the guard in `publish_knowledge_pack` (the RPC is
+ * authoritative and cannot be bypassed by any client; this gives callers a clear
+ * typed error before they reach the database). Ingestion, validation and staging
+ * are deliberately NOT gated — only publication/redistribution is.
+ */
+export function assertCommercialPublicationCleared(
+  eligibility: CommercialPublicationEligibility,
+): void {
+  if (eligibility !== 'cleared') {
+    throw new PublicationError(
+      `G11: this Knowledge Pack is not cleared for commercial publication (eligibility: ${eligibility}). ` +
+        'Record the required reuse permission before publishing. Staging for internal review is permitted.',
+    );
   }
 }
 

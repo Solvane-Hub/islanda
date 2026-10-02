@@ -1,8 +1,8 @@
 {
-  "name": "foundryai",
+  "name": "islanda",
   "version": "0.1.0",
   "private": true,
-  "description": "FoundryAI — an AI-native operating system for entrepreneurship. Solvane Hub.",
+  "description": "Islanda — an AI-native operating system for entrepreneurship, by Solvane Hub.",
   "engines": {
     "node": ">=22.0.0"
   },
@@ -15,12 +15,13 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "seed:demo": "tsx --env-file=.env.local scripts/seed-demo-pack.ts",
     "start": "next start",
     "test": "vitest run tests/unit tests/integration",
     "test:a11y": "playwright test tests/e2e/accessibility.spec.ts",
     "test:e2e": "playwright test",
     "test:integration": "vitest run tests/integration",
-    "test:rls": "vitest run tests/rls",
+    "test:rls": "vitest run --config vitest.rls.config.mts tests/rls",
     "test:unit": "vitest run tests/unit",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
@@ -32,9 +33,10 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "lucide-react": "1.28.0",
-    "next": "16.3.0",
+    "next": "16.3.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "resend": "^6.30.0",
     "tailwind-merge": "3.6.0",
     "zod": "4.4.3"
   },
@@ -55,8 +57,14 @@
     "prettier": "3.9.6",
     "prettier-plugin-tailwindcss": "0.8.1",
     "tailwindcss": "4.3.3",
+    "tsx": "4.20.6",
     "typescript": "5.9.3",
     "typescript-eslint": "8.66.0",
-    "vitest": "4.1.10"
+    "vitest": "4.1.11"
+  },
+  "overrides": {
+    "sharp": "0.35.4",
+    "nanoid": "3.3.18",
+    "js-yaml": "4.3.2"
   }
 }

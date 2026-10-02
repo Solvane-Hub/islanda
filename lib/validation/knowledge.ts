@@ -31,6 +31,41 @@ export const knowledgeSourceTypeSchema = z.enum([
   'fee_schedule',
 ]);
 
+/**
+ * K6 §2A.4 freshness. **Mandatory on registration and deliberately not defaulted.**
+ *
+ * The database default was `'current'`, and nothing wrote the column, so every
+ * source silently asserted currency. The first real corpus disproved that: the
+ * VAT Act reprint is consolidated as at 2024-07-01 and amended by three later
+ * Acts, and the Data Protection Act 2025 is enacted but not commenced.
+ *
+ * Freshness is NOT a fifth trust dimension (ADR-0015). It records what we know
+ * about the document's standing, not how much we trust a claim built from it.
+ */
+export const knowledgeFreshnessStateSchema = z.enum([
+  'current',
+  'review_due',
+  'changed_pending_assessment',
+  'stale',
+  'withdrawn',
+]);
+
+/**
+ * K2 — verified legal standing. Mandatory on registration and deliberately not
+ * defaulted: a source whose standing has not been established must declare
+ * `unresolved` rather than be assumed in force. Retrieval treats only
+ * `in_force` / `base_text_amended` as current applicable law.
+ */
+export const knowledgeSourceLegalStatusSchema = z.enum([
+  'in_force',
+  'base_text_amended',
+  'enacted_not_in_force',
+  'repealed',
+  'spent',
+  'superseded',
+  'unresolved',
+]);
+
 /** K1 §3 — jurisdiction-scoped version identity, e.g. 'BS-v1.4'. */
 export const knowledgeVersionSchema = z
   .string()
@@ -57,6 +92,12 @@ export const sourceAuthoritySchema = z
 export const registerSourceSchema = z
   .object({
     knowledgePackId: z.uuid(),
+    /**
+     * Stable manifest key. Required — the amendment chain resolves through this
+     * rather than through `sourceUrl`, so that a changed government URL cannot
+     * silently detach a source from the instruments that amend it.
+     */
+    manifestId: z.string().min(1).max(120),
     agency: z.string().min(1).max(200),
     title: z.string().min(1).max(500),
     sourceUrl: z.url().nullable().optional(),
@@ -69,6 +110,14 @@ export const registerSourceSchema = z
     municipality: z.string().max(200).nullable().optional(),
     sourceAuthority: sourceAuthoritySchema,
     legalSourceCategory: legalSourceCategorySchema,
+    /**
+     * Required. No `.optional()`, no `.default()` — a caller that has not
+     * established the document's standing must say so explicitly rather than
+     * inherit `current` from anywhere.
+     */
+    freshnessState: knowledgeFreshnessStateSchema,
+    /** Required. See `knowledgeSourceLegalStatusSchema`. */
+    legalStatus: knowledgeSourceLegalStatusSchema,
     publicationDate: isoDate.nullable().optional(),
     effectiveDate: isoDate.nullable().optional(),
     expiryDate: isoDate.nullable().optional(),
@@ -94,19 +143,48 @@ export const registerSourceSchema = z
 
 export type RegisterSourceInput = z.infer<typeof registerSourceSchema>;
 
+/**
+ * Instrument role at registration.
+ *
+ * `unknown` is absent deliberately. It exists in the database enum only for
+ * chunks written before the classification existed; nothing the application
+ * ingests may be unclassified, because an unclassified chunk cannot be ranked
+ * safely and must not lead an answer.
+ */
+export const instrumentRoleSchema = z.enum(['substantive', 'amending_instruction']);
+
 /** K3 §5 — the ingestion-time shape of a chunk, before an id is derived. */
-export const draftChunkSchema = z.object({
-  chunkIndex: z.number().int().min(0),
-  title: z.string().max(300).nullable().optional(),
-  body: z.string().min(1, 'A chunk must have a body'),
-  sectionReference: z.string().max(200).nullable().optional(),
-  clause: z.string().max(100).nullable().optional(),
-  page: z.number().int().positive().nullable().optional(),
-  industry: z.string().max(120).nullable().optional(),
-  regulatoryDomain: z.string().max(120).nullable().optional(),
-  keywords: z.array(z.string().max(80)).max(50).optional(),
-  effectiveDate: isoDate.nullable().optional(),
-});
+export const draftChunkSchema = z
+  .object({
+    chunkIndex: z.number().int().min(0),
+    title: z.string().max(300).nullable().optional(),
+    body: z.string().min(1, 'A chunk must have a body'),
+    sectionReference: z.string().max(200).nullable().optional(),
+    clause: z.string().max(100).nullable().optional(),
+    page: z.number().int().positive().nullable().optional(),
+    industry: z.string().max(120).nullable().optional(),
+    regulatoryDomain: z.string().max(120).nullable().optional(),
+    keywords: z.array(z.string().max(80)).max(50).optional(),
+    effectiveDate: isoDate.nullable().optional(),
+    /** Required. See `instrumentRoleSchema`. */
+    instrumentRole: instrumentRoleSchema,
+    /**
+     * Canonical provision this chunk edits. Required for an amending
+     * instruction — an edit that does not say what it edits cannot be attached
+     * to anything and would surface as a free-floating instruction.
+     */
+    amendsProvision: z.string().max(120).nullable().optional(),
+  })
+  .refine((v) => v.instrumentRole !== 'amending_instruction' || Boolean(v.amendsProvision), {
+    path: ['amendsProvision'],
+    message:
+      'An amending instruction must name the provision it amends. An edit with no target cannot ' +
+      'be attached to the provision it changes, and would be quoted to a founder in isolation.',
+  })
+  .refine((v) => v.instrumentRole !== 'substantive' || !v.amendsProvision, {
+    path: ['amendsProvision'],
+    message: 'A substantive provision states law; it does not amend another provision.',
+  });
 
 export type DraftChunkInput = z.infer<typeof draftChunkSchema>;
 

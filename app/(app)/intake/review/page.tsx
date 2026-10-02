@@ -23,7 +23,7 @@ import { CompleteIntakeForm } from '../_components/complete-form';
 export const metadata: Metadata = { title: 'Review your answers' };
 
 /**
- * One of the five things FoundryAI knows.
+ * One of the five things Islanda knows.
  *
  * Blocks, not rows, and FIVE of them rather than six — the same five slots the
  * rail names and `readKnowledge()` computes. A screen that split stage and
@@ -124,7 +124,7 @@ function Block({
  * The business profile.
  *
  * Not "your form answers" — the founder's own words played back as the thing
- * FoundryAI holds about their business, headed by the business itself. There
+ * Islanda holds about their business, headed by the business itself. There
  * is no analysis, no scoring and no interpretation on this page, because the
  * system has not performed any: the Knowledge and AI layers do not exist yet.
  * It says what it holds, and where it holds nothing it says that too.
@@ -183,7 +183,7 @@ export default async function IntakeReviewPage() {
 
       <WorkspaceSurface className="flex flex-col">
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-white/8 px-6 py-4 sm:px-9">
-          <SurfaceLabel>What FoundryAI knows</SurfaceLabel>
+          <SurfaceLabel>What Islanda knows</SurfaceLabel>
           <p className="text-on-ink-muted text-xs">
             <span data-numeric className="text-on-ink font-medium">
               {knownCount}
@@ -264,8 +264,8 @@ export default async function IntakeReviewPage() {
               Ready when you are
             </h2>
             <p className="text-on-ink-muted max-w-xl text-sm text-pretty">
-              FoundryAI will use this profile to work out your requirements once the knowledge and
-              AI layers are built. Nothing is submitted to any government agency.
+              Islanda will use this profile to work out your requirements once the knowledge and AI
+              layers are built. Nothing is submitted to any government agency.
             </p>
           </div>
 
@@ -274,7 +274,7 @@ export default async function IntakeReviewPage() {
       ) : (
         <WorkspaceSurface tone="deep" className="p-6 sm:p-9">
           <Alert tone="info" title="A few things are still unanswered">
-            FoundryAI needs all five before it can act on the profile.{' '}
+            Islanda needs all five before it can act on the profile.{' '}
             <Link href="/intake" className="text-bahama-turquoise underline underline-offset-4">
               Continue intake
             </Link>

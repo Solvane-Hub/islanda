@@ -85,6 +85,17 @@ export function WorkspaceSurface({
  * Small caps in champagne, which is the landing page's section-numbering
  * language brought inside. Editorial only — it is never a link, and nothing
  * here is clickable, so the accent stays unambiguous.
+ *
+ * ⚠ `as` chooses the ELEMENT, and every value renders identically. That is the
+ *   point: a heading level is a statement about document structure, and it has
+ *   to be chosen by where the label sits in the outline, not by how big it
+ *   should look. Two labels at the same visual weight can legitimately be an
+ *   `h2` and an `h3`, and a screen reader user navigating by heading depends on
+ *   the difference.
+ *
+ *   `p` and `dt` exist for labels that are NOT headings — a caption above a
+ *   definition list, a status line. Using `h2` there would put a phantom entry
+ *   in the outline, which is the more common mistake.
  */
 export function SurfaceLabel({
   children,
@@ -94,7 +105,7 @@ export function SurfaceLabel({
 }: {
   children: React.ReactNode;
   id?: string;
-  as?: 'h2' | 'h3' | 'p' | 'dt';
+  as?: 'h2' | 'h3' | 'h4' | 'p' | 'dt';
   className?: string;
 }) {
   return (

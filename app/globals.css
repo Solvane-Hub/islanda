@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /*
- * FoundryAI design tokens.
+ * Islanda design tokens.
  *
  * Every colour, radius, shadow and type step lives here. No component may
  * hard-code a value — that rule is what makes a palette change a one-file diff.
@@ -15,6 +15,8 @@
   /* ---- Typography ------------------------------------------------------ */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: var(--font-mono-inter), ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
+  /* Editorial display face — the landing hero's giant "Islanda" wordmark only. */
+  --font-display: var(--font-bricolage), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   /* A real scale. Line-heights are generous on body sizes and tight on display
      sizes — the opposite of Tailwind's defaults, which are tuned for density. */
@@ -113,7 +115,7 @@
   /* ---- Dark surfaces — "deep water" -----------------------------------
      The marketing hero and closing chapter run dark. This is not a theme and
      not a dark mode: it is one half of a deliberate light/dark composition,
-     and it exists because the FoundryAI mark is metallic champagne. The mark
+     and it exists because the Islanda mark is metallic champagne. The mark
      measures 1.84:1 on the light canvas and 10.02:1 on `ink` — the brand asset
      itself decided this. Blue-black rather than navy, so it reads as depth
      rather than as a colour. */
@@ -140,6 +142,39 @@
      two clickable-looking accents would make neither mean anything. */
   --color-champagne: oklch(83% 0.055 85); /* 11.39:1 on ink */
   --color-champagne-dim: oklch(70% 0.055 85); /* 7.20:1 on ink */
+
+  /* ---- Passport paper ---------------------------------------------------
+     The Business Passport's interior pages (Identity/Business/State/Records)
+     are the one place in the authenticated app that is NOT dark — a warm,
+     low-chroma cream at the same hue (85) as champagne, so it reads as "the
+     same gold family, lit differently" rather than a foreign light-mode
+     patch. Text/accent tones are deliberately conservative-dark for contrast
+     against that light ground (ink ~19:1, muted ~7:1, accent ~7:1 — measured
+     against `passport-paper`, not assumed). The Passport's cover keeps the
+     existing dark tokens unchanged; only these four are new. */
+  --color-passport-paper: oklch(93% 0.02 85);
+  --color-passport-paper-raised: oklch(97% 0.014 85);
+  --color-passport-ink: oklch(22% 0.02 85);
+  --color-passport-ink-muted: oklch(42% 0.02 85);
+  --color-passport-line: oklch(80% 0.025 85);
+  --color-passport-accent: oklch(40% 0.09 75);
+
+  /* The cover board and its foil. A passport cover is not the workspace's
+     `abyss` with gold text on it — it is a different, warmer-blue dark, so
+     the two materials read as board and paper rather than as two panels. */
+  --color-passport-cover: oklch(17.5% 0.042 252);
+  --color-passport-cover-deep: oklch(10.5% 0.032 252);
+  --color-passport-foil: oklch(84% 0.072 84);
+  --color-passport-foil-dim: oklch(66% 0.062 82);
+
+  /* Document type sizes. The workspace scale bottoms out at `2xs` (11px),
+     which is a UI label — printed document marks sit below it. */
+  --text-3xs: 0.625rem;
+  --text-3xs--line-height: 0.875rem;
+  --text-3xs--letter-spacing: 0.04em;
+  --text-4xs: 0.5rem;
+  --text-4xs--line-height: 0.75rem;
+  --text-4xs--letter-spacing: 0.08em;
 
   /* ---- Depth surfaces — going further down --------------------------
      The page descends: the hero is the surface, §02 is below it, §03 is inside
@@ -252,6 +287,38 @@
      tight shadow reads as a border artefact. */
   --shadow-glass:
     inset 0 1px 0 0 oklch(100% 0 0 / 0.07), 0 18px 44px -22px oklch(4% 0.02 248 / 0.85);
+
+  /* ---- Motion ----------------------------------------------------------
+     Until now every duration in the product was a literal `duration-150`,
+     which is fine for a hover and wrong for everything else. A state machine
+     needs a scale, and a scale needs names.
+
+     The easings are the load-bearing part. `settle` decelerates hard and is
+     the only curve used when something ARRIVES — a retrieved passage, a
+     converged point, a panel. Things that arrive in this product were found,
+     not generated, and a curve that overshoots would suggest otherwise.
+     `enter` is gentler, for opacity and small offsets. `exit` accelerates
+     away, because leaving should not be as considered as arriving.
+
+     Durations are deliberately short. A regulatory answer is not a reveal to
+     be savoured; motion here exists to show that something changed, and then
+     to get out of the way. */
+  --ease-settle: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-enter: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-exit: cubic-bezier(0.55, 0.06, 0.68, 0.19);
+
+  --duration-instant: 90ms;
+  --duration-quick: 160ms;
+  --duration-settle: 320ms;
+  --duration-considered: 560ms;
+
+  /* One shared clock for every ambient Nova animation.
+     Borrowed from `thinking-orbs`, which runs all instances off a single
+     clock so several indicators on one screen never beat against each other.
+     Here it is a shared PERIOD rather than a shared timer: CSS animations
+     with an identical duration and no delay stay in phase for free, which
+     buys the same property with no JavaScript at all. */
+  --nova-cycle: 3200ms;
 }
 
 @layer base {
@@ -332,6 +399,25 @@
 
 .hero-panel {
   animation: hero-panel-in 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The hero's identity block (wordmark, tagline, copy, CTAs) — a shorter,
+   gentler version of `.hero-panel-in`. This is the first thing a visitor
+   reads, so the entrance stays brief and gets out of the way rather than
+   inviting the eye to wait for it. */
+@keyframes hero-text-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-text-in {
+  animation: hero-text-in 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -464,5 +550,722 @@
 
   .depth-panel[data-open='true'] {
     width: calc(100% - 19.5rem);
+  }
+}
+
+/* ---- Nova ---------------------------------------------------------------
+   Nova's identity and its state machine.
+
+   ## The mark
+
+   A field of scattered points and one horizontal axis. The points are the
+   fragmented sources a founder would otherwise search by hand; the axis is
+   the ordered answer. Every state is a position along one journey:
+
+       FRAGMENTATION  →  CONVERGENCE  →  CLARITY
+
+   Deliberately NOT a glowing orb. A dotted orb is the house style of every
+   assistant shipped in the last two years, and it says "there is an AI here"
+   rather than "this is what the AI does". The convergence is legible without
+   the word "Nova" beside it, which is the test an identity has to pass.
+
+   Geometry is authored in the component (`components/ui/nova-mark.tsx`) as two
+   coordinate pairs per point — `--sx/--sy` scattered, `--cx/--cy` converged —
+   so this file animates between them without knowing where any point is.
+
+   ## The states
+
+   ⚠ These are SYSTEM states, not thoughts. Each one corresponds to a stage the
+     pipeline genuinely passes through — retrieval, deterministic filtering,
+     extraction, envelope validation. Nothing here exposes or implies private
+     reasoning, and the extractive reasoner has none to expose: it quotes.
+     `aria-label` on the mark states the system status in words; the animation
+     is decorative and marked `aria-hidden`.
+
+   ## Reduced motion
+
+   The base layer already clamps every duration to 0.01ms under
+   `prefers-reduced-motion: reduce`, which resolves each state to its final
+   frame instantly — correct for the eight discrete states. What that rule
+   cannot make safe is a LOOP: a 3.2s cycle compressed to 0.01ms strobes, and
+   strobing is the specific harm the preference exists to prevent. Every
+   looping animation below is therefore gated behind `no-preference` rather
+   than relying on the override, the same way `.hero-rule` already is. */
+
+[data-nova-state] {
+  --nova-point-opacity: 0.75;
+  --nova-axis-opacity: 0.25;
+  --nova-spread: 1;
+}
+
+.nova-point {
+  transform: translate(calc(var(--sx) * 1px), calc(var(--sy) * 1px));
+  opacity: var(--nova-point-opacity);
+  transition:
+    transform var(--duration-considered) var(--ease-settle),
+    opacity var(--duration-settle) var(--ease-enter);
+}
+
+.nova-axis {
+  opacity: var(--nova-axis-opacity);
+  transition: opacity var(--duration-settle) var(--ease-enter);
+}
+
+/* Converged: points sit on the axis, ordered and evenly spaced. Staggering by
+   index makes them arrive in sequence rather than snapping as one block —
+   the same "arriving in stages" idea the receipt printer uses on its feed,
+   applied to a mark rather than to paper. */
+[data-nova-state='composing'] .nova-point,
+[data-nova-state='connecting'] .nova-point,
+[data-nova-state='speaking'] .nova-point,
+[data-nova-state='ready'] .nova-point,
+[data-nova-state='limited'] .nova-point {
+  transform: translate(calc(var(--cx) * 1px), calc(var(--cy) * 1px));
+  transition-delay: calc(var(--i) * 40ms);
+}
+
+/* Connecting: the field has come together and is being related; axis lit,
+   points held bright. The rich behaviour lives in the presence canvas — this
+   only keeps the small mark coherent if it is ever shown in this state. */
+[data-nova-state='connecting'] {
+  --nova-axis-opacity: 0.65;
+  --nova-point-opacity: 0.9;
+}
+
+/* Speaking: the answer exists and Nova is voicing it. Converged and lit; the
+   physical reaction to audio is the presence's job, not the mark's. */
+[data-nova-state='speaking'] {
+  --nova-axis-opacity: 0.9;
+  --nova-point-opacity: 1;
+}
+
+[data-nova-state='listening'] {
+  --nova-axis-opacity: 0.6;
+  --nova-point-opacity: 0.85;
+}
+
+[data-nova-state='searching'],
+[data-nova-state='evaluating'] {
+  --nova-axis-opacity: 0.45;
+}
+
+[data-nova-state='composing'] {
+  --nova-axis-opacity: 0.7;
+  --nova-point-opacity: 0.9;
+}
+
+[data-nova-state='ready'] {
+  --nova-axis-opacity: 0.9;
+  --nova-point-opacity: 1;
+}
+
+/* Partial coverage. The points that DID converge are full strength; the two
+   that stand for what was not established stay faint. A gap in the line is
+   the honest picture of a partial answer. */
+[data-nova-state='limited'] {
+  --nova-axis-opacity: 0.7;
+  --nova-point-opacity: 0.95;
+}
+
+[data-nova-state='limited'] .nova-point:nth-child(3n) {
+  opacity: 0.18;
+}
+
+/* Refusal contracts rather than erroring. The points fall back to the
+   scattered field and dim; the axis stays lit, because the system is still
+   there and still working — it simply found nothing that supported an answer.
+   Red would say "something broke". Nothing broke. */
+[data-nova-state='refused'] {
+  --nova-point-opacity: 0.3;
+  --nova-axis-opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Idle: an almost imperceptible breath, so the mark reads as present rather
+     than as a static logo. Amplitude is 3% opacity — visible as life, never
+     as movement competing with the composer beside it. */
+  @keyframes nova-breathe {
+    0%,
+    100% {
+      opacity: var(--nova-point-opacity);
+    }
+    50% {
+      opacity: calc(var(--nova-point-opacity) - 0.03);
+    }
+  }
+
+  [data-nova-state='idle'] .nova-point {
+    animation: nova-breathe var(--nova-cycle) var(--ease-enter) infinite;
+    animation-delay: calc(var(--i) * 90ms);
+  }
+
+  /* Searching: a meridian sweeps the field and each point brightens as it is
+     passed. The stagger IS the scan — there is no separate sweeping element,
+     so the animation cannot fall out of step with the points it is scanning. */
+  @keyframes nova-scan {
+    0%,
+    100% {
+      opacity: 0.28;
+    }
+    18% {
+      opacity: 1;
+    }
+    40% {
+      opacity: 0.28;
+    }
+  }
+
+  [data-nova-state='searching'] .nova-point {
+    animation: nova-scan 1400ms linear infinite;
+    animation-delay: calc(var(--i) * 110ms);
+  }
+
+  /* Evaluating: the sweep has finished and the field is being narrowed.
+     Points hold; a slower pulse says work continues without implying a scan
+     is still running. */
+  @keyframes nova-weigh {
+    0%,
+    100% {
+      opacity: 0.85;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+
+  [data-nova-state='evaluating'] .nova-point:nth-child(2n) {
+    animation: nova-weigh 900ms var(--ease-enter) infinite;
+    animation-delay: calc(var(--i) * 60ms);
+  }
+
+  /* Composing: the axis draws itself as the points land on it. */
+  @keyframes nova-axis-draw {
+    from {
+      transform: scaleX(0.2);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  [data-nova-state='composing'] .nova-axis {
+    transform-origin: center;
+    animation: nova-axis-draw var(--duration-considered) var(--ease-settle) both;
+  }
+}
+
+/* ---- Focus beam ---------------------------------------------------------
+   A single rotating conic gradient behind a masked border, used ONLY on the
+   Nova composer when it holds focus.
+
+   The technique is `border-beam`'s; the package is not, because this is
+   fifteen lines and a dependency is forever. It earns its place on exactly
+   one element: the composer is where a founder hands a question to the
+   system, and the beam marks that boundary as live. Anywhere else it would be
+   decoration, and a second use is the signal that it has become one.
+
+   `:focus-visible` semantics are preserved by the caller — this class is
+   applied alongside the real focus ring, never instead of it. Removing the
+   ring in favour of a decorative beam would fail SC 2.4.7. */
+.nova-beam {
+  position: relative;
+}
+
+.nova-beam::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--beam-angle, 0deg),
+    transparent 0deg,
+    var(--color-bahama-turquoise) 40deg,
+    transparent 110deg,
+    transparent 360deg
+  );
+  /* Mask to the border only, so the gradient never washes the writing area. */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--duration-quick) var(--ease-enter);
+  pointer-events: none;
+}
+
+.nova-beam[data-beam='on']::before {
+  opacity: 1;
+}
+
+@property --beam-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes nova-beam-rotate {
+    to {
+      --beam-angle: 360deg;
+    }
+  }
+
+  .nova-beam[data-beam='on']::before {
+    animation: nova-beam-rotate 4s linear infinite;
+  }
+}
+
+/* ---- Staged reveal ------------------------------------------------------
+   Evidence arrives in sequence rather than appearing as a block.
+
+   The idea is from the receipt-printer experiment, and the reason it belongs
+   here is not that it looks nice: a citation IS a record being issued, and
+   watching passages arrive one at a time reinforces that they were RETRIEVED
+   rather than composed. A block fade would say the opposite.
+
+   Index-driven delay, capped so a long answer never makes a founder wait on
+   choreography. Under reduced motion the base rule collapses the duration and
+   every item is simply present. */
+.stage-in {
+  animation: stage-in var(--duration-settle) var(--ease-settle) both;
+  animation-delay: calc(min(var(--i, 0), 8) * 55ms);
+}
+
+@keyframes stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Nova field ---------------------------------------------------------
+   The constellation, and the claim↔evidence relationship it makes navigable.
+
+   `.nova-field` reuses `.nova-point` and `.nova-axis` from the mark, so the
+   icon and the product-scale surface are literally the same visual language
+   rather than two things that resemble each other. A state change moves both.
+
+   The only addition here is the RELATIONSHIP layer: a node under pointer or
+   keyboard focus, and the sources of the same finding, brighten together. The
+   resting state is everything-equal — an interface that dims itself until you
+   point at something is exhausting to read, and it also hides information from
+   anyone who never hovers. */
+
+.nova-field .nova-point {
+  transition:
+    transform var(--duration-considered) var(--ease-settle),
+    opacity var(--duration-settle) var(--ease-enter),
+    r var(--duration-quick) var(--ease-settle);
+}
+
+/* Related nodes brighten; nothing else dims. */
+.nova-node[data-related='true'] .nova-point {
+  opacity: 1;
+  fill: var(--color-bahama-turquoise);
+}
+
+/* Keyboard parity with hover. The hit target is a transparent rect, so the
+   ring is drawn on the group rather than on an invisible box. */
+.nova-node:focus-within .nova-point {
+  opacity: 1;
+  fill: var(--color-bahama-turquoise);
+}
+
+.nova-node:focus-within {
+  outline: 2px solid var(--color-bahama-turquoise);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+/* ---- Connection ---------------------------------------------------------
+   An arc between two passages cut from the SAME INSTRUMENT.
+
+   Faint at rest, because the relationship is context rather than content —
+   the findings below say everything the founder needs, and a bright web of
+   lines would compete with them for attention. It brightens only when one of
+   its endpoints is under focus, which is the moment the question "what else
+   came from this document?" is actually being asked.
+
+   ⚠ Styled as a hairline, never as an arrow. An arrow implies direction, and
+     direction between two provisions is a legal relationship nothing in this
+     system is able to establish. */
+
+.nova-edge {
+  stroke: var(--color-on-ink);
+  stroke-width: 0.75;
+  opacity: 0.22;
+  transition:
+    opacity var(--duration-quick) var(--ease-settle),
+    stroke var(--duration-quick) var(--ease-settle);
+}
+
+.nova-edge[data-related='true'] {
+  stroke: var(--color-bahama-turquoise);
+  opacity: 0.9;
+  stroke-width: 1.1;
+}
+
+/* ---- Findings -----------------------------------------------------------
+   A finding is not a card.
+
+   Cards were the wrong metaphor: eight bordered boxes stacked vertically read
+   as a list of records, which is precisely the "government database" the
+   product must not feel like. A finding is a band — hairline-separated,
+   full-width, with an evidence rail down its left edge. The rail is what
+   carries continuity from one finding to the next, so the answer reads as one
+   investigation rather than as several results.
+
+   `--nova-rail` is the spine. It lights when the finding is related to the
+   focused source, which is the same relationship the field shows, expressed in
+   the other direction. */
+
+.nova-finding {
+  --nova-rail-opacity: 0.14;
+  position: relative;
+  transition: background-color var(--duration-quick) var(--ease-enter);
+}
+
+.nova-finding::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--color-bahama-turquoise);
+  opacity: var(--nova-rail-opacity);
+  transition: opacity var(--duration-quick) var(--ease-enter);
+}
+
+.nova-finding[data-related='true'] {
+  --nova-rail-opacity: 0.9;
+  background-color: oklch(100% 0 0 / 0.02);
+}
+
+/* The node on the rail, marking where this finding sits in the investigation. */
+.nova-finding-node {
+  position: absolute;
+  left: -3.5px;
+  top: 1.85rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-glass-deep);
+  border: 1px solid var(--color-bahama-turquoise);
+  opacity: 0.5;
+  transition:
+    opacity var(--duration-quick) var(--ease-enter),
+    background-color var(--duration-quick) var(--ease-enter);
+}
+
+.nova-finding[data-related='true'] .nova-finding-node {
+  opacity: 1;
+  background: var(--color-bahama-turquoise);
+}
+
+/* ---- Staged bands -------------------------------------------------------
+   The receipt-printer principle, applied at the right granularity.
+
+   Previously `.stage-in` revealed a whole finding at once. The idea worth
+   borrowing is finer than that: a receipt does not appear, it FEEDS — line by
+   line, in the order the machine prints them. A finding assembles in the order
+   the pipeline established it:
+
+       provision → passage → source → agency → later effects
+
+   ⚠ This stages information that has ALREADY ARRIVED. It must never be read as
+     data still being fetched, so it is fast (55ms steps, capped) and the
+     status line above it is not present during the reveal. Padding a response
+     to look like work is the one thing this whole architecture exists not to
+     do. */
+
+.stage-band {
+  animation: stage-in var(--duration-settle) var(--ease-settle) both;
+  animation-delay: calc(min(var(--band, 0), 6) * 55ms);
+}
+
+/* ---- Nova presence video ------------------------------------------------
+   The generated Kling asset, composited into the environment rather than
+   embedded as a video box.
+
+   `mix-blend-mode: screen` drops the asset's near-black ground (black adds
+   nothing under screen) so only Nova's light lands on the dark surface behind
+   it; a radial mask feathers the rectangular edges away. ⚠ The wrapper is NOT
+   isolated, deliberately — screen must blend against the frame/environment
+   behind it, not just against itself, or the black ground would show as a box.
+
+   Scale, brightness, saturation and glow are driven by CSS custom properties
+   the component sets: eased between states, and updated per frame (transition
+   suppressed) while Nova speaks. */
+.nova-video {
+  position: relative;
+  overflow: hidden;
+}
+
+.nova-video__glow {
+  position: absolute;
+  inset: -12%;
+  background: radial-gradient(circle at 50% 45%, oklch(76% 0.127 203 / 0.16), transparent 60%);
+  opacity: calc(0.5 + var(--nova-glow, 0.2) * 0.6);
+  transition: opacity var(--duration-considered) var(--ease-enter);
+  pointer-events: none;
+}
+
+.nova-video__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mix-blend-mode: screen;
+  transform: scale(var(--nova-scale, 1));
+  filter: brightness(var(--nova-bright, 1)) saturate(var(--nova-sat, 1));
+  transition:
+    transform var(--duration-considered) var(--ease-settle),
+    filter var(--duration-considered) var(--ease-enter);
+  will-change: transform, filter;
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 52%, transparent 82%);
+  mask-image: radial-gradient(circle at 50% 46%, #000 52%, transparent 82%);
+}
+
+/* While speaking, the analyser drives the vars every frame, so the state
+   easing is dropped to zero duration — the values apply instantly with no CSS
+   lag (the eased state-to-state transition resumes when speaking ends). */
+.nova-video[data-speaking='true'] .nova-video__media {
+  transition-duration: 0s;
+}
+
+/* ---- Application environment --------------------------------------------
+   The dark atmosphere the whole application floats in. Near-black, with two
+   restrained deep-ocean-blue lights — one high-right, one low-left — and a
+   corner vignette that pulls the edges back to black so the frame reads as a
+   physical object suspended in space. No photograph, no gradient hero.
+
+   A single low-opacity glow layer drifts slowly so the environment feels alive
+   without anyone consciously noticing it moves; gated behind `no-preference`
+   because a looping transform is exactly what the reduced-motion preference is
+   for. The base atmosphere is static and always present. */
+.app-environment {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 48% at 78% 12%, oklch(46% 0.09 245 / 0.3), transparent 60%),
+    radial-gradient(52% 48% at 15% 94%, oklch(40% 0.07 235 / 0.2), transparent 62%),
+    linear-gradient(180deg, #050b12 0%, #02060c 56%, #010409 100%);
+}
+.app-environment::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(92% 78% at 50% 42%, transparent 44%, rgba(0, 0, 0, 0.62));
+}
+.app-environment__glow {
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(38% 38% at 72% 20%, oklch(55% 0.11 240 / 0.22), transparent 60%);
+  opacity: 0.85;
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes atmo-drift {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+      opacity: 0.78;
+    }
+    100% {
+      transform: translate3d(-4%, 3%, 0) scale(1.09);
+      opacity: 1;
+    }
+  }
+  .app-environment__glow {
+    animation: atmo-drift 26s ease-in-out infinite alternate;
+  }
+}
+
+/* ---- Application frame --------------------------------------------------
+   The floating instrument itself. A soft, wide dark shadow seats it into the
+   environment, and a very faint blue ambient halo lifts it off the black — the
+   reference's "light behind the application", in Islanda's palette. The inset
+   top hairline is the upper-edge reflection. */
+.app-frame {
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.06),
+    0 44px 120px -44px rgba(0, 0, 0, 0.92),
+    0 0 110px -30px oklch(52% 0.09 240 / 0.28);
+}
+
+/* ---- Business Passport · material system --------------------------------
+   The Passport is the one surface in this product rendered as a physical
+   OBJECT rather than assembled from workspace materials. Everything below
+   exists so it survives close reading: a dark grained board with engraved
+   guilloche and foil stamping, bound against warm stock carrying security
+   hairlines, an abstract contour watermark and printed ink.
+
+   No image assets — every layer is CSS over tokens, so the whole document
+   scales and recolours with the palette.
+
+   The governing rule for every layer here: keep it BARELY visible. Security
+   printing reads as texture, never as pattern. If a hairline is legible AS a
+   line at normal distance, it is too strong and the object stops looking
+   printed and starts looking decorated. */
+
+/* --- The cover board ----------------------------------------------------- */
+.passport-cover-material {
+  background-color: var(--color-passport-cover-deep);
+  background-image:
+    repeating-linear-gradient(104deg, oklch(100% 0 0 / 0.02) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(-104deg, oklch(100% 0 0 / 0.015) 0 1px, transparent 1px 5px),
+    radial-gradient(130% 80% at 50% -12%, oklch(32% 0.055 252 / 0.6), transparent 60%),
+    radial-gradient(120% 90% at 50% 112%, oklch(26% 0.05 252 / 0.5), transparent 58%),
+    linear-gradient(168deg, var(--color-passport-cover) 0%, var(--color-passport-cover-deep) 100%);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.07),
+    inset 0 -1px 0 oklch(0% 0 0 / 0.6),
+    inset 0 0 70px oklch(0% 0 0 / 0.45);
+}
+
+/* Engraved concentric rings, masked to a soft disc — the lathe-turned
+   ornament a printed document carries behind its central device. */
+.passport-guilloche {
+  background-image: repeating-radial-gradient(
+    circle at 50% 50%,
+    oklch(84% 0.072 84 / 0.085) 0 1px,
+    transparent 1px 8px
+  );
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, oklch(0% 0 0) 16%, transparent 70%);
+  mask-image: radial-gradient(circle at 50% 50%, oklch(0% 0 0) 16%, transparent 70%);
+}
+
+/* Foil stamping. A gradient clipped to the glyphs, so the type catches
+   "light" across its width the way hot-foil does, rather than being flat
+   gold fill. */
+.passport-foil {
+  background-image: linear-gradient(
+    100deg,
+    oklch(68% 0.055 78) 0%,
+    oklch(92% 0.075 88) 30%,
+    oklch(74% 0.06 78) 52%,
+    oklch(95% 0.06 90) 78%,
+    oklch(72% 0.055 78) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Anything struck INTO the board rather than printed onto it. */
+.passport-deboss {
+  text-shadow: 0 1px 0 oklch(0% 0 0 / 0.65);
+}
+
+/* --- The page stock ------------------------------------------------------ */
+.passport-paper-material {
+  background-color: var(--color-passport-paper);
+  background-image:
+    repeating-linear-gradient(46deg, oklch(40% 0.09 75 / 0.03) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(-46deg, oklch(48% 0.07 252 / 0.022) 0 1px, transparent 1px 8px),
+    radial-gradient(85% 55% at 18% 0%, oklch(98% 0.012 85 / 0.85), transparent 62%),
+    radial-gradient(80% 65% at 100% 100%, oklch(89% 0.022 80 / 0.5), transparent 66%);
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.55);
+}
+
+/* Contour watermark. Deliberately abstract rings — an island form, not a map
+   of any real place, and nothing traceable to any state's document. */
+.passport-watermark {
+  background-image:
+    repeating-radial-gradient(
+      ellipse 58% 40% at 64% 44%,
+      oklch(48% 0.07 252 / 0.075) 0 1px,
+      transparent 1px 11px
+    ),
+    repeating-radial-gradient(
+      ellipse 26% 20% at 32% 66%,
+      oklch(48% 0.07 252 / 0.06) 0 1px,
+      transparent 1px 9px
+    ),
+    repeating-radial-gradient(
+      ellipse 16% 12% at 84% 74%,
+      oklch(48% 0.07 252 / 0.05) 0 1px,
+      transparent 1px 8px
+    );
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 58% 52%, oklch(0% 0 0), transparent 82%);
+  mask-image: radial-gradient(ellipse 80% 70% at 58% 52%, oklch(0% 0 0), transparent 82%);
+}
+
+/* --- The binding --------------------------------------------------------- */
+.passport-spine {
+  background-image: linear-gradient(
+    90deg,
+    oklch(0% 0 0 / 0.42) 0%,
+    oklch(0% 0 0 / 0.72) 30%,
+    oklch(0% 0 0 / 0.92) 50%,
+    oklch(0% 0 0 / 0.68) 70%,
+    oklch(0% 0 0 / 0.38) 100%
+  );
+}
+
+.passport-stitch {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    oklch(84% 0.072 84 / 0.2) 0 5px,
+    transparent 5px 13px
+  );
+}
+
+/* Gutter falloff: each page darkens as it curves into the binding. Applied
+   to an overlay pinned to the page's inner edge. */
+.passport-gutter-inner-right {
+  background-image: linear-gradient(to left, oklch(0% 0 0 / 0.5), transparent 5rem);
+}
+
+.passport-gutter-inner-left {
+  background-image: linear-gradient(to right, oklch(0% 0 0 / 0.16), transparent 5rem);
+}
+
+/* A printed page has no scrollbar down its fore-edge. The leaf still scrolls
+   by wheel, trackpad, touch and keyboard — only the browser's own chrome is
+   suppressed, because a scrollbar drawn inside the document is the single
+   most app-like thing that can happen to it. Content that continues past the
+   fold is cut mid-line, which is the page's own affordance. */
+.passport-leaf-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.passport-leaf-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* --- Page-turn motion ---------------------------------------------------- */
+/* `--passport-enter-x` is set inline per navigation (positive moving forward
+   through the document, negative moving back), so the motion reads as paging
+   rather than as a generic fade. `prefers-reduced-motion: reduce` is already
+   handled globally in this file, so no separate guard is needed. */
+.passport-page-in {
+  animation: passport-page-in var(--duration-settle) var(--ease-enter) both;
+}
+
+@keyframes passport-page-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--passport-enter-x, 14px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

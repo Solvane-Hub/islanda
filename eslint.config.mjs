@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
 /**
- * FoundryAI ESLint configuration.
+ * Islanda ESLint configuration.
  *
  * Beyond standard linting, this config MECHANICALLY ENFORCES the layer boundaries
  * defined in Platform Architecture and Engineering Standards. These are not

@@ -46,6 +46,29 @@ export async function findPublishedPack(
   return (data as KnowledgePack | null) ?? null;
 }
 
+/**
+ * A pack by its jurisdiction and version, in any status.
+ *
+ * Distinct from `findPublishedPack`, which answers "what may a founder read".
+ * This answers "does this version already exist", which is the question a
+ * pipeline step has to ask before creating one — and it must see draft,
+ * superseded and rolled-back packs too, or it would happily create a second row
+ * that violates `kp_version_per_country`.
+ */
+export async function findPackByVersion(
+  db: Db,
+  countryCode: string,
+  version: string,
+): Promise<KnowledgePack | null> {
+  const { data } = await db
+    .from('knowledge_packs')
+    .select('*')
+    .eq('country_code', countryCode)
+    .eq('version', version)
+    .maybeSingle();
+  return (data as KnowledgePack | null) ?? null;
+}
+
 export async function updatePackStatus(
   db: Db,
   id: string,

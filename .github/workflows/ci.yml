@@ -41,6 +41,16 @@ jobs:
   e2e:
     name: End-to-end
     runs-on: ubuntu-latest
+    # E2E covers the existing authenticated application flow. Production builds
+    # default the public waitlist gate on, so explicitly exercise the
+    # development/authenticated mode used by these tests. Sign-in behaviour
+    # (e.g. wrong credentials must not enumerate accounts) is asserted against
+    # the real Supabase project — a placeholder URL can only produce a
+    # generic failure.
+    env:
+      WAITLIST_ONLY_MODE: 'false'
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -63,12 +73,6 @@ jobs:
     # Security control, not a feature. RLS_TESTS_REQUIRED=1 turns a missing
     # configuration into a failure rather than a silent skip.
     env:
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      RLS_TEST_USER_A_EMAIL: ${{ secrets.RLS_TEST_USER_A_EMAIL }}
-      RLS_TEST_USER_A_PASSWORD: ${{ secrets.RLS_TEST_USER_A_PASSWORD }}
-      RLS_TEST_USER_B_EMAIL: ${{ secrets.RLS_TEST_USER_B_EMAIL }}
-      RLS_TEST_USER_B_PASSWORD: ${{ secrets.RLS_TEST_USER_B_PASSWORD }}
       RLS_TESTS_REQUIRED: '1'
     steps:
       - uses: actions/checkout@v4
@@ -77,12 +81,27 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run test:rls
+      - name: Run RLS tests
+        run: npm run test:rls
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          RLS_TEST_USER_A_EMAIL: ${{ secrets.RLS_TEST_USER_A_EMAIL }}
+          RLS_TEST_USER_A_PASSWORD: ${{ secrets.RLS_TEST_USER_A_PASSWORD }}
+          RLS_TEST_USER_B_EMAIL: ${{ secrets.RLS_TEST_USER_B_EMAIL }}
+          RLS_TEST_USER_B_PASSWORD: ${{ secrets.RLS_TEST_USER_B_PASSWORD }}
+          # Seeds fixture rows in business-evidence.test.ts only. Scoped to this
+          # step; no other job or the app build receives it.
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
   a11y:
     name: Accessibility (WCAG 2.1 AA)
     runs-on: ubuntu-latest
     env:
+      # The authenticated pages sign in as RLS test user A, which needs the real
+      # Supabase project and the waitlist gate off (production builds default it
+      # on, which redirects /login to the landing page).
+      WAITLIST_ONLY_MODE: 'false'
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       NEXT_PUBLIC_APP_URL: http://localhost:3000

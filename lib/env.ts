@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { z } from 'zod';
 
 /**
@@ -12,7 +14,37 @@ import { z } from 'zod';
  */
 const serverSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  WAITLIST_ONLY_MODE: z.enum(['true', 'false']).transform((value) => value === 'true'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  /**
+   * Fish Audio — Nova's optional speaking voice.
+   *
+   * ⚠ Server-only, and deliberately so. `FISH_API_KEY` is a bearer credential
+   *   for a paid provider; it must never reach the browser bundle, never be
+   *   logged, and never be committed. It lives here (not in `clientSchema`) for
+   *   the same reason `SUPABASE_SERVICE_ROLE_KEY` does — importing this module
+   *   from a Client Component is a build error.
+   *
+   *   Both are optional: Nova works fully without a voice, and the
+   *   `/api/nova/speak` route degrades gracefully (503) when either is absent,
+   *   so a deployment without a Fish account is a supported configuration
+   *   rather than a boot failure.
+   */
+  FISH_API_KEY: z.string().min(1).optional(),
+  FISH_NOVA_VOICE_ID: z.string().min(1).optional(),
+  /**
+   * Intelligence Gateway — the LLM provider credential (P5).
+   *
+   * ⚠ Server-only bearer credential for a paid provider: never in the browser
+   *   bundle, never logged, never committed. Optional by design — the gateway
+   *   degrades to a controlled "unavailable" state when it is absent, and every
+   *   deterministic request works without it. Model ids are overridable per tier
+   *   so the tier→model mapping stays configuration (ADR-0019), not code.
+   */
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_MODEL_NANO: z.string().min(1).optional(),
+  OPENAI_MODEL_MINI: z.string().min(1).optional(),
+  OPENAI_MODEL_PREMIUM: z.string().min(1).optional(),
 });
 
 /**
@@ -81,7 +113,17 @@ function parseClientEnv(source: EnvSource): z.infer<typeof clientSchema> {
 function parseServerEnv(source: EnvSource): z.infer<typeof serverSchema> {
   const parsed = serverSchema.safeParse({
     NODE_ENV: source.NODE_ENV,
+    // Fail closed for production deployments if the explicit flag is omitted.
+    // Local development and tests retain the existing auth flow by default.
+    WAITLIST_ONLY_MODE:
+      source.WAITLIST_ONLY_MODE ?? (source.NODE_ENV === 'production' ? 'true' : 'false'),
     SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY,
+    FISH_API_KEY: source.FISH_API_KEY,
+    FISH_NOVA_VOICE_ID: source.FISH_NOVA_VOICE_ID,
+    OPENAI_API_KEY: source.OPENAI_API_KEY,
+    OPENAI_MODEL_NANO: source.OPENAI_MODEL_NANO,
+    OPENAI_MODEL_MINI: source.OPENAI_MODEL_MINI,
+    OPENAI_MODEL_PREMIUM: source.OPENAI_MODEL_PREMIUM,
   });
   if (!parsed.success) {
     throw new Error(

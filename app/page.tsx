@@ -2,32 +2,47 @@ import type { Metadata } from 'next';
 import type { Milestone } from '@/services/progress';
 import { Journey } from '@/app/(app)/_components/journey';
 import { Hero } from '@/components/marketing/hero';
+import { EnterIslanda } from '@/components/marketing/enter-islanda';
 import { SiteHeader } from '@/components/marketing/site-header';
+import { Problem } from '@/components/marketing/problem';
 import { JourneyStages } from '@/components/marketing/journey-stages';
 import { Perspectives } from '@/components/marketing/perspectives';
 import { ProductReveal } from '@/components/marketing/product-reveal';
+import { MeetNova } from '@/components/marketing/meet-nova';
 import { SectionHeading } from '@/components/marketing/section';
 import { Territory } from '@/components/marketing/territory';
+import { WaitlistCta } from '@/components/marketing/waitlist-cta';
 import { Closing } from '@/components/marketing/closing';
 import { SiteFooter } from '@/components/marketing/site-footer';
+import { serverEnv } from '@/lib/env';
 
 export const metadata: Metadata = {
-  title: 'FoundryAI — Build a business in The Bahamas',
+  title: "Islanda — Navigate What's Next.",
   description:
-    'FoundryAI works out what your business needs — formation, licences, compliance and funding — for the country and industry you operate in, with the legislation behind every requirement.',
+    'Islanda helps businesses understand their context, turn fragmented information into intelligence, and navigate what comes next.',
+  openGraph: {
+    title: "Islanda — Navigate What's Next.",
+    description:
+      'Islanda helps businesses understand their context, turn fragmented information into intelligence, and navigate what comes next.',
+    type: 'website',
+  },
 };
 
 /**
- * Visual Experience v1 — the landing page.
+ * Islanda public launch page.
  *
- * Composed of six chapters that alternate between ink and canvas: deep water,
- * then the chart. The dark chapters exist because the FoundryAI mark is
- * metallic champagne and cannot be read on a light surface; the alternation
- * turned out to carry the argument as well.
+ * The hero and `EnterIslanda` open the page unnumbered — environment, then
+ * the Islanda identity, then the first look at the real workspace — before
+ * the eight numbered chapters begin, which alternate between ink and canvas:
+ * deep water, then the chart. The champagne editorial accent (chapter
+ * numbers, small caps) still carries that alternation's argument even though
+ * the header/closing mark is now the 2026 asset. The problem (§02) and the
+ * waitlist (§08) were added for the public launch; §03–§07 are the original
+ * six-chapter page, renumbered and otherwise unchanged.
  *
  * This file is a Server Component and stays one. The only client code on the
- * page is two leaf components that genuinely need state — the scroll-driven
- * stage rail and the perspectives tablist.
+ * page is leaf components that genuinely need state — the scroll-driven stage
+ * rail, the perspectives tablist, and the waitlist form.
  *
  * `EXAMPLE_MILESTONES` is illustrative content, clearly labelled as such
  * wherever it renders. It is shaped as real `Milestone` values so the marketing
@@ -64,7 +79,13 @@ const EXAMPLE_MILESTONES: Milestone[] = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ access?: string }>;
+}) {
+  const { access } = await searchParams;
+  const showWaitlistNotice = serverEnv.WAITLIST_ONLY_MODE && access === 'waitlist';
   return (
     <>
       {/* The landing page has no app chrome, so it carries its own skip link. */}
@@ -81,9 +102,33 @@ export default function HomePage() {
       <div className="relative">
         <SiteHeader />
         <main id="main">
+          {showWaitlistNotice ? (
+            <p role="status" className="bg-abyss text-on-ink px-6 py-4 text-center text-sm">
+              Islanda is currently available by waitlist invitation. Join the waitlist below to be
+              notified when access opens.
+            </p>
+          ) : null}
           <Hero />
-          {/* 02 — the route. Ink after the bright hero: the chapter break is
-              the move from THE BAHAMAS to THE ROUTE. */}
+
+          <EnterIslanda />
+
+          {/* 02 — the problem, named plainly before the product is shown. */}
+          <section className="bg-abyss text-on-ink relative isolate overflow-hidden">
+            <div className="mx-auto w-full max-w-6xl px-6 py-20 sm:px-8 lg:px-12 lg:py-28">
+              <SectionHeading
+                tone="ink"
+                index="02"
+                eyebrow="The problem"
+                title="Your business already knows the answer. It's just scattered."
+              />
+              <div className="mt-14 lg:mt-16">
+                <Problem />
+              </div>
+            </div>
+          </section>
+
+          {/* 03 — the route. Ink after the problem: the chapter break is
+              the move from THE PROBLEM to THE ROUTE. */}
           <section id="journey" className="bg-ink text-on-ink relative isolate overflow-hidden">
             <div
               aria-hidden="true"
@@ -96,10 +141,10 @@ export default function HomePage() {
             <div className="mx-auto w-full max-w-6xl px-6 py-24 sm:px-8 lg:px-12 lg:py-36">
               <SectionHeading
                 tone="ink"
-                index="02"
-                eyebrow="The route"
+                index="03"
+                eyebrow="How Islanda works"
                 title="One route, from idea to operating business."
-                lede="FoundryAI holds the whole path and works out which parts of it apply to you. Guided intake is available today; the stages beyond it are in development, and each one below says which it is."
+                lede="Islanda holds the whole path and works out which parts of it apply to you. Guided intake is available today; the stages beyond it are in development, and each one below says which it is."
               />
               <div className="mt-20 lg:mt-28">
                 <JourneyStages />
@@ -107,11 +152,11 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* 03 — inside the system. Stays in the ink/marine family: §02 and
-              §03 are the same environment at different depths, not two themes.
-              The route line from §02 continues down this section's gutter. */}
+          {/* 04 — inside the system. Stays in the ink/marine family: §03 and
+              §04 are the same environment at different depths, not two themes.
+              The route line from §03 continues down this section's gutter. */}
           <section className="bg-marine text-on-ink relative isolate overflow-hidden">
-            {/* Seam from §02's ink, and back down to ink for §04 — the section
+            {/* Seam from §03's ink, and back down to ink for §05 — the section
                 is a tonal band rather than a flat block. */}
             <div
               aria-hidden="true"
@@ -134,8 +179,8 @@ export default function HomePage() {
             <div className="mx-auto w-full max-w-[84rem] px-6 py-24 sm:px-8 lg:px-12 lg:py-36">
               <SectionHeading
                 tone="ink"
-                index="03"
-                eyebrow="The system"
+                index="04"
+                eyebrow="See it work"
                 title="Watch it work through the route."
                 lede="The same journey, now from the inside. Your words go in, structure comes out, and the route resolves into one thing to do next."
               />
@@ -145,14 +190,30 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* 04 — four instruments. Stays in the ink family; the variation is
+          {/* 05 — meet Nova. Islanda's assistant, introduced as working WITH
+              the business context above it — never as a synonym for Islanda. */}
+          <section className="bg-ink text-on-ink relative isolate overflow-hidden">
+            <div className="mx-auto w-full max-w-6xl px-6 py-24 sm:px-8 lg:px-12 lg:py-32">
+              <SectionHeading
+                tone="ink"
+                index="05"
+                eyebrow="Meet Nova"
+                title="Islanda's intelligent business assistant."
+              />
+              <div className="mt-14 lg:mt-16">
+                <MeetNova />
+              </div>
+            </div>
+          </section>
+
+          {/* 06 — four instruments. Stays in the ink family; the variation is
               horizontal composition and a marine → abyss descent across the
               four panels rather than a change of tone for the section. */}
           <section className="bg-ink text-on-ink relative isolate overflow-hidden">
             <div className="mx-auto w-full max-w-[88rem] px-6 py-24 sm:px-8 lg:px-12 lg:py-36">
               <SectionHeading
                 tone="ink"
-                index="04"
+                index="06"
                 eyebrow="Perspectives"
                 title="Four ways to look at the same system."
                 lede="Build, understand, operate, grow. Not four products — four views of one, and each says plainly which parts exist today."
@@ -163,7 +224,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* 05 — over the territory. The environment returns: a marine
+          {/* 07 — over the territory. The environment returns: a marine
               intro, then the approved photograph as a sticky stage the roadmap
               travels across. Relief for the lower half of the page without
               leaving the visual language. */}
@@ -175,17 +236,33 @@ export default function HomePage() {
             <div className="mx-auto w-full max-w-6xl px-6 pt-24 pb-16 sm:px-8 lg:px-12 lg:pt-36 lg:pb-24">
               <SectionHeading
                 tone="ink"
-                index="05"
-                eyebrow="The environment"
+                index="07"
+                eyebrow="Who it's for"
                 title="Built for the place it operates in."
-                lede="FoundryAI exists for businesses forming in The Bahamas. What follows is where the product is going — described as direction, not as capability."
+                lede="Entrepreneurs, founders, existing businesses and the advisors who work with them. Islanda exists for businesses forming in The Bahamas today — what follows is where the product is going, described as direction, not as capability."
               />
             </div>
 
             <Territory />
           </section>
 
-<Closing />
+          {/* 08 — the waitlist. The primary conversion point for a visitor who
+              isn't ready to create an account today. */}
+          <section id="waitlist" className="bg-abyss text-on-ink relative isolate overflow-hidden">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -z-10"
+              style={{
+                background:
+                  'radial-gradient(85% 55% at 50% 0%, oklch(76% 0.127 203 / 0.10) 0%, transparent 62%)',
+              }}
+            />
+            <div className="mx-auto w-full max-w-4xl px-6 py-24 sm:px-8 lg:px-12 lg:py-32">
+              <WaitlistCta />
+            </div>
+          </section>
+
+          <Closing />
         </main>
       </div>
 

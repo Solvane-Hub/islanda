@@ -14,7 +14,17 @@ export type BusinessRow = Business;
 
 export async function insertBusiness(
   db: SupabaseClient<Database>,
-  values: { owner_id: string; name: string; country_code: string; industry?: string | undefined },
+  values: {
+    owner_id: string;
+    name: string;
+    country_code: string;
+    industry?: string | undefined;
+    /** Which front door created this business. Defaults to 'build' at the DB. */
+    business_mode?: Business['business_mode'] | undefined;
+    legal_name?: string | undefined;
+    trading_name?: string | undefined;
+    business_type?: string | undefined;
+  },
 ): Promise<{ data: BusinessRow | null; error: string | null }> {
   const { data, error } = await db
     .from('businesses')
@@ -23,6 +33,10 @@ export async function insertBusiness(
       name: values.name,
       country_code: values.country_code,
       industry: values.industry ?? null,
+      ...(values.business_mode ? { business_mode: values.business_mode } : {}),
+      legal_name: values.legal_name ?? null,
+      trading_name: values.trading_name ?? null,
+      business_type: values.business_type ?? null,
     })
     .select('*')
     .single();
@@ -50,7 +64,19 @@ export async function findBusinessById(
 export async function updateBusiness(
   db: SupabaseClient<Database>,
   businessId: string,
-  patch: Partial<Pick<BusinessRow, 'name' | 'industry' | 'status' | 'archived_at'>>,
+  patch: Partial<
+    Pick<
+      BusinessRow,
+      | 'name'
+      | 'industry'
+      | 'status'
+      | 'archived_at'
+      | 'legal_name'
+      | 'trading_name'
+      | 'business_type'
+      | 'logo_storage_path'
+    >
+  >,
 ): Promise<{ data: BusinessRow | null; error: string | null }> {
   const { data, error } = await db
     .from('businesses')

@@ -32,7 +32,7 @@ export function BusinessSelector({
         name="businessId"
         defaultValue={currentId}
         onChange={() => formRef.current?.requestSubmit()}
-        className="text-on-ink h-9 max-w-[15rem] cursor-pointer appearance-none rounded-lg bg-transparent pr-7 pl-2.5 text-sm font-medium transition-colors duration-150 outline-none hover:bg-white/8"
+        className="text-on-ink h-9 max-w-[7.5rem] cursor-pointer appearance-none truncate rounded-lg bg-transparent pr-7 pl-2.5 text-sm font-medium transition-colors duration-150 outline-none hover:bg-white/8 sm:max-w-[15rem]"
       >
         {businesses.map((b) => (
           <option key={b.id} value={b.id} className="bg-ink text-on-ink">

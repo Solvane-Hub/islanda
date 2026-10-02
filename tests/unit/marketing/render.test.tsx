@@ -294,14 +294,16 @@ describe('marketing components render', () => {
     render(<SiteFooter />);
     const body = document.body.textContent ?? '';
     expect(body.match(/Solvane Hub/g)).toHaveLength(1);
-    expect(screen.getByText('FoundryAI is built by Solvane Hub.')).toBeTruthy();
+    expect(screen.getByText('Islanda is built by Solvane Hub.')).toBeTruthy();
   });
 
-  it('SiteHeader carries no lozenge and still names its links', () => {
+  it('SiteHeader carries no logo and still names its link', () => {
     const { container } = render(<SiteHeader />);
     expect(screen.getByRole('banner')).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'FoundryAI home' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Sign in' })).toBeTruthy();
+    // The hero's lockup establishes the brand now — showing it again here
+    // would be the exact duplicate branding the header deliberately avoids.
+    expect(screen.queryByRole('img')).toBeNull();
     // The brand sits on the photograph now; legibility comes from the scrim.
     expect(container.innerHTML).not.toContain('bg-ink/70');
   });
@@ -327,17 +329,22 @@ describe('marketing components render', () => {
     const { container } = render(<Hero />);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     const imgs = Array.from(container.querySelectorAll('img'));
-    // Desktop and mobile frames are separate images, not one crop.
-    expect(imgs.length).toBeGreaterThanOrEqual(2);
-    for (const img of imgs) {
+    // Desktop, mobile and the logo lockup — three images, not counting the
+    // background frames as one crop.
+    expect(imgs.length).toBeGreaterThanOrEqual(3);
+    const backgroundFrames = imgs.filter((img) => (img.getAttribute('src') ?? '').includes('hero'));
+    expect(backgroundFrames.length).toBeGreaterThanOrEqual(2);
+    for (const img of backgroundFrames) {
       expect(img.getAttribute('alt')).toBeTruthy();
       expect(img.getAttribute('alt')!.length).toBeGreaterThan(30);
     }
+    // The logo lockup is a real image with a short, correct alt — not decorative.
+    expect(screen.getByRole('img', { name: 'Islanda' })).toBeTruthy();
   });
 
   it('Hero offers both a primary and secondary route in', () => {
     render(<Hero />);
-    expect(screen.getByRole('link', { name: /Start building/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Sign in' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Join the waitlist/ })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /See how it works/ })).toBeTruthy();
   });
 });

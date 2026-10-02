@@ -22,65 +22,65 @@ Acquire → Parse → Chunk → Enrich → Embed → Review → Publish.
 
 ## Authority Scale
 
-| Level | Authority |
-|---|---|
-| 5 | Constitution / primary legal authority |
-| 4 | Acts / Regulations / statutory instruments |
-| 3 | Official government agency guidance |
-| 2 | Official forms / procedural documentation |
-| 1 | Secondary / contextual information |
+| Level | Authority                                  |
+| ----- | ------------------------------------------ |
+| 5     | Constitution / primary legal authority     |
+| 4     | Acts / Regulations / statutory instruments |
+| 3     | Official government agency guidance        |
+| 2     | Official forms / procedural documentation  |
+| 1     | Secondary / contextual information         |
 
 ---
 
 ## Agency Registry
 
 | Agency | Domain | Official URL | Authority | Business Processes | Source Status | Integration Opportunity | Notes |
-| Agency                           | Domain                                   | Official URL                 | Authority | Business Processes                                           | Source Status | Integration Opportunity |
-| -------------------------------- | ---------------------------------------- | ---------------------------- | --------: | ------------------------------------------------------------ | ------------- | ----------------------- |
-| Department of Inland Revenue     | Business licensing / taxation            | Official government portal   |         4 | Business Licence, tax registration                           | Researching   | High                    |
-| Registrar General's Department   | Business/entity registration             | RGD online services          |         4 | Entity registration / corporate records                      | Researching   | High                    |
-| National Insurance Board         | Social insurance / employer registration | NIB online services          |         4 | Employer/self-employed registration, contribution compliance | Researching   | High                    |
-| Bahamas Government / Legislation | Primary legal sources                    | Bahamas legislation database |         5 | Acts, regulations, statutory requirements                    | Researching   | Knowledge source        |
-| Industry-specific regulators     | Sector-specific                          | To be researched             |    Varies | Licences / permits / approvals                               | Researching   | High                    |
-| System / Agency             | Type              | Function                                                                                          | Official URL                                                               | Status    |
-| --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | --------- |
-| National Insurance Board    | Government Agency | National insurance registration, employer/self-employed registration, contribution administration | [https://www.nib-bahamas.com/](https://www.nib-bahamas.com/)               | Confirmed |
-| NIB Online Portal           | Government System | Online NIB account/submission services                                                            | [https://nibonline.nib-bahamas.com/](https://nibonline.nib-bahamas.com/)   | Confirmed |
-| NIB Registrant Self-Service | Government System | Registrant account/self-service                                                                   | [https://registrant.nib-bahamas.com/](https://registrant.nib-bahamas.com/) | Confirmed |
-| NIB Employer Self-Service   | Government System | Employer self-service                                                                             | [https://employer.nib-bahamas.com/](https://employer.nib-bahamas.com/)     | Confirmed |
-| Agency                       | Type              | Responsibility                                                  | Official Source                                                                              | Status    |
-| ---------------------------- | ----------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------- |
-| Department of Inland Revenue | Government Agency | Business licences, business licence tax, related administration | [Department of Inland Revenue](https://inlandrevenue.finance.gov.bs/) | Confirmed |
-| System                            | Type              | Function                                                        | Official URL                                                                        | Status    |
-| --------------------------------- | ----------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------- | --------- |
-| DIR Business Licence / VAT Portal | Government System | Online Business Licence application, payment and licence access | [DIR Online Tax Administration](https://vat.revenue.gov.bs/) | Confirmed |
-| System                               | Type              | Function                                               | Official URL                                               | Status    |
-| ------------------------------------ | ----------------- | ------------------------------------------------------ | ---------------------------------------------------------- | --------- |
-| DIR Online Tax Administration System | Government System | TIN, Business Licence and tax administration workflows | [https://vat.revenue.gov.bs/](https://vat.revenue.gov.bs/) | Confirmed |
-| System                  | Type                | Function                                       | Official URL                                                                                                             | Status    |
-| ----------------------- | ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------- |
-| DIR VAT Registrant List | Government Registry | Public verification of current VAT registrants | [DIR VAT Registrant List](https://inlandrevenue.finance.gov.bs/value-added-tax/registrants-list/) | Confirmed |
-| DIR TIN-Only List       | Government Registry | Public listing of current TIN-only registrants | [DIR TIN-Only List](https://inlandrevenue.finance.gov.bs/value-added-tax/vat-tin-list/)           | Confirmed |
-| System                               | Type                               | Function                                                                   | Official URL                                                                                                                                | Status    |
-| ------------------------------------ | ---------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| DIR Liquor Registration              | Government System                  | Liquor establishment registration and Certificate of Registration workflow | [DIR Liquor Registration](https://inlandrevenue.finance.gov.bs/liquor-registration/?utm_source=chatgpt.com)                                 | Confirmed |
-| DIR Liquor Registration Consultation | Government Registry / Consultation | Public consultation and comments for liquor establishment registrations    | [DIR Registration Consultation](https://inlandrevenue.finance.gov.bs/liquor-registration/registration-consultation/?utm_source=chatgpt.com) | Confirmed |
-| System                                      | Type                       | Function                                                     | Official URL                                                                                                                               | Status    |
-| ------------------------------------------- | -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| Department of Environmental Health Services | Government Agency          | Environmental health, food safety, inspections and approvals | [Government of The Bahamas](https://www.bahamas.gov.bs/?utm_source=chatgpt.com)                                                            | Confirmed |
-| DEHS Business Licence Requirements          | Government Document/System | Establishment-specific supporting-document requirements      | [DIR Other Agency Requirements](https://inlandrevenue.finance.gov.bs/business-licence/other-agencies-requirements/?utm_source=chatgpt.com) | Confirmed |
-| Environmental Health Services legislation   | Government Legal Source    | Statutory authority and requirements                         | [Bahamas Laws](https://laws.bahamas.gov.bs/?utm_source=chatgpt.com)                                                                        | Confirmed |
-| System                                        | Type                           | Function                                                   | Official URL                                                                                                                                                  | Status    |
-| --------------------------------------------- | ------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Ministry of Works — Building Control Division | Government Agency              | Building permits, inspections, compliance and occupancy    | [Bahamas Government](https://www.bahamas.gov.bs/)                                                                                                             | Confirmed |
-| Bahamas Building Code                         | Government Regulatory Standard | Technical building requirements and inspection framework   | [Bahamas Building Code](https://www.bahamas.gov.bs/wps/wcm/connect/d7ebcbad-f9b6-42e3-aff2-79f83bd91810/Bahamas%2BBuilding%2BCode%2B3rd%2BEd.pdf?MOD=AJPERES) | Confirmed |
-| Building Control Business Licence Guide       | Government Guidance            | Building Control requirements relevant to Business Licence | [DIR Legal Guides](https://inlandrevenue.finance.gov.bs/business-licence/legal-bl/)                                                                           | Confirmed |
-| System                                     | Type                           | Function                                                        | Official URL                                                                                                                                                  | Status    |
-| ------------------------------------------ | ------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Royal Bahamas Police Force — Fire Services | Government Agency              | Fire prevention, emergency response and fire-safety functions   | [Bahamas Government](https://www.bahamas.gov.bs/)                                                                                                             | Confirmed |
-| Bahamas Building Code — Fire/Life Safety   | Government Regulatory Standard | Fire protection, egress, occupancy and life-safety requirements | [Bahamas Building Code](https://www.bahamas.gov.bs/wps/wcm/connect/d7ebcbad-f9b6-42e3-aff2-79f83bd91810/Bahamas%2BBuilding%2BCode%2B3rd%2BEd.pdf?MOD=AJPERES) | Confirmed |
-| Fire Services legislation                  | Government Legal Source        | Statutory fire-services framework                               | [Bahamas Laws](https://laws.bahamas.gov.bs/)                                                                                                                  | Confirmed |
 
+| Agency                                        | Domain                                   | Official URL                                                                                      |                                                                                                                                                     Authority | Business Processes                                           | Source Status | Integration Opportunity |
+| --------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------ | ------------- | ----------------------- |
+| Department of Inland Revenue                  | Business licensing / taxation            | Official government portal                                                                        |                                                                                                                                                             4 | Business Licence, tax registration                           | Researching   | High                    |
+| Registrar General's Department                | Business/entity registration             | RGD online services                                                                               |                                                                                                                                                             4 | Entity registration / corporate records                      | Researching   | High                    |
+| National Insurance Board                      | Social insurance / employer registration | NIB online services                                                                               |                                                                                                                                                             4 | Employer/self-employed registration, contribution compliance | Researching   | High                    |
+| Bahamas Government / Legislation              | Primary legal sources                    | Bahamas legislation database                                                                      |                                                                                                                                                             5 | Acts, regulations, statutory requirements                    | Researching   | Knowledge source        |
+| Industry-specific regulators                  | Sector-specific                          | To be researched                                                                                  |                                                                                                                                                        Varies | Licences / permits / approvals                               | Researching   | High                    |
+| System / Agency                               | Type                                     | Function                                                                                          |                                                                                                                                                  Official URL | Status                                                       |
+| ---------------------------                   | -----------------                        | ------------------------------------------------------------------------------------------------- |                                                                                    -------------------------------------------------------------------------- | ---------                                                    |
+| National Insurance Board                      | Government Agency                        | National insurance registration, employer/self-employed registration, contribution administration |                                                                                                  [https://www.nib-bahamas.com/](https://www.nib-bahamas.com/) | Confirmed                                                    |
+| NIB Online Portal                             | Government System                        | Online NIB account/submission services                                                            |                                                                                      [https://nibonline.nib-bahamas.com/](https://nibonline.nib-bahamas.com/) | Confirmed                                                    |
+| NIB Registrant Self-Service                   | Government System                        | Registrant account/self-service                                                                   |                                                                                    [https://registrant.nib-bahamas.com/](https://registrant.nib-bahamas.com/) | Confirmed                                                    |
+| NIB Employer Self-Service                     | Government System                        | Employer self-service                                                                             |                                                                                        [https://employer.nib-bahamas.com/](https://employer.nib-bahamas.com/) | Confirmed                                                    |
+| Agency                                        | Type                                     | Responsibility                                                                                    |                                                                                                                                               Official Source | Status                                                       |
+| ----------------------------                  | -----------------                        | ---------------------------------------------------------------                                   |                                                                  -------------------------------------------------------------------------------------------- | ---------                                                    |
+| Department of Inland Revenue                  | Government Agency                        | Business licences, business licence tax, related administration                                   |                                                                                         [Department of Inland Revenue](https://inlandrevenue.finance.gov.bs/) | Confirmed                                                    |
+| System                                        | Type                                     | Function                                                                                          |                                                                                                                                                  Official URL | Status                                                       |
+| ---------------------------------             | -----------------                        | ---------------------------------------------------------------                                   |                                                                           ----------------------------------------------------------------------------------- | ---------                                                    |
+| DIR Business Licence / VAT Portal             | Government System                        | Online Business Licence application, payment and licence access                                   |                                                                                                  [DIR Online Tax Administration](https://vat.revenue.gov.bs/) | Confirmed                                                    |
+| System                                        | Type                                     | Function                                                                                          |                                                                                                                                                  Official URL | Status                                                       |
+| ------------------------------------          | -----------------                        | ------------------------------------------------------                                            |                                                                                                    ---------------------------------------------------------- | ---------                                                    |
+| DIR Online Tax Administration System          | Government System                        | TIN, Business Licence and tax administration workflows                                            |                                                                                                    [https://vat.revenue.gov.bs/](https://vat.revenue.gov.bs/) | Confirmed                                                    |
+| System                                        | Type                                     | Function                                                                                          |                                                                                                                                                  Official URL | Status                                                       |
+| -----------------------                       | -------------------                      | ----------------------------------------------                                                    |                                      ------------------------------------------------------------------------------------------------------------------------ | ---------                                                    |
+| DIR VAT Registrant List                       | Government Registry                      | Public verification of current VAT registrants                                                    |                                                             [DIR VAT Registrant List](https://inlandrevenue.finance.gov.bs/value-added-tax/registrants-list/) | Confirmed                                                    |
+| DIR TIN-Only List                             | Government Registry                      | Public listing of current TIN-only registrants                                                    |                                                                       [DIR TIN-Only List](https://inlandrevenue.finance.gov.bs/value-added-tax/vat-tin-list/) | Confirmed                                                    |
+| System                                        | Type                                     | Function                                                                                          |                                                                                                                                                  Official URL | Status                                                       |
+| ------------------------------------          | ----------------------------------       | --------------------------------------------------------------------------                        |                   ------------------------------------------------------------------------------------------------------------------------------------------- | ---------                                                    |
+| DIR Liquor Registration                       | Government System                        | Liquor establishment registration and Certificate of Registration workflow                        |                                                   [DIR Liquor Registration](https://inlandrevenue.finance.gov.bs/liquor-registration/?utm_source=chatgpt.com) | Confirmed                                                    |
+| DIR Liquor Registration Consultation          | Government Registry / Consultation       | Public consultation and comments for liquor establishment registrations                           |                   [DIR Registration Consultation](https://inlandrevenue.finance.gov.bs/liquor-registration/registration-consultation/?utm_source=chatgpt.com) | Confirmed                                                    |
+| System                                        | Type                                     | Function                                                                                          |                                                                                                                                                  Official URL | Status                                                       |
+| -------------------------------------------   | --------------------------               | ------------------------------------------------------------                                      |                    ------------------------------------------------------------------------------------------------------------------------------------------ | ---------                                                    |
+| Department of Environmental Health Services   | Government Agency                        | Environmental health, food safety, inspections and approvals                                      |                                                                               [Government of The Bahamas](https://www.bahamas.gov.bs/?utm_source=chatgpt.com) | Confirmed                                                    |
+| DEHS Business Licence Requirements            | Government Document/System               | Establishment-specific supporting-document requirements                                           |                    [DIR Other Agency Requirements](https://inlandrevenue.finance.gov.bs/business-licence/other-agencies-requirements/?utm_source=chatgpt.com) | Confirmed                                                    |
+| Environmental Health Services legislation     | Government Legal Source                  | Statutory authority and requirements                                                              |                                                                                           [Bahamas Laws](https://laws.bahamas.gov.bs/?utm_source=chatgpt.com) | Confirmed                                                    |
+| System                                        | Type                                     | Function                                                                                          |                                                                                                                                                  Official URL | Status                                                       |
+| --------------------------------------------- | ------------------------------           | ----------------------------------------------------------                                        | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------                                                    |
+| Ministry of Works — Building Control Division | Government Agency                        | Building permits, inspections, compliance and occupancy                                           |                                                                                                             [Bahamas Government](https://www.bahamas.gov.bs/) | Confirmed                                                    |
+| Bahamas Building Code                         | Government Regulatory Standard           | Technical building requirements and inspection framework                                          | [Bahamas Building Code](https://www.bahamas.gov.bs/wps/wcm/connect/d7ebcbad-f9b6-42e3-aff2-79f83bd91810/Bahamas%2BBuilding%2BCode%2B3rd%2BEd.pdf?MOD=AJPERES) | Confirmed                                                    |
+| Building Control Business Licence Guide       | Government Guidance                      | Building Control requirements relevant to Business Licence                                        |                                                                           [DIR Legal Guides](https://inlandrevenue.finance.gov.bs/business-licence/legal-bl/) | Confirmed                                                    |
+| System                                        | Type                                     | Function                                                                                          |                                                                                                                                                  Official URL | Status                                                       |
+| ------------------------------------------    | ------------------------------           | ---------------------------------------------------------------                                   | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------                                                    |
+| Royal Bahamas Police Force — Fire Services    | Government Agency                        | Fire prevention, emergency response and fire-safety functions                                     |                                                                                                             [Bahamas Government](https://www.bahamas.gov.bs/) | Confirmed                                                    |
+| Bahamas Building Code — Fire/Life Safety      | Government Regulatory Standard           | Fire protection, egress, occupancy and life-safety requirements                                   | [Bahamas Building Code](https://www.bahamas.gov.bs/wps/wcm/connect/d7ebcbad-f9b6-42e3-aff2-79f83bd91810/Bahamas%2BBuilding%2BCode%2B3rd%2BEd.pdf?MOD=AJPERES) | Confirmed                                                    |
+| Fire Services legislation                     | Government Legal Source                  | Statutory fire-services framework                                                                 |                                                                                                                  [Bahamas Laws](https://laws.bahamas.gov.bs/) | Confirmed                                                    |
 
 ---
 
@@ -93,9 +93,9 @@ steps.
 ### DEP-001 — Incorporation → Business Licence → NIB
 
 Company Incorporation
-        ↓
+↓
 Business Licence
-        ↓
+↓
 NIB Registration
 
 NIB registration may require the business licence number and,
@@ -116,15 +116,15 @@ as structured Business Knowledge to downstream pathways.
 Example:
 
 Certificate of Incorporation
-        ↓
+↓
 Business Knowledge
-        ↓
+↓
 Business Licence application
-        ↓
+↓
 Business Licence Number
-        ↓
+↓
 Business Knowledge
-        ↓
+↓
 NIB Registration
 
 ### DEP-002 — Business Licence Agency Convergence
@@ -159,22 +159,24 @@ Nova should determine the required approvals from:
 - Foreign / Bahamian ownership
 - Regulated status
 
-
-
 ## Identity Layers
 
 FoundryAI must distinguish between:
 
 ### Person / Founder Identity
+
 The individual using FoundryAI.
 
 ### Taxpayer Identity
+
 Government tax identity associated with a TIN.
 
 ### Business Identity
+
 The individual business/entity being operated.
 
 ### Registration Identity
+
 Government registration identifiers such as:
 
 - Company registration number
@@ -215,65 +217,65 @@ treated as interchangeable.
 Example:
 
 Taxpayer
-  └── TIN
-       ├── Business A
-       │    └── Business Licence
-       │
-       └── Business B
-            └── Business Licence
+└── TIN
+├── Business A
+│ └── Business Licence
+│
+└── Business B
+└── Business Licence
 
-           
- ### DEP-004 — TIN / Business Licence → VAT
+### DEP-004 — TIN / Business Licence → VAT
 
 VAT registration may depend on:
 
 Taxpayer Identity
-      ↓
+↓
 TIN
-      ↓
+↓
 Business Identity
-      ↓
+↓
 Business Licence
-      ↓
+↓
 Business Activity + Turnover
-      ↓
+↓
 VAT Applicability
-      ↓
+↓
 VAT Registration
-      ↓
+↓
 Ongoing VAT Obligations
 
 FoundryAI should determine VAT applicability from current
 regulatory rules rather than assuming every business requires VAT
 registration.
 ---
+
 ### DEP-005 — Alcohol Activity → Liquor Registration → Business Licence
 
 Business Activity
-      │
-      │ sells / exposes / offers liquor?
-      ▼
+│
+│ sells / exposes / offers liquor?
+▼
 Liquor Establishment
-      │
-      ▼
+│
+▼
 Liquor Establishment Registration
-      │
-      ├── Approved trading name
-      ├── Premises
-      ├── Environmental Health
-      ├── BAHFSA where applicable
-      ├── Physical Planning
-      ├── Ministry of Works
-      ├── RBPF
-      └── Other applicable approvals
-      │
-      ▼
+│
+├── Approved trading name
+├── Premises
+├── Environmental Health
+├── BAHFSA where applicable
+├── Physical Planning
+├── Ministry of Works
+├── RBPF
+└── Other applicable approvals
+│
+▼
 Certificate of Registration
-      │
-      ▼
+│
+▼
 Annual Business Licence
-      │
-      ▼
+│
+▼
 Ongoing renewal / compliance
 
 ### DEP-006 — Premises-Specific Regulatory Identity
@@ -288,12 +290,12 @@ business location.
 Example:
 
 Business
-  ├── Nassau Location
-  │     ├── Liquor Certificate
-  │     └── Business Licence
-  │
-  └── Freeport Location
-        └── Separate regulatory state
+├── Nassau Location
+│ ├── Liquor Certificate
+│ └── Business Licence
+│
+└── Freeport Location
+└── Separate regulatory state
 
 # Pathway 001 — Starting a Business in The Bahamas
 
@@ -305,71 +307,70 @@ Business
 ## High-Level Journey
 
 Founder describes business
-        ↓
+↓
 Determine business structure
-        ↓
+↓
 Reserve / register business name
-        ↓
+↓
 Company/entity registration where applicable
-        ↓
+↓
 Industry / agency approvals
-        ↓
+↓
 NIB registration
-        ↓
+↓
 Business Licence application
-        ↓
+↓
 Business Licence issued
-        ↓
+↓
 Ongoing obligations
-        ↓
+↓
 Renewals / updates
 
 ### DEP-007 — Food Activity → Environmental Health
 
 Business Activity
-       │
-       ▼
+│
+▼
 Food / Beverage Activity?
-       │
-       ├── No → Environmental Health food pathway may not apply
-       │
-       └── Yes
-             │
-             ▼
-       Establishment Type
-             │
-       ┌─────┼──────────────┐
-       ▼     ▼              ▼
- Restaurant Take-away   Food Processing
-       │     │              │
-       └─────┼──────────────┘
-             ▼
-      DEHS Requirements
-             │
-       ┌─────┼───────────┐
-       ▼     ▼           ▼
-   Premises  People   Operations
-       │     │           │
-   Floor    Food       Waste/
-   plan     handlers    pest/
-                       water
-             │
-             ▼
-       DEHS inspection/
-       approval where required
-             │
-             ▼
-       Business Licence
+│
+├── No → Environmental Health food pathway may not apply
+│
+└── Yes
+│
+▼
+Establishment Type
+│
+┌─────┼──────────────┐
+▼ ▼ ▼
+Restaurant Take-away Food Processing
+│ │ │
+└─────┼──────────────┘
+▼
+DEHS Requirements
+│
+┌─────┼───────────┐
+▼ ▼ ▼
+Premises People Operations
+│ │ │
+Floor Food Waste/
+plan handlers pest/
+water
+│
+▼
+DEHS inspection/
+approval where required
+│
+▼
+Business Licence
 
-       
 ### DEP-008 — Employee → Food Handler Credential
 
 Food-related business
-        ↓
+↓
 Food-handling employees
-        ↓
+↓
 Applicable health / food-handler certification
-        ↓
+↓
 Employee compliance record
 
 FoundryAI should eventually track this at the employee level.
@@ -387,35 +388,34 @@ The system should be able to identify:
 
 ### DEP-009 — Business Activity + Premises → Planning Requirements
 
-Business Activity
-        +
+Business Activity +
 Premises
-        ↓
+↓
 Proposed Business Use
-        ↓
+↓
 Existing Approved Use?
-        │
-   ┌────┴────┐
-   │         │
-  Yes        No
-   │         │
-   │      Change of Use /
-   │      Planning pathway
-   │         │
-   └────┬────┘
-        ▼
+│
+┌────┴────┐
+│ │
+Yes No
+│ │
+│ Change of Use /
+│ Planning pathway
+│ │
+└────┬────┘
+▼
 Planning Requirement
-        │
-   ┌────┼───────────┐
-   ▼    ▼           ▼
-Zoning Site Plan  Architectural
-             │
-             ▼
-      Planning Approval
-             │
-             ▼
-      Downstream Agency
-       Requirements
+│
+┌────┼───────────┐
+▼ ▼ ▼
+Zoning Site Plan Architectural
+│
+▼
+Planning Approval
+│
+▼
+Downstream Agency
+Requirements
 
 ### DEP-010 — Premises as a First-Class Business Object
 
@@ -425,16 +425,16 @@ business itself.
 A business may have:
 
 Business
-  ├── Premises A
-  │     ├── Planning status
-  │     ├── Environmental Health
-  │     ├── Liquor registration
-  │     └── Business Licence
-  │
-  └── Premises B
-        ├── Planning status
-        ├── Environmental Health
-        └── Business Licence
+├── Premises A
+│ ├── Planning status
+│ ├── Environmental Health
+│ ├── Liquor registration
+│ └── Business Licence
+│
+└── Premises B
+├── Planning status
+├── Environmental Health
+└── Business Licence
 
 Regulatory approvals must be associated with the premises to which
 they actually apply.
@@ -445,134 +445,132 @@ regulatory pathway.
 ### DEP-011 — Development → Building Control
 
 Proposed Development
-        │
-        ▼
+│
+▼
 Physical Planning / Zoning
-        │
-        ▼
+│
+▼
 Building Control
-        │
-        ├── Building Permit
-        │
-        ├── Inspections
-        │
-        ├── Compliance
-        │
-        └── Completion
-                │
-                ▼
-        Occupancy Certificate
-                │
-                ▼
-        Business Licence
+│
+├── Building Permit
+│
+├── Inspections
+│
+├── Compliance
+│
+└── Completion
+│
+▼
+Occupancy Certificate
+│
+▼
+Business Licence
 
-  ### DEP-012 — Proposed Use → Building Requirements
+### DEP-012 — Proposed Use → Building Requirements
 
-Premises
-   +
+Premises +
 Proposed Business Activity
-        │
-        ▼
+│
+▼
 Existing Approved Use
-        │
-   ┌────┴────┐
-   │         │
-Compatible   Not compatible /
-             unknown
-   │              │
-   ▼              ▼
-Continue       Planning /
-existing      Building Control
-approval      determination
-                  │
-                  ▼
-            Required works /
-            approvals
+│
+┌────┴────┐
+│ │
+Compatible Not compatible /
+unknown
+│ │
+▼ ▼
+Continue Planning /
+existing Building Control
+approval determination
+│
+▼
+Required works /
+approvals
 
 ### DEP-013 — Occupancy + Premises → Fire Safety Requirements
 
-Business Activity
-       +
-Premises
-       +
+Business Activity +
+Premises +
 Occupancy Classification
-       ↓
+↓
 Fire / Life Safety Requirements
-       │
-       ├── Egress
-       ├── Emergency exits
-       ├── Exit signage
-       ├── Emergency lighting
-       ├── Smoke detection
-       ├── Fire extinguishers
-       ├── Fire alarms
-       └── Fire suppression where applicable
-       │
-       ▼
+│
+├── Egress
+├── Emergency exits
+├── Exit signage
+├── Emergency lighting
+├── Smoke detection
+├── Fire extinguishers
+├── Fire alarms
+└── Fire suppression where applicable
+│
+▼
 Fire inspection / compliance
-       │
-       ▼
+│
+▼
 Downstream approval / Business Licence
 
 ### DEP-014 — Commercial Kitchen → Fire Suppression
 
 Commercial Kitchen
-        ↓
+↓
 Cooking Equipment
-        ↓
+↓
 Commercial Cooking Hood
-        ↓
+↓
 Applicable Fire Suppression Requirements
-        ↓
+↓
 Installation
-        ↓
+↓
 Inspection / Service
-        ↓
+↓
 Ongoing Maintenance
 
 ### DEP-015 — Hiring → NIB Employer Compliance
 
 Business
-   ↓
+↓
 Hire Employee
-   ↓
+↓
 Employee NIB Registration
-   ↓
+↓
 Payroll
-   ↓
+↓
 Contribution Calculation
-   ↓
+↓
 C10 Preparation
-   ↓
+↓
 Employer Review
-   ↓
+↓
 NIB Submission
-   ↓
+↓
 Payment
-   ↓
+↓
 Contribution Record
-   ↓
+↓
 Next Monthly Obligation
 
 ### DEP-016 — Employee → Recurring Compliance
 
 Employee
-   ↓
+↓
 NIB Number
-   ↓
+↓
 Employment Record
-   ↓
+↓
 Wages
-   ↓
+↓
 Contribution
-   ↓
+↓
 Monthly C10
-   ↓
+↓
 Payment
-   ↓
+↓
 Ongoing Record
 
 ## Step 01 — Business Structure Decision Model
+
 ### Objective
 
 Determine the appropriate business/entity pathway for the founder
@@ -720,12 +718,13 @@ The pathway should be marked:
 - Ask founder to confirm
 - Create applicable registration tasks
 - Track required documents
+
 ### Confidence / Review State
 
 - Confirmed
 - Needs founder confirmation
 - Needs specialist review
-  
+
 ## Step 02 — Business / Trade Name
 
 ### Agency
@@ -1582,9 +1581,9 @@ trading names.
 FoundryAI should therefore eventually model:
 
 Taxpayer
-    ↓
+↓
 TIN
-    ↓
+↓
 Business 001
 Business 002
 Business 003
@@ -1592,7 +1591,7 @@ Business 003
 rather than:
 
 Business
-    ↓
+↓
 TIN
 
 ### Relationship to Business Licence
@@ -1957,7 +1956,6 @@ DIR requires evidence that the applicant:
 
 Voluntary registration creates the obligations of a mandatory
 registrant.
-
 
 ### Integration Status
 
@@ -2711,11 +2709,11 @@ of the Business Licence process.
 FoundryAI should therefore be able to establish:
 
 Business
-   ↓
+↓
 Premises
-   ↓
+↓
 Planning / zoning status
-   ↓
+↓
 Business Licence
 
 However, this relationship must not be interpreted as meaning
@@ -2729,10 +2727,10 @@ in addition to Physical Planning approval.
 Example:
 
 Restaurant
-   ↓
+↓
 Premises
-   ├── Physical Planning
-   └── Environmental Health
+├── Physical Planning
+└── Environmental Health
 
 ### Relationship to Liquor Registration
 
@@ -2742,12 +2740,12 @@ as part of their premises / registration requirements.
 Example:
 
 Liquor establishment
-   ↓
+↓
 Premises
-   ├── Physical Planning
-   ├── Environmental Health
-   ├── Other agency approvals
-   └── Liquor Establishment Registration
+├── Physical Planning
+├── Environmental Health
+├── Other agency approvals
+└── Liquor Establishment Registration
 
 ### Official Sources
 
@@ -3217,9 +3215,9 @@ firefighting capability and life safety.
 Example:
 
 Premises
-  ├── Physical Planning
-  ├── Building Control
-  └── Fire / Life Safety
+├── Physical Planning
+├── Building Control
+└── Fire / Life Safety
 
 FoundryAI must not collapse these into one generic "building
 approval."
@@ -3277,13 +3275,13 @@ Fire-safety equipment should not merely be recorded as "present."
 The Business Operating System should eventually track:
 
 Equipment
-  ↓
+↓
 Installation
-  ↓
+↓
 Last inspection/service
-  ↓
+↓
 Next inspection/service
-  ↓
+↓
 Status
 
 This enables proactive compliance reminders.
@@ -3561,17 +3559,17 @@ FoundryAI should allow existing businesses to:
 FoundryAI should eventually generate:
 
 Contribution Due
-       ↓
+↓
 C10 Preparation
-       ↓
+↓
 Founder Review
-       ↓
+↓
 Authorized Submission
-       ↓
+↓
 Payment
-       ↓
+↓
 Confirmation
-       ↓
+↓
 Next Due Date
 
 ### Fees
@@ -3658,7 +3656,7 @@ integration/authorization mechanism.
 # Ongoing Obligations
 
 | Obligation | Agency | Frequency | Due Date | Source | Automated Tracking |
-|---|---|---|---|---|---|
+| ---------- | ------ | --------- | -------- | ------ | ------------------ |
 
 # Renewal Requirements
 
@@ -3666,6 +3664,7 @@ integration/authorization mechanism.
 | Name Reservation | Registrar General | 28 days + up to two 14-day extensions | Verify current extension procedure | Government name reservation service | Confirmed |
 
 # Integration Opportunities
+
 | Registrar General / CARS | Company incorporation | Generate structured incorporation package from Business Knowledge, founder review, authorized submission, status tracking, certificate retrieval | Public API not established | Government partnership / technical integration required | Researching |
 | Agency | Existing Digital System | FoundryAI Capability | API | Partnership | Status |
 | Registrar General / CARS | Entity registration / name reservation / corporate filings | FoundryAI prepares structured filing data and guides founder through submission | Public API not yet established | Partnership / technical integration to investigate | Researching |
@@ -3677,49 +3676,49 @@ integration/authorization mechanism.
 ## Business Registration
 
 | Requirement | Agency | Source | Authority | Documents | Fee | Renewal | Online Process | Integration Opportunity |
-|---|---|---|---:|---|---|---|---|---|
+| ----------- | ------ | ------ | --------: | --------- | --- | ------- | -------------- | ----------------------- |
 
 ---
 
 ## Tax
 
 | Requirement | Agency | Source | Authority | Documents | Fee | Renewal | Online Process | Integration Opportunity |
-|---|---|---|---:|---|---|---|---|---|
+| ----------- | ------ | ------ | --------: | --------- | --- | ------- | -------------- | ----------------------- |
 
 ---
 
 ## NIB
 
 | Requirement | Agency | Source | Authority | Documents | Fee | Renewal | Online Process | Integration Opportunity |
-|---|---|---|---:|---|---|---|---|---|
+| ----------- | ------ | ------ | --------: | --------- | --- | ------- | -------------- | ----------------------- |
 
 ---
 
 ## Business Licences
 
 | Licence | Issuing Agency | Industry | Eligibility | Documents | Fee | Renewal | Official URL | Integration Opportunity |
-|---|---|---|---|---|---|---|---|---|
+| ------- | -------------- | -------- | ----------- | --------- | --- | ------- | ------------ | ----------------------- |
 
 ---
 
 ## Employment
 
 | Requirement | Agency | Source | Authority | Documents | Fee | Renewal | Official URL | Integration Opportunity |
-|---|---|---|---:|---|---|---|---|---|
+| ----------- | ------ | ------ | --------: | --------- | --- | ------- | ------------ | ----------------------- |
 
 ---
 
 ## Industry-Specific Requirements
 
 | Industry | Requirement | Agency | Licence / Permit | Documents | Fee | Renewal | Official URL |
-|---|---|---|---|---|---|---|---|
+| -------- | ----------- | ------ | ---------------- | --------- | --- | ------- | ------------ |
 
 ---
 
 ## Funding Ecosystem
 
 | Provider | Type | Target Businesses | Financing Type | Typical Need | Official URL | Referral Opportunity | Integration Opportunity |
-|---|---|---|---|---|---|---|---|
+| -------- | ---- | ----------------- | -------------- | ------------ | ------------ | -------------------- | ----------------------- |
 
 ---
 
@@ -3732,11 +3731,11 @@ integration/authorization mechanism.
 ## Open Questions
 
 | Question | Owner | Status | Resolution |
-|---|---|---|---|
+| -------- | ----- | ------ | ---------- |
 
 ---
 
 ## Integration Opportunities
 
 | Agency / Provider | Process | Current Method | Desired FoundryAI Capability | API Available? | Partnership Required? | Status |
-|---|---|---|---|---|---|---|
+| ----------------- | ------- | -------------- | ---------------------------- | -------------- | --------------------- | ------ |

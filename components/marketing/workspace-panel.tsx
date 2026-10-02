@@ -2,7 +2,7 @@ import { ArrowUpRight, Check, FileCheck2, Landmark, ShieldCheck } from 'lucide-r
 import { cn } from '@/lib/utils/cn';
 
 /**
- * The FoundryAI workspace, treated as an object rather than a screenshot.
+ * The Islanda workspace, treated as an object rather than a screenshot.
  *
  * This is the hero's second subject. It sits inside the photograph, so it is
  * built to survive being looked at closely: real hierarchy, real states, no
@@ -43,7 +43,7 @@ export function WorkspacePanel({ className }: { className?: string }) {
         {/* Chrome */}
         <div className="border-on-ink/8 flex items-center gap-3 border-b px-5 py-3.5">
           <span className="text-on-ink-subtle text-2xs font-medium tracking-wide uppercase">
-            FoundryAI workspace
+            Islanda workspace
           </span>
           <span className="border-on-ink/15 text-on-ink-subtle text-2xs ml-auto rounded-full border px-2 py-0.5 font-medium">
             Example

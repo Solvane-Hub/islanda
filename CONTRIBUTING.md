@@ -1,8 +1,8 @@
-# Contributing to FoundryAI
+# Contributing to Islanda
 
 ## Before you write code
 
-FoundryAI is documentation-first. Engineering Standards §2: _"If it is not specified,
+Islanda is documentation-first. Engineering Standards §2: _"If it is not specified,
 it should not be implemented."_
 
 1. Read the relevant documentation in the Knowledge Base.

@@ -18,10 +18,55 @@ export type AuditEvent =
   | 'business.created'
   | 'business.updated'
   | 'business.archived'
+  /**
+   * Business Object onboarding. `business.built` is the new-founder (Build)
+   * path; `business.imported` is the existing-business (Manage) path;
+   * `business.identifier_added` records a sensitive identifier being stored.
+   *
+   * ⚠ Metadata carries SHAPE only — identifier type at most, never the
+   *   identifier value, legal name, or any other sensitive content.
+   */
+  | 'business.built'
+  | 'business.imported'
+  | 'business.identifier_added'
+  /**
+   * Business Intelligence Core (P2). Metadata carries SHAPE only — a document
+   * type, a metric key, a period label, a goal type — never a financial value,
+   * a document's contents, or any sensitive figure.
+   */
+  | 'business.document_added'
+  | 'business.financial_period_created'
+  | 'business.metric_recorded'
+  | 'business.goal_created'
+  | 'business.goal_updated'
+  /**
+   * Business Case (P7.1) — a thin objective/owner/status correlation object.
+   * Metadata carries SHAPE only — status value at most, never the case title
+   * or objective text.
+   */
+  | 'business.case_created'
+  | 'business.case_status_changed'
+  /**
+   * Generalized Evidence Linkage (P8 activation, ADR-0022). Metadata carries
+   * SHAPE only — which kind of subject (metric, goal, ...) and the document
+   * type, never a document's title or contents.
+   */
+  | 'business.evidence_attached'
   | 'intake.started'
   | 'intake.step_saved'
   | 'intake.knowledge_applied'
-  | 'intake.completed';
+  | 'intake.completed'
+  /**
+   * Nova. Security Architecture requires AI generation to be recorded.
+   *
+   * ⚠ The metadata on these events carries the SHAPE of a run and nothing else:
+   *   outcome, pack version, counts, correlation id. Never the founder's
+   *   question, never retrieved legal text, never generated content. The
+   *   reproducibility record in `agent_executions` observes the same rule.
+   */
+  | 'nova.answered'
+  | 'nova.rate_limited'
+  | 'nova.failed';
 
 export interface AuditEntry {
   event: AuditEvent;

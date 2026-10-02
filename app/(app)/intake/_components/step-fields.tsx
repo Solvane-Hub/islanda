@@ -73,7 +73,7 @@ export function StepFields({
         id="description"
         size="question"
         label="What does the business do?"
-        description="Plain language is best. FoundryAI uses this to work out which requirements apply."
+        description="Plain language is best. Islanda uses this to work out which requirements apply."
         error={fieldErrors?.description?.[0]}
       >
         {(aria) => (
@@ -164,7 +164,7 @@ export function StepFields({
           id="fundingAmount"
           size="question"
           label="How much funding do you think you need?"
-          description="A guess you're unsure of is worse than no answer, so if you don't know yet, say so — that is a real answer and FoundryAI records it as one."
+          description="A guess you're unsure of is worse than no answer, so if you don't know yet, say so — that is a real answer and Islanda records it as one."
           error={fieldErrors?.fundingAmount?.[0]}
         >
           {(aria) => (
@@ -213,8 +213,7 @@ export function StepFields({
           <span className="min-w-0">
             <span className="text-on-ink block text-base font-medium">I don’t know yet</span>
             <span className="text-on-ink-muted mt-1 block text-sm text-pretty">
-              FoundryAI will treat funding as an open question rather than assuming you need
-              nothing.
+              Islanda will treat funding as an open question rather than assuming you need nothing.
             </span>
           </span>
         </label>

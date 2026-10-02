@@ -29,6 +29,12 @@ export interface InsertChunkValues {
   regulatory_domain: string | null;
   keywords: string[];
   effective_date: string | null;
+  /** Substantive text ranks ahead of an edit instruction. Never defaulted here. */
+  instrument_role: Exclude<KnowledgeChunk['instrument_role'], 'unknown'>;
+  /** Canonical id of the provision this chunk is. Null when unparseable. */
+  provision_id: string | null;
+  /** Canonical id of the provision this chunk edits. Amending instructions only. */
+  amends_provision: string | null;
 }
 
 /**

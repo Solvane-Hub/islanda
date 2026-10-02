@@ -1,0 +1,632 @@
+# FoundryAI Dashboard — Visual Specification
+
+## STATUS
+
+This document is the visual source of truth for the FoundryAI
+dashboard composition.
+
+The supplied reference image is the primary visual authority.
+
+Claude must NOT reinterpret the composition.
+
+The existing dashboard implementation is NOT the visual authority.
+
+Business data and functionality must remain real, but the visual
+composition may be rebuilt completely.
+
+---
+
+# 1. CORE VISUAL CONCEPT
+
+The dashboard is a floating application inside a dark atmospheric
+environment.
+
+It must NOT read as a conventional full-screen SaaS dashboard.
+
+The visual hierarchy is:
+
+ENVIRONMENT
+    ↓
+FLOATING APPLICATION
+    ↓
+NAVIGATION
+    ↓
+PRIMARY WORKSPACE
+    ↓
+SECONDARY MODULES
+    ↓
+FLOATING UTILITY PANEL
+
+The application itself is a physical-looking digital object
+suspended in space.
+
+---
+
+# 2. REFERENCE GEOMETRY
+
+Reference composition is approximately square, but implementation
+must be responsive.
+
+Desktop target:
+
+1920 × 1032
+
+Application frame:
+
+~82–86% viewport width
+~72–78% viewport height
+
+Centered horizontally and vertically.
+
+Visible atmospheric margin must exist on ALL FOUR SIDES.
+
+The frame must never touch the viewport edges on desktop.
+
+Approximate desktop outer margins:
+
+48–90px horizontally
+50–80px vertically
+
+These are visual targets, not rigid pixel requirements.
+
+---
+
+# 3. OUTER ENVIRONMENT
+
+Background:
+
+Near-black.
+
+Subtle deep-ocean blue atmospheric illumination behind the
+application.
+
+The background should feel like physical space around the product.
+
+Do NOT make the background look like:
+
+- a gradient website hero
+- a gaming interface
+- neon cyberpunk
+- purple AI branding
+
+The environment should remain mostly black.
+
+Blue/cyan light should be extremely restrained.
+
+---
+
+# 4. APPLICATION FRAME
+
+The application frame is the dominant physical object.
+
+Characteristics:
+
+- rounded corners
+- thin translucent border
+- dark translucent surface
+- subtle internal reflection
+- soft external shadow
+- subtle depth from background
+- slight glass/material quality
+
+The frame should visually separate itself from the environment.
+
+IMPORTANT:
+
+The frame is NOT simply a max-width container.
+
+It should look like an application window floating inside
+the environment.
+
+---
+
+# 5. APPLICATION INTERNAL STRUCTURE
+
+The frame contains:
+
+┌──────────────────────────────────────────┐
+│                TOP BAR                   │
+├───────────────┬──────────────────────────┤
+│               │                          │
+│               │                          │
+│  NAVIGATION   │       WORKSPACE           │
+│               │                          │
+│               │                          │
+│               │                          │
+└───────────────┴──────────────────────────┘
+
+The top bar and navigation are INSIDE the application frame.
+
+They should not visually extend beyond the frame.
+
+---
+
+# 6. TOP BAR
+
+Compact.
+
+Approximately 52–64px.
+
+Contains:
+
+Left:
+FoundryAI identity
+
+Center/primary:
+Navigation/context
+
+Right:
+Notifications / user / controls
+
+The top bar should feel integrated into the application,
+not like a website navbar.
+
+Use subtle separators.
+
+Avoid oversized branding.
+
+---
+
+# 7. LEFT NAVIGATION
+
+Approximate width:
+
+190–220px desktop.
+
+The navigation should be quiet.
+
+It is secondary to the workspace.
+
+Use:
+
+- small icons
+- compact labels
+- subtle selected state
+- restrained typography
+
+Selected state uses FoundryAI turquoise sparingly.
+
+The navigation must NOT dominate the visual composition.
+
+---
+
+# 8. WORKSPACE
+
+The workspace is NOT a grid of equal cards.
+
+This is one of the most important rules.
+
+The reference uses:
+
+- one large primary workspace
+- several smaller supporting modules
+- different module dimensions
+- varying visual density
+- one overlapping floating panel
+
+The composition should feel deliberately asymmetrical.
+
+DO NOT:
+
+- create 6 equal cards
+- create 8 equal cards
+- stack identical cards
+- give every section the same border treatment
+- make every section look like a widget
+
+---
+
+# 9. VISUAL HIERARCHY
+
+The dashboard must have approximately three levels.
+
+LEVEL 1 — PRIMARY
+
+The main business workspace.
+
+This occupies the largest area.
+
+LEVEL 2 — SECONDARY
+
+Supporting information.
+
+Examples:
+
+- business state
+- intake state
+- knowledge
+- lifecycle
+- priorities
+
+LEVEL 3 — FLOATING
+
+One small floating utility/control panel.
+
+This panel should overlap the primary workspace.
+
+The overlap creates depth.
+
+---
+
+# 10. FOUNDRYAI CONTENT MAPPING
+
+The reference's generic concepts are translated into FoundryAI.
+
+REFERENCE              FOUNDRYAI
+------------------------------------------------
+Tasks                  What needs attention
+Project Overview       Business intelligence
+Metrics                Business state
+Project Milestones     Founder Journey
+Quick Access           Quick Actions
+Pending Tasks          Immediate actions
+Analytics              Knowledge / evidence
+Main workspace         Business context
+Assistant              Nova
+
+Do not copy the reference's fake project-management content.
+
+Use real FoundryAI information.
+
+---
+
+# 11. BUSINESS OVERVIEW
+
+The main workspace should communicate:
+
+WHERE AM I?
+
+Business:
+Bahama Reef Co.
+
+Location:
+The Bahamas
+
+Industry:
+Hospitality
+
+Current stage:
+Validation
+
+Then:
+
+WHAT DOES FOUNDRYAI KNOW?
+
+Then:
+
+WHAT NEEDS TO HAPPEN NEXT?
+
+The dashboard should feel like FoundryAI is interpreting
+the founder's current business state.
+
+---
+
+# 12. PRIORITIES
+
+Do not make Priorities a conventional todo list.
+
+Avoid:
+
+☐ task
+☐ task
+☐ task
+
+Instead:
+
+WHAT NEEDS ATTENTION
+
+Use intelligence signals.
+
+Examples:
+
+INTAKE
+3 of 5 answered
+
+FUNDING
+Information needed
+
+GOALS
+Information needed
+
+These are signals about business context.
+
+---
+
+# 13. FOUNDER JOURNEY
+
+The Journey is a major FoundryAI concept.
+
+Stages:
+
+IDEA
+VALIDATION
+FORMATION
+COMPLIANCE
+OPERATIONS
+GROWTH
+SCALE
+
+The Journey should feel like a spatial lifecycle system.
+
+It must NOT look like a generic progress bar.
+
+Current stage:
+
+VALIDATION
+
+Turquoise indicates current state.
+
+Completed states are subdued.
+
+Future states recede.
+
+Use subtle lines and spatial relationships.
+
+---
+
+# 14. NOVA
+
+Nova is the intelligence layer.
+
+Nova must have more visual importance than a normal dashboard
+module.
+
+Nova should NOT be represented as:
+
+- generic chatbot card
+- bottom-right CTA
+- robot
+- avatar
+- orb
+- waveform
+- purple AI graphic
+
+Nova's visual identity:
+
+crystalline physical structure
++
+turquoise/cyan outer material
++
+molten champagne/gold core
++
+subtle particles
++
+deep black environment
+
+Nova should feel like a physical intelligence instrument.
+
+The Nova element may overlap the workspace.
+
+It should feel like something that exists WITHIN the environment,
+not another SaaS card.
+
+---
+
+# 15. FLOATING PANEL
+
+The reference contains an important compositional device:
+
+one smaller panel overlaps the primary workspace.
+
+FoundryAI equivalent:
+
+QUICK ACTIONS
+
+Actions:
+
+Continue intake
+Investigate with Nova
+Add a business
+
+The panel should:
+
+- overlap another surface
+- have slightly stronger depth
+- be smaller than surrounding workspace
+- appear physically elevated
+
+Do not place it into the normal grid.
+
+---
+
+# 16. MATERIAL SYSTEM
+
+Three primary depths.
+
+DEPTH 0
+Environment
+
+Almost black.
+
+DEPTH 1
+Application
+
+Dark translucent ocean-black.
+
+DEPTH 2
+Elevated surfaces
+
+Slightly lighter glass surfaces.
+
+DEPTH 3
+Floating panel
+
+Most visually elevated.
+
+Use:
+
+thin borders
+soft shadows
+subtle blur
+restrained highlights
+
+Avoid:
+
+heavy glassmorphism
+bright borders
+strong glow
+neon
+purple
+
+---
+
+# 17. COLOR SYSTEM
+
+PRIMARY ENVIRONMENT
+
+Near-black / deep ocean.
+
+INTELLIGENCE
+
+Champagne / warm gold.
+
+CONNECTION
+
+Bahamian turquoise / cyan.
+
+TEXT
+
+Warm white.
+
+SECONDARY TEXT
+
+Cool gray.
+
+IMPORTANT:
+
+Turquoise is not an ordinary accent color.
+
+It represents active connection/intelligence.
+
+Champagne represents clarity/resolution.
+
+Do not scatter these colors everywhere.
+
+---
+
+# 18. TYPOGRAPHY
+
+Hierarchy:
+
+MICRO LABEL
+small uppercase
+
+SECTION LABEL
+small / restrained
+
+PRIMARY HEADING
+large / confident
+
+BODY
+quiet / readable
+
+SUPPORTING METADATA
+small / low contrast
+
+Do not make every label bold.
+
+Do not fill the interface with text.
+
+---
+
+# 19. NEGATIVE SPACE
+
+Negative space is part of the design.
+
+The interface should breathe.
+
+Do not attempt to fill every empty area with a card.
+
+Empty space should separate:
+
+- primary information
+- secondary information
+- intelligence
+- navigation
+
+The reference feels premium partly because it is NOT completely filled.
+
+---
+
+# 20. ABSOLUTE PROHIBITIONS
+
+The following visual outcomes are FAILURES:
+
+❌ generic SaaS dashboard
+❌ equal card grid
+❌ full-screen sidebar
+❌ dashboard touching viewport edges
+❌ giant progress bar
+❌ todo-list-heavy composition
+❌ Nova as a small CTA card
+❌ purple
+❌ neon cyberpunk
+❌ fake analytics
+❌ fake business metrics
+❌ excessive gradients
+❌ excessive rounded cards
+❌ every section boxed
+❌ vertically stacked dashboard
+❌ generic AI orb
+❌ chatbot UI
+❌ spreadsheet appearance
+
+---
+
+# 21. DESKTOP ACCEPTANCE TEST
+
+At 1920 × 1032:
+
+The reviewer should immediately perceive:
+
+1. atmospheric dark environment
+2. floating application
+3. internal navigation
+4. dominant business workspace
+5. secondary intelligence surfaces
+6. one floating overlapping panel
+7. Nova as the intelligence layer
+
+If the dashboard instead reads as:
+
+"sidebar + cards + progress bar + CTA"
+
+the composition has FAILED.
+
+---
+
+# 22. IMPLEMENTATION ORDER
+
+DO NOT begin by implementing React components.
+
+First reproduce:
+
+1. outer environment
+2. application frame
+3. top bar
+4. internal navigation
+5. workspace geometry
+6. primary/secondary hierarchy
+7. floating panel
+8. content
+9. FoundryAI colors
+10. Nova
+
+The geometry must be approved before functional integration.
+
+---
+
+# 23. VISUAL SOURCE OF TRUTH
+
+The supplied reference image takes precedence over existing
+dashboard implementation.
+
+When visual ambiguity exists:
+
+REFERENCE > EXISTING CODE
+
+Do not preserve an existing layout simply because it already exists.
+
+The existing code provides functionality and data.
+
+It does NOT provide the target composition.

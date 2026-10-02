@@ -3,11 +3,11 @@ import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 /**
- * What FoundryAI knows, and where you are in establishing it.
+ * What Islanda knows, and where you are in establishing it.
  *
  * The rail used to be five anonymous segments — a position indicator. Naming
  * the slots turns it into a statement about the business profile: a founder can
- * see at a glance which of the five things FoundryAI holds, which one is in
+ * see at a glance which of the five things Islanda holds, which one is in
  * front of them, and what is still missing. That is the same information the
  * dashboard dial and the review screen report, in the same vocabulary.
  *
@@ -43,7 +43,7 @@ export function IntakeProgress({
   title,
   slots,
 }: {
-  /** Slots FoundryAI holds, from `intakeProgress()`. */
+  /** Slots Islanda holds, from `intakeProgress()`. */
   completed: number;
   total: number;
   /** The step being shown, which may be one ahead of what is known. */

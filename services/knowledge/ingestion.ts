@@ -8,7 +8,7 @@ import { insertSource, insertValidationRecord } from '@/lib/db/knowledge/sources
 import { upsertChunks } from '@/lib/db/knowledge/chunks';
 import { prepareChunks } from '@/services/knowledge/chunking';
 import { validateSource } from '@/services/knowledge/validation';
-import type { KnowledgeSource } from '@/types/knowledge';
+import type { KnowledgeSource, ValidationOutcome } from '@/types/knowledge';
 
 /**
  * Knowledge ingestion Application Service — ADR-0001 (all writes live here).
@@ -35,7 +35,12 @@ export interface IngestSourceInput {
 export interface IngestSourceResult {
   source: KnowledgeSource;
   chunkIds: string[];
-  validationOutcome: string;
+  /**
+   * Typed, not `string`. A caller feeding this into the K7 §6 quality gate must
+   * not have to cast, because a cast is where a wrong outcome would be laundered
+   * into an acceptable one.
+   */
+  validationOutcome: ValidationOutcome;
   correlationId: string;
 }
 
@@ -116,6 +121,8 @@ export async function ingestSource(
 
   const { data: source, error: sourceError } = await insertSource(db, {
     knowledge_pack_id: reg.knowledgePackId,
+    // The stable key the amendment chain resolves through — never source_url.
+    manifest_id: reg.manifestId,
     agency: reg.agency,
     title: reg.title,
     source_url: reg.sourceUrl ?? null,
@@ -125,6 +132,12 @@ export async function ingestSource(
     municipality: reg.municipality ?? null,
     source_authority: reg.sourceAuthority,
     legal_source_category: reg.legalSourceCategory,
+    // Explicit, never defaulted. A source whose standing has not been
+    // established must not enter the pack asserting that it is current.
+    freshness_state: reg.freshnessState,
+    // Explicit legal standing. enacted_not_in_force / unresolved are kept out of
+    // current-law retrieval downstream.
+    legal_status: reg.legalStatus,
     publication_date: reg.publicationDate ?? null,
     effective_date: reg.effectiveDate ?? null,
     expiry_date: reg.expiryDate ?? null,

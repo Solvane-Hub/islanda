@@ -12,8 +12,12 @@ import { createHash } from 'node:crypto';
  * No wall-clock input. Nothing here may depend on when it ran.
  */
 
-/** Fixed namespace for FoundryAI chunk identity. Changing it re-identifies every chunk. */
-const FOUNDRYAI_CHUNK_NAMESPACE = '6f1c0d2a-7b3e-4f5a-9c81-2d4e6a8b0c13';
+/**
+ * Fixed namespace for knowledge-chunk identity. Changing the VALUE re-identifies
+ * every chunk — this constant was renamed from FOUNDRYAI_CHUNK_NAMESPACE during
+ * the Islanda rebrand, but the literal UUID below is byte-for-byte unchanged.
+ */
+const KNOWLEDGE_CHUNK_NAMESPACE = '6f1c0d2a-7b3e-4f5a-9c81-2d4e6a8b0c13';
 
 export interface ChunkIdentityInput {
   /** Knowledge Pack version, e.g. 'BS-v1.4'. Scopes stability (K5 §3.10). */
@@ -53,7 +57,13 @@ export function chunkIdentityString(input: ChunkIdentityInput): string {
   ].join('');
 }
 
-function uuidV5(name: string, namespace: string): string {
+/**
+ * Exported so that other deterministic identities — `claim_id` in the Nova agent
+ * contract — derive from the same implementation rather than a second copy.
+ * Each caller supplies its own namespace, so identities never collide across
+ * kinds even when every input string matches.
+ */
+export function uuidV5(name: string, namespace: string): string {
   const nsBytes = Buffer.from(namespace.replace(/-/g, ''), 'hex');
   const hash = createHash('sha1').update(nsBytes).update(Buffer.from(name, 'utf8')).digest();
   const bytes = Buffer.from(hash.subarray(0, 16));
@@ -71,7 +81,7 @@ function uuidV5(name: string, namespace: string): string {
 
 /** Stable within its Knowledge Pack version (K5 §3.10). */
 export function deriveChunkId(input: ChunkIdentityInput): string {
-  return uuidV5(chunkIdentityString(input), FOUNDRYAI_CHUNK_NAMESPACE);
+  return uuidV5(chunkIdentityString(input), KNOWLEDGE_CHUNK_NAMESPACE);
 }
 
 /** Content hash for change detection (K6 §2A.2). Not an identity. */

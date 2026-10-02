@@ -62,6 +62,30 @@ describe('environment validation', () => {
     expect(env.NEXT_PUBLIC_APP_URL).toBe('https://app.example.com');
   });
 
+  it('keeps auth available by default in development and tests', () => {
+    expect(parseServerEnv({ NODE_ENV: 'development' }).WAITLIST_ONLY_MODE).toBe(false);
+    expect(parseServerEnv({ NODE_ENV: 'test' }).WAITLIST_ONLY_MODE).toBe(false);
+  });
+
+  it('defaults production to waitlist-only mode', () => {
+    expect(parseServerEnv({ NODE_ENV: 'production' }).WAITLIST_ONLY_MODE).toBe(true);
+  });
+
+  it('accepts an explicit waitlist mode setting', () => {
+    expect(
+      parseServerEnv({ NODE_ENV: 'production', WAITLIST_ONLY_MODE: 'false' }).WAITLIST_ONLY_MODE,
+    ).toBe(false);
+    expect(
+      parseServerEnv({ NODE_ENV: 'development', WAITLIST_ONLY_MODE: 'true' }).WAITLIST_ONLY_MODE,
+    ).toBe(true);
+  });
+
+  it('rejects invalid waitlist mode values', () => {
+    expect(() => parseServerEnv({ NODE_ENV: 'production', WAITLIST_ONLY_MODE: 'yes' })).toThrow(
+      /WAITLIST_ONLY_MODE/,
+    );
+  });
+
   it('treats the service role key as optional but typed', () => {
     expect(parseServerEnv({ NODE_ENV: 'test' }).NODE_ENV).toBe('test');
   });

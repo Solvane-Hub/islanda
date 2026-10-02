@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils/cn';
 import type { KnowledgeState } from '@/services/intake';
 
 /**
- * What FoundryAI knows about the business.
+ * What Islanda knows about the business.
  *
  * A typeset operating profile, not a form summary and not a table of rows:
  * each value gets a cell, the label sits above it in small caps and the value

@@ -17,6 +17,12 @@ export type AppErrorCode =
   | 'VALIDATION_FAILED'
   | 'NOT_FOUND'
   | 'FORBIDDEN'
+  /**
+   * A general throttle, distinct from `AUTH_RATE_LIMITED`, which is Supabase
+   * Auth refusing a credential attempt. This one means the platform's own
+   * limiter declined the request.
+   */
+  | 'RATE_LIMITED'
   | 'UNEXPECTED';
 
 export class AppError extends Error {

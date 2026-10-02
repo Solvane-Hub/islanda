@@ -1,13 +1,168 @@
-﻿export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.15';
+    PostgrestVersion: '14.5';
   };
   public: {
     Tables: {
+      agent_executions: {
+        Row: {
+          actor_id: string | null;
+          agent: string;
+          agent_version: string;
+          business_id: string;
+          claim_count: number;
+          correlation_id: string;
+          embedding_identity: Json | null;
+          id: string;
+          knowledge_pack_id: string | null;
+          knowledge_version: string | null;
+          model_version: string;
+          occurred_at: string;
+          outcome: string;
+          prompt_version: string;
+          query_representation_hash: string | null;
+          ranking_config_version: string | null;
+          retrieval_config_version: string | null;
+          retrieval_filters: Json;
+          retrieved_chunk_ids: string[];
+          unresolved_count: number;
+        };
+        Insert: {
+          actor_id?: string | null;
+          agent: string;
+          agent_version: string;
+          business_id: string;
+          claim_count?: number;
+          correlation_id: string;
+          embedding_identity?: Json | null;
+          id?: string;
+          knowledge_pack_id?: string | null;
+          knowledge_version?: string | null;
+          model_version: string;
+          occurred_at?: string;
+          outcome: string;
+          prompt_version: string;
+          query_representation_hash?: string | null;
+          ranking_config_version?: string | null;
+          retrieval_config_version?: string | null;
+          retrieval_filters?: Json;
+          retrieved_chunk_ids?: string[];
+          unresolved_count?: number;
+        };
+        Update: {
+          actor_id?: string | null;
+          agent?: string;
+          agent_version?: string;
+          business_id?: string;
+          claim_count?: number;
+          correlation_id?: string;
+          embedding_identity?: Json | null;
+          id?: string;
+          knowledge_pack_id?: string | null;
+          knowledge_version?: string | null;
+          model_version?: string;
+          occurred_at?: string;
+          outcome?: string;
+          prompt_version?: string;
+          query_representation_hash?: string | null;
+          ranking_config_version?: string | null;
+          retrieval_config_version?: string | null;
+          retrieval_filters?: Json;
+          retrieved_chunk_ids?: string[];
+          unresolved_count?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'agent_executions_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'agent_executions_knowledge_pack_id_fkey';
+            columns: ['knowledge_pack_id'];
+            isOneToOne: false;
+            referencedRelation: 'knowledge_packs';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      ai_usage: {
+        Row: {
+          actor_id: string | null;
+          business_id: string | null;
+          category: string;
+          correlation_id: string | null;
+          determination: string;
+          error_code: string | null;
+          estimated_cost_usd: number | null;
+          failed: boolean;
+          id: string;
+          input_tokens: number | null;
+          llm_called: boolean;
+          model: string | null;
+          model_reason: string | null;
+          model_tier: string | null;
+          occurred_at: string;
+          output_tokens: number | null;
+          provider: string | null;
+          validation_ok: boolean | null;
+        };
+        Insert: {
+          actor_id?: string | null;
+          business_id?: string | null;
+          category: string;
+          correlation_id?: string | null;
+          determination: string;
+          error_code?: string | null;
+          estimated_cost_usd?: number | null;
+          failed?: boolean;
+          id?: string;
+          input_tokens?: number | null;
+          llm_called?: boolean;
+          model?: string | null;
+          model_reason?: string | null;
+          model_tier?: string | null;
+          occurred_at?: string;
+          output_tokens?: number | null;
+          provider?: string | null;
+          validation_ok?: boolean | null;
+        };
+        Update: {
+          actor_id?: string | null;
+          business_id?: string | null;
+          category?: string;
+          correlation_id?: string | null;
+          determination?: string;
+          error_code?: string | null;
+          estimated_cost_usd?: number | null;
+          failed?: boolean;
+          id?: string;
+          input_tokens?: number | null;
+          llm_called?: boolean;
+          model?: string | null;
+          model_reason?: string | null;
+          model_tier?: string | null;
+          occurred_at?: string;
+          output_tokens?: number | null;
+          provider?: string | null;
+          validation_ok?: boolean | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'ai_usage_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       audit_log: {
         Row: {
           actor_id: string | null;
@@ -52,8 +207,620 @@ export type Database = {
           },
         ];
       };
+      business_cases: {
+        Row: {
+          advisor_id: string | null;
+          business_id: string;
+          created_at: string;
+          id: string;
+          objective: string;
+          owner_id: string;
+          status: Database['public']['Enums']['business_case_status'];
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          advisor_id?: string | null;
+          business_id: string;
+          created_at?: string;
+          id?: string;
+          objective: string;
+          owner_id: string;
+          status?: Database['public']['Enums']['business_case_status'];
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          advisor_id?: string | null;
+          business_id?: string;
+          created_at?: string;
+          id?: string;
+          objective?: string;
+          owner_id?: string;
+          status?: Database['public']['Enums']['business_case_status'];
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'business_cases_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_documents: {
+        Row: {
+          actor_id: string | null;
+          business_id: string;
+          byte_size: number | null;
+          content_type: string | null;
+          created_at: string;
+          document_date: string | null;
+          document_type: Database['public']['Enums']['business_document_type'];
+          expiration_date: string | null;
+          extraction_status: Database['public']['Enums']['document_extraction_status'];
+          financial_period_id: string | null;
+          id: string;
+          metadata: Json;
+          processing_status: Database['public']['Enums']['document_processing_status'];
+          provenance: Database['public']['Enums']['fact_provenance'];
+          storage_path: string | null;
+          title: string;
+          updated_at: string;
+          verification_state: Database['public']['Enums']['verification_state'];
+        };
+        Insert: {
+          actor_id?: string | null;
+          business_id: string;
+          byte_size?: number | null;
+          content_type?: string | null;
+          created_at?: string;
+          document_date?: string | null;
+          document_type: Database['public']['Enums']['business_document_type'];
+          expiration_date?: string | null;
+          extraction_status?: Database['public']['Enums']['document_extraction_status'];
+          financial_period_id?: string | null;
+          id?: string;
+          metadata?: Json;
+          processing_status?: Database['public']['Enums']['document_processing_status'];
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          storage_path?: string | null;
+          title: string;
+          updated_at?: string;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Update: {
+          actor_id?: string | null;
+          business_id?: string;
+          byte_size?: number | null;
+          content_type?: string | null;
+          created_at?: string;
+          document_date?: string | null;
+          document_type?: Database['public']['Enums']['business_document_type'];
+          expiration_date?: string | null;
+          extraction_status?: Database['public']['Enums']['document_extraction_status'];
+          financial_period_id?: string | null;
+          id?: string;
+          metadata?: Json;
+          processing_status?: Database['public']['Enums']['document_processing_status'];
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          storage_path?: string | null;
+          title?: string;
+          updated_at?: string;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bd_period_same_business';
+            columns: ['business_id', 'financial_period_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_financial_periods';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_documents_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_evidence: {
+        Row: {
+          actor_id: string;
+          business_id: string;
+          created_at: string;
+          document_id: string | null;
+          id: string;
+          knowledge_chunk_id: string | null;
+          provenance: Database['public']['Enums']['fact_provenance'];
+          retracted_at: string | null;
+          verification_state: Database['public']['Enums']['verification_state'];
+        };
+        Insert: {
+          actor_id: string;
+          business_id: string;
+          created_at?: string;
+          document_id?: string | null;
+          id?: string;
+          knowledge_chunk_id?: string | null;
+          provenance: Database['public']['Enums']['fact_provenance'];
+          retracted_at?: string | null;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Update: {
+          actor_id?: string;
+          business_id?: string;
+          created_at?: string;
+          document_id?: string | null;
+          id?: string;
+          knowledge_chunk_id?: string | null;
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          retracted_at?: string | null;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'be_document_same_business';
+            columns: ['business_id', 'document_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_documents';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_knowledge_chunk_id_fkey';
+            columns: ['knowledge_chunk_id'];
+            isOneToOne: false;
+            referencedRelation: 'knowledge_chunks';
+            referencedColumns: ['chunk_id'];
+          },
+        ];
+      };
+      business_evidence_for_cases: {
+        Row: {
+          actor_id: string;
+          business_id: string;
+          case_id: string;
+          created_at: string;
+          evidence_id: string;
+          id: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Insert: {
+          actor_id: string;
+          business_id: string;
+          case_id: string;
+          created_at?: string;
+          evidence_id: string;
+          id?: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Update: {
+          actor_id?: string;
+          business_id?: string;
+          case_id?: string;
+          created_at?: string;
+          evidence_id?: string;
+          id?: string;
+          relationship?: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'befc_case_same_business';
+            columns: ['business_id', 'case_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_cases';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'befc_evidence_same_business';
+            columns: ['business_id', 'evidence_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_evidence';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_for_cases_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_evidence_for_goals: {
+        Row: {
+          actor_id: string;
+          business_id: string;
+          created_at: string;
+          evidence_id: string;
+          goal_id: string;
+          id: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Insert: {
+          actor_id: string;
+          business_id: string;
+          created_at?: string;
+          evidence_id: string;
+          goal_id: string;
+          id?: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Update: {
+          actor_id?: string;
+          business_id?: string;
+          created_at?: string;
+          evidence_id?: string;
+          goal_id?: string;
+          id?: string;
+          relationship?: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'befg_evidence_same_business';
+            columns: ['business_id', 'evidence_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_evidence';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'befg_goal_same_business';
+            columns: ['business_id', 'goal_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_goals';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_for_goals_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_evidence_for_metrics: {
+        Row: {
+          actor_id: string;
+          business_id: string;
+          created_at: string;
+          evidence_id: string;
+          id: string;
+          metric_id: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Insert: {
+          actor_id: string;
+          business_id: string;
+          created_at?: string;
+          evidence_id: string;
+          id?: string;
+          metric_id: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Update: {
+          actor_id?: string;
+          business_id?: string;
+          created_at?: string;
+          evidence_id?: string;
+          id?: string;
+          metric_id?: string;
+          relationship?: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'befm_evidence_same_business';
+            columns: ['business_id', 'evidence_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_evidence';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'befm_metric_same_business';
+            columns: ['business_id', 'metric_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_metrics';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_for_metrics_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_evidence_for_requirements: {
+        Row: {
+          actor_id: string;
+          business_id: string;
+          business_regulatory_requirement_id: string;
+          created_at: string;
+          evidence_id: string;
+          id: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Insert: {
+          actor_id: string;
+          business_id: string;
+          business_regulatory_requirement_id: string;
+          created_at?: string;
+          evidence_id: string;
+          id?: string;
+          relationship: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Update: {
+          actor_id?: string;
+          business_id?: string;
+          business_regulatory_requirement_id?: string;
+          created_at?: string;
+          evidence_id?: string;
+          id?: string;
+          relationship?: Database['public']['Enums']['evidence_relationship_type'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'befr_evidence_same_business';
+            columns: ['business_id', 'evidence_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_evidence';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'befr_requirement_same_business';
+            columns: ['business_id', 'business_regulatory_requirement_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_regulatory_requirements';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_evidence_for_requirements_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_financial_periods: {
+        Row: {
+          business_id: string;
+          created_at: string;
+          id: string;
+          label: string | null;
+          period_end: string;
+          period_start: string;
+          period_type: Database['public']['Enums']['financial_period_type'];
+          updated_at: string;
+        };
+        Insert: {
+          business_id: string;
+          created_at?: string;
+          id?: string;
+          label?: string | null;
+          period_end: string;
+          period_start: string;
+          period_type: Database['public']['Enums']['financial_period_type'];
+          updated_at?: string;
+        };
+        Update: {
+          business_id?: string;
+          created_at?: string;
+          id?: string;
+          label?: string | null;
+          period_end?: string;
+          period_start?: string;
+          period_type?: Database['public']['Enums']['financial_period_type'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'business_financial_periods_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_goals: {
+        Row: {
+          actor_id: string | null;
+          business_id: string;
+          created_at: string;
+          description: string | null;
+          goal_type: Database['public']['Enums']['business_goal_type'];
+          id: string;
+          provenance: Database['public']['Enums']['fact_provenance'];
+          status: Database['public']['Enums']['business_goal_status'];
+          target_currency: string | null;
+          target_date: string | null;
+          target_metric_key: Database['public']['Enums']['business_metric_key'] | null;
+          target_value: number | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          actor_id?: string | null;
+          business_id: string;
+          created_at?: string;
+          description?: string | null;
+          goal_type: Database['public']['Enums']['business_goal_type'];
+          id?: string;
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          status?: Database['public']['Enums']['business_goal_status'];
+          target_currency?: string | null;
+          target_date?: string | null;
+          target_metric_key?: Database['public']['Enums']['business_metric_key'] | null;
+          target_value?: number | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          actor_id?: string | null;
+          business_id?: string;
+          created_at?: string;
+          description?: string | null;
+          goal_type?: Database['public']['Enums']['business_goal_type'];
+          id?: string;
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          status?: Database['public']['Enums']['business_goal_status'];
+          target_currency?: string | null;
+          target_date?: string | null;
+          target_metric_key?: Database['public']['Enums']['business_metric_key'] | null;
+          target_value?: number | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'business_goals_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_identifiers: {
+        Row: {
+          business_id: string;
+          created_at: string;
+          id: string;
+          identifier_type: Database['public']['Enums']['business_identifier_type'];
+          label: string | null;
+          provenance: Database['public']['Enums']['fact_provenance'];
+          updated_at: string;
+          value: string;
+          verification_state: Database['public']['Enums']['verification_state'];
+          verified_at: string | null;
+        };
+        Insert: {
+          business_id: string;
+          created_at?: string;
+          id?: string;
+          identifier_type: Database['public']['Enums']['business_identifier_type'];
+          label?: string | null;
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          updated_at?: string;
+          value: string;
+          verification_state?: Database['public']['Enums']['verification_state'];
+          verified_at?: string | null;
+        };
+        Update: {
+          business_id?: string;
+          created_at?: string;
+          id?: string;
+          identifier_type?: Database['public']['Enums']['business_identifier_type'];
+          label?: string | null;
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          updated_at?: string;
+          value?: string;
+          verification_state?: Database['public']['Enums']['verification_state'];
+          verified_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'business_identifiers_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business_metrics: {
+        Row: {
+          actor_id: string | null;
+          as_of_date: string | null;
+          business_id: string;
+          created_at: string;
+          currency: string | null;
+          financial_period_id: string | null;
+          id: string;
+          label: string | null;
+          metric_key: Database['public']['Enums']['business_metric_key'];
+          provenance: Database['public']['Enums']['fact_provenance'];
+          source_document_id: string | null;
+          unit: string | null;
+          updated_at: string;
+          value: number;
+          verification_state: Database['public']['Enums']['verification_state'];
+        };
+        Insert: {
+          actor_id?: string | null;
+          as_of_date?: string | null;
+          business_id: string;
+          created_at?: string;
+          currency?: string | null;
+          financial_period_id?: string | null;
+          id?: string;
+          label?: string | null;
+          metric_key: Database['public']['Enums']['business_metric_key'];
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          source_document_id?: string | null;
+          unit?: string | null;
+          updated_at?: string;
+          value: number;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Update: {
+          actor_id?: string | null;
+          as_of_date?: string | null;
+          business_id?: string;
+          created_at?: string;
+          currency?: string | null;
+          financial_period_id?: string | null;
+          id?: string;
+          label?: string | null;
+          metric_key?: Database['public']['Enums']['business_metric_key'];
+          provenance?: Database['public']['Enums']['fact_provenance'];
+          source_document_id?: string | null;
+          unit?: string | null;
+          updated_at?: string;
+          value?: number;
+          verification_state?: Database['public']['Enums']['verification_state'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bm_document_same_business';
+            columns: ['business_id', 'source_document_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_documents';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'bm_period_same_business';
+            columns: ['business_id', 'financial_period_id'];
+            isOneToOne: false;
+            referencedRelation: 'business_financial_periods';
+            referencedColumns: ['business_id', 'id'];
+          },
+          {
+            foreignKeyName: 'business_metrics_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'businesses';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       business_profiles: {
         Row: {
+          business_activities: string | null;
           business_id: string;
           business_stage: string | null;
           completed_at: string | null;
@@ -66,10 +833,14 @@ export type Database = {
           id: string;
           last_completed_step: number;
           location: string | null;
+          operating_status: string | null;
+          products_services: string | null;
           responses: Json;
+          target_customers: string | null;
           updated_at: string;
         };
         Insert: {
+          business_activities?: string | null;
           business_id: string;
           business_stage?: string | null;
           completed_at?: string | null;
@@ -82,10 +853,14 @@ export type Database = {
           id?: string;
           last_completed_step?: number;
           location?: string | null;
+          operating_status?: string | null;
+          products_services?: string | null;
           responses?: Json;
+          target_customers?: string | null;
           updated_at?: string;
         };
         Update: {
+          business_activities?: string | null;
           business_id?: string;
           business_stage?: string | null;
           completed_at?: string | null;
@@ -98,7 +873,10 @@ export type Database = {
           id?: string;
           last_completed_step?: number;
           location?: string | null;
+          operating_status?: string | null;
+          products_services?: string | null;
           responses?: Json;
+          target_customers?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -186,35 +964,50 @@ export type Database = {
       businesses: {
         Row: {
           archived_at: string | null;
+          business_mode: Database['public']['Enums']['business_mode'];
+          business_type: string | null;
           country_code: string;
           created_at: string;
           id: string;
           industry: string | null;
+          legal_name: string | null;
+          logo_storage_path: string | null;
           name: string;
           owner_id: string;
           status: Database['public']['Enums']['business_status'];
+          trading_name: string | null;
           updated_at: string;
         };
         Insert: {
           archived_at?: string | null;
+          business_mode?: Database['public']['Enums']['business_mode'];
+          business_type?: string | null;
           country_code: string;
           created_at?: string;
           id?: string;
           industry?: string | null;
+          legal_name?: string | null;
+          logo_storage_path?: string | null;
           name: string;
           owner_id: string;
           status?: Database['public']['Enums']['business_status'];
+          trading_name?: string | null;
           updated_at?: string;
         };
         Update: {
           archived_at?: string | null;
+          business_mode?: Database['public']['Enums']['business_mode'];
+          business_type?: string | null;
           country_code?: string;
           created_at?: string;
           id?: string;
           industry?: string | null;
+          legal_name?: string | null;
+          logo_storage_path?: string | null;
           name?: string;
           owner_id?: string;
           status?: Database['public']['Enums']['business_status'];
+          trading_name?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -295,6 +1088,7 @@ export type Database = {
       };
       knowledge_chunks: {
         Row: {
+          amends_provision: string | null;
           body: string;
           chunk_id: string;
           chunk_index: number;
@@ -305,17 +1099,20 @@ export type Database = {
           created_at: string;
           effective_date: string | null;
           industry: string | null;
+          instrument_role: Database['public']['Enums']['instrument_role'];
           keywords: string[];
           knowledge_pack_id: string;
           knowledge_source_id: string;
           legal_source_category: Database['public']['Enums']['legal_source_category'];
           page: number | null;
+          provision_id: string | null;
           regulatory_domain: string | null;
           section_reference: string | null;
           source_authority: number;
           title: string | null;
         };
         Insert: {
+          amends_provision?: string | null;
           body: string;
           chunk_id: string;
           chunk_index: number;
@@ -326,17 +1123,20 @@ export type Database = {
           created_at?: string;
           effective_date?: string | null;
           industry?: string | null;
+          instrument_role?: Database['public']['Enums']['instrument_role'];
           keywords?: string[];
           knowledge_pack_id: string;
           knowledge_source_id: string;
           legal_source_category: Database['public']['Enums']['legal_source_category'];
           page?: number | null;
+          provision_id?: string | null;
           regulatory_domain?: string | null;
           section_reference?: string | null;
           source_authority: number;
           title?: string | null;
         };
         Update: {
+          amends_provision?: string | null;
           body?: string;
           chunk_id?: string;
           chunk_index?: number;
@@ -347,11 +1147,13 @@ export type Database = {
           created_at?: string;
           effective_date?: string | null;
           industry?: string | null;
+          instrument_role?: Database['public']['Enums']['instrument_role'];
           keywords?: string[];
           knowledge_pack_id?: string;
           knowledge_source_id?: string;
           legal_source_category?: Database['public']['Enums']['legal_source_category'];
           page?: number | null;
+          provision_id?: string | null;
           regulatory_domain?: string | null;
           section_reference?: string | null;
           source_authority?: number;
@@ -431,6 +1233,7 @@ export type Database = {
       knowledge_packs: {
         Row: {
           approval_note: string | null;
+          commercial_publication_eligibility: Database['public']['Enums']['commercial_publication_eligibility'];
           country_code: string;
           created_at: string;
           id: string;
@@ -445,6 +1248,7 @@ export type Database = {
         };
         Insert: {
           approval_note?: string | null;
+          commercial_publication_eligibility?: Database['public']['Enums']['commercial_publication_eligibility'];
           country_code: string;
           created_at?: string;
           id?: string;
@@ -459,6 +1263,7 @@ export type Database = {
         };
         Update: {
           approval_note?: string | null;
+          commercial_publication_eligibility?: Database['public']['Enums']['commercial_publication_eligibility'];
           country_code?: string;
           created_at?: string;
           id?: string;
@@ -556,6 +1361,8 @@ export type Database = {
           knowledge_pack_id: string;
           last_reviewed_date: string | null;
           legal_source_category: Database['public']['Enums']['legal_source_category'];
+          legal_status: Database['public']['Enums']['knowledge_source_legal_status'];
+          manifest_id: string | null;
           municipality: string | null;
           publication_date: string | null;
           region: string | null;
@@ -575,11 +1382,13 @@ export type Database = {
           created_at?: string;
           effective_date?: string | null;
           expiry_date?: string | null;
-          freshness_state?: Database['public']['Enums']['knowledge_freshness_state'];
+          freshness_state: Database['public']['Enums']['knowledge_freshness_state'];
           id?: string;
           knowledge_pack_id: string;
           last_reviewed_date?: string | null;
           legal_source_category: Database['public']['Enums']['legal_source_category'];
+          legal_status?: Database['public']['Enums']['knowledge_source_legal_status'];
+          manifest_id?: string | null;
           municipality?: string | null;
           publication_date?: string | null;
           region?: string | null;
@@ -604,6 +1413,8 @@ export type Database = {
           knowledge_pack_id?: string;
           last_reviewed_date?: string | null;
           legal_source_category?: Database['public']['Enums']['legal_source_category'];
+          legal_status?: Database['public']['Enums']['knowledge_source_legal_status'];
+          manifest_id?: string | null;
           municipality?: string | null;
           publication_date?: string | null;
           region?: string | null;
@@ -649,6 +1460,30 @@ export type Database = {
           full_name?: string | null;
           id?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      rate_limit_counters: {
+        Row: {
+          count: number;
+          scope: string;
+          subject_id: string;
+          updated_at: string;
+          window_start: string;
+        };
+        Insert: {
+          count?: number;
+          scope: string;
+          subject_id: string;
+          updated_at?: string;
+          window_start: string;
+        };
+        Update: {
+          count?: number;
+          scope?: string;
+          subject_id?: string;
+          updated_at?: string;
+          window_start?: string;
         };
         Relationships: [];
       };
@@ -1030,11 +1865,64 @@ export type Database = {
         };
         Relationships: [];
       };
+      waitlist_signups: {
+        Row: {
+          business_name: string | null;
+          created_at: string;
+          email: string;
+          first_name: string | null;
+          id: string;
+          last_name: string | null;
+          role: string | null;
+          source: string | null;
+          status: Database['public']['Enums']['waitlist_signup_status'];
+          updated_at: string;
+        };
+        Insert: {
+          business_name?: string | null;
+          created_at?: string;
+          email: string;
+          first_name?: string | null;
+          id?: string;
+          last_name?: string | null;
+          role?: string | null;
+          source?: string | null;
+          status?: Database['public']['Enums']['waitlist_signup_status'];
+          updated_at?: string;
+        };
+        Update: {
+          business_name?: string | null;
+          created_at?: string;
+          email?: string;
+          first_name?: string | null;
+          id?: string;
+          last_name?: string | null;
+          role?: string | null;
+          source?: string | null;
+          status?: Database['public']['Enums']['waitlist_signup_status'];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
+      consume_rate_limit: {
+        Args: {
+          p_limit: number;
+          p_scope: string;
+          p_subject_id: string;
+          p_window_seconds: number;
+        };
+        Returns: {
+          allowed: boolean;
+          current_count: number;
+          retry_after_seconds: number;
+          window_started_at: string;
+        }[];
+      };
       publish_knowledge_pack: {
         Args: {
           p_approval_note?: string;
@@ -1043,6 +1931,7 @@ export type Database = {
         };
         Returns: {
           approval_note: string | null;
+          commercial_publication_eligibility: Database['public']['Enums']['commercial_publication_eligibility'];
           country_code: string;
           created_at: string;
           id: string;
@@ -1064,6 +1953,49 @@ export type Database = {
       };
     };
     Enums: {
+      business_case_status: 'open' | 'in_review' | 'resolved' | 'archived';
+      business_document_type:
+        | 'financial_statement'
+        | 'profit_loss'
+        | 'sales_report'
+        | 'tax_document'
+        | 'invoice'
+        | 'expense_report'
+        | 'bank_statement'
+        | 'payroll_report'
+        | 'inventory_report'
+        | 'registration'
+        | 'licence'
+        | 'certificate'
+        | 'other';
+      business_goal_status: 'proposed' | 'active' | 'achieved' | 'on_hold' | 'abandoned';
+      business_goal_type:
+        | 'revenue_target'
+        | 'launch_product'
+        | 'open_location'
+        | 'hire'
+        | 'expand_market'
+        | 'improve_profitability'
+        | 'increase_sales'
+        | 'obtain_licence'
+        | 'other';
+      business_identifier_type:
+        | 'company_registration_number'
+        | 'business_licence_number'
+        | 'tax_identification_number'
+        | 'vat_registration_number'
+        | 'nib_employer_number'
+        | 'other';
+      business_metric_key:
+        | 'revenue'
+        | 'expenses'
+        | 'net_profit'
+        | 'gross_margin'
+        | 'cash_flow'
+        | 'sales_count'
+        | 'customer_count'
+        | 'other';
+      business_mode: 'build' | 'manage';
       business_status:
         | 'draft'
         | 'intake_started'
@@ -1071,10 +2003,31 @@ export type Database = {
         | 'launch_plan_generated'
         | 'active'
         | 'archived';
+      commercial_publication_eligibility: 'restricted' | 'cleared';
+      document_extraction_status:
+        'not_started' | 'pending' | 'extracted' | 'failed' | 'unavailable';
+      document_processing_status: 'pending' | 'stored' | 'processing' | 'processed' | 'failed';
+      evidence_relationship_type: 'supports' | 'derived_from';
+      fact_provenance:
+        | 'founder_provided'
+        | 'evidence_verified'
+        | 'ai_inferred'
+        | 'external_public_data'
+        | 'user_document';
+      financial_period_type: 'month' | 'quarter' | 'year' | 'custom';
+      instrument_role: 'substantive' | 'amending_instruction' | 'unknown';
       knowledge_freshness_state:
         'current' | 'review_due' | 'changed_pending_assessment' | 'stale' | 'withdrawn';
       knowledge_pack_status:
         'draft' | 'validating' | 'staged' | 'published' | 'superseded' | 'rolled_back';
+      knowledge_source_legal_status:
+        | 'in_force'
+        | 'base_text_amended'
+        | 'enacted_not_in_force'
+        | 'repealed'
+        | 'spent'
+        | 'superseded'
+        | 'unresolved';
       knowledge_source_type:
         | 'act'
         | 'regulation'
@@ -1092,6 +2045,8 @@ export type Database = {
         | 'official_guidance'
         | 'agency_publication';
       validation_outcome: 'validated' | 'partially_validated' | 'unverified' | 'rejected';
+      verification_state: 'unverified' | 'verified' | 'verification_unavailable';
+      waitlist_signup_status: 'pending' | 'invited' | 'declined';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1213,6 +2168,53 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      business_case_status: ['open', 'in_review', 'resolved', 'archived'],
+      business_document_type: [
+        'financial_statement',
+        'profit_loss',
+        'sales_report',
+        'tax_document',
+        'invoice',
+        'expense_report',
+        'bank_statement',
+        'payroll_report',
+        'inventory_report',
+        'registration',
+        'licence',
+        'certificate',
+        'other',
+      ],
+      business_goal_status: ['proposed', 'active', 'achieved', 'on_hold', 'abandoned'],
+      business_goal_type: [
+        'revenue_target',
+        'launch_product',
+        'open_location',
+        'hire',
+        'expand_market',
+        'improve_profitability',
+        'increase_sales',
+        'obtain_licence',
+        'other',
+      ],
+      business_identifier_type: [
+        'company_registration_number',
+        'business_licence_number',
+        'tax_identification_number',
+        'vat_registration_number',
+        'nib_employer_number',
+        'other',
+      ],
+      business_metric_key: [
+        'revenue',
+        'expenses',
+        'net_profit',
+        'gross_margin',
+        'cash_flow',
+        'sales_count',
+        'customer_count',
+        'other',
+      ],
+      business_mode: ['build', 'manage'],
       business_status: [
         'draft',
         'intake_started',
@@ -1221,6 +2223,19 @@ export const Constants = {
         'active',
         'archived',
       ],
+      commercial_publication_eligibility: ['restricted', 'cleared'],
+      document_extraction_status: ['not_started', 'pending', 'extracted', 'failed', 'unavailable'],
+      document_processing_status: ['pending', 'stored', 'processing', 'processed', 'failed'],
+      evidence_relationship_type: ['supports', 'derived_from'],
+      fact_provenance: [
+        'founder_provided',
+        'evidence_verified',
+        'ai_inferred',
+        'external_public_data',
+        'user_document',
+      ],
+      financial_period_type: ['month', 'quarter', 'year', 'custom'],
+      instrument_role: ['substantive', 'amending_instruction', 'unknown'],
       knowledge_freshness_state: [
         'current',
         'review_due',
@@ -1235,6 +2250,15 @@ export const Constants = {
         'published',
         'superseded',
         'rolled_back',
+      ],
+      knowledge_source_legal_status: [
+        'in_force',
+        'base_text_amended',
+        'enacted_not_in_force',
+        'repealed',
+        'spent',
+        'superseded',
+        'unresolved',
       ],
       knowledge_source_type: [
         'act',
@@ -1255,6 +2279,8 @@ export const Constants = {
         'agency_publication',
       ],
       validation_outcome: ['validated', 'partially_validated', 'unverified', 'rejected'],
+      verification_state: ['unverified', 'verified', 'verification_unavailable'],
+      waitlist_signup_status: ['pending', 'invited', 'declined'],
     },
   },
 } as const;

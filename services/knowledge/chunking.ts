@@ -1,6 +1,7 @@
 import type { DraftChunkInput } from '@/lib/validation/knowledge';
 import { assertNoClaimLevelTrust, draftChunkSchema } from '@/lib/validation/knowledge';
 import { contentHash, deriveChunkId } from '@/lib/knowledge/chunk-id';
+import { toCanonicalProvisionId } from '@/lib/knowledge/provision';
 import type { InsertChunkValues } from '@/lib/db/knowledge/chunks';
 import type { KnowledgeSource } from '@/types/knowledge';
 
@@ -63,6 +64,21 @@ export function prepareChunks(params: {
       body: draft.body,
     });
 
+    // Canonical provision identity, derived once at ingestion rather than
+    // matched as a display string at query time. `null` when the reference
+    // cannot be parsed — reported downstream as unresolved, never as "no
+    // amendments" (docs/nova-v0.1-review.md §6.3, §6.4).
+    const provisionId = toCanonicalProvisionId(draft.sectionReference ?? null);
+    const amendsProvision = toCanonicalProvisionId(draft.amendsProvision ?? null);
+
+    if (draft.instrumentRole === 'amending_instruction' && !amendsProvision) {
+      throw new ChunkingError(
+        `K3: amending instruction at position ${position} names "${draft.amendsProvision}" as the ` +
+          'provision it amends, which could not be parsed into a canonical identifier. An edit ' +
+          'that cannot be attached to its target would be quoted to a founder in isolation.',
+      );
+    }
+
     return {
       chunk_id: chunkId,
       knowledge_source_id: source.id,
@@ -73,6 +89,9 @@ export function prepareChunks(params: {
       content_hash: contentHash(draft.body),
       country_code: source.country_code,
       section_reference: draft.sectionReference ?? null,
+      instrument_role: draft.instrumentRole,
+      provision_id: provisionId,
+      amends_provision: amendsProvision,
       clause: draft.clause ?? null,
       page: draft.page ?? null,
       // Source-level only. K3 §5.1.

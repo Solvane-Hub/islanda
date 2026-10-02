@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  assertCommercialPublicationCleared,
   assertPackTransition,
   canTransitionPack,
   embeddingRebuildRequiresNewPackVersion,
@@ -8,6 +9,23 @@ import {
   type SourceReadiness,
 } from '@/services/knowledge/publishing';
 import type { KnowledgePackStatus } from '@/types/knowledge';
+
+describe('G11 commercial-publication eligibility gate', () => {
+  it('permits publication only when the pack is cleared', () => {
+    expect(() => assertCommercialPublicationCleared('cleared')).not.toThrow();
+  });
+
+  it('blocks publication of a restricted pack (fail-closed)', () => {
+    expect(() => assertCommercialPublicationCleared('restricted')).toThrow(PublicationError);
+    // The error names G11 and points at the fix, without blocking ingestion/staging.
+    try {
+      assertCommercialPublicationCleared('restricted');
+    } catch (e) {
+      expect((e as Error).message).toMatch(/G11/);
+      expect((e as Error).message).toMatch(/permission/i);
+    }
+  });
+});
 
 const ok: SourceReadiness = {
   sourceId: 'src-1',

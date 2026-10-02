@@ -45,7 +45,7 @@ export const metadata: Metadata = { title: 'Business intake' };
  * is not something React can serialise.
  *
  * Everything visible comes from the profile row or `INTAKE_STEPS`. The screen
- * makes no claim about what FoundryAI will do with an answer beyond what the
+ * makes no claim about what Islanda will do with an answer beyond what the
  * existing copy already said.
  */
 export default async function IntakePage({
@@ -70,7 +70,7 @@ export default async function IntakePage({
           <h1 className="text-2xl font-semibold tracking-tight">Business intake</h1>
           <EmptyState
             title="No business yet"
-            explanation="Intake collects the details FoundryAI needs to work out your requirements — so it needs a business first."
+            explanation="Intake collects the details Islanda needs to work out your requirements — so it needs a business first."
             nextStep="Create a business to begin."
             action={
               <Link href="/businesses/new">

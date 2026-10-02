@@ -1,11 +1,15 @@
-# FoundryAI — Context for AI Coding Assistants
+# Islanda — Context for AI Coding Assistants
+
+_(Product renamed from FoundryAI to Islanda after the buildathon. The company remains
+Solvane Hub; the AI agent remains Nova. Historical documents and applied migrations
+still say FoundryAI where that was the name at the time — see CHANGELOG.md.)_
 
 This file mirrors the **Claude Code Master Context** into the repository so AI
 assistants read it automatically. The Knowledge Base remains canonical.
 
 ## Role
 
-You are a lead software engineer on FoundryAI. You implement software.
+You are a lead software engineer on Islanda. You implement software.
 You do not redesign architecture. You do not redefine product scope.
 
 ## Read before implementing
@@ -50,7 +54,7 @@ document — status, version, Notion URL, local path, Drive location, owner,
 related documents, ADRs, evidence. **A document not in the manifest is not
 canonical.** Read the manifest before assuming a document does or does not exist.
 
-Decisions live in `docs/decisions/` as ADR-0001 … ADR-0020 and are binding.
+Decisions live in `docs/decisions/` as ADR-0001 … ADR-0021 and are binding.
 
 ## Trust model (Trust Layer Specification v1.0)
 
@@ -181,13 +185,44 @@ ADR-0015 unchanged). Key outcomes now binding:
 - **Harvested:** "Why?" evidence panel → **Launch Plan §5A** · taxonomy expansion →
   **Coordinator §5A** · conditional requirement logic → **K3 §7.1**. Mapping in the manifest.
 
-**Still out of scope until their phases: AI agents, Knowledge, Nova, Funding,
-Compliance.** Do not implement them, and never add mock data that could be
-mistaken for real guidance — including in seeds, placeholders and demos.
+**Nova (Extractive) is IN SCOPE — founder-approved 2026-07-31.** Nova is being
+built as the first founder-facing AI surface under **Option A: extractive**.
+Retrieval runs over the published Knowledge Pack; the reasoner is
+**deterministic TypeScript that composes answers from verbatim quoted passages**.
+There is no model call, no provider SDK and no generative reasoning anywhere in
+the path — fabrication is prevented by construction, not by evaluation.
+
+Nothing about this relaxes the existing contracts. Binding as before:
+
+- The Specialist Agent Contract envelope (document 4 §5) — `status`, `claims`
+  with `chunk_id` **and a verbatim quote**, and a mandatory `unresolved[]`.
+- K5 retrieval, including deterministic filters before ranking and mandatory
+  `chunk_id` on every result.
+- Trust Layer §8 citations, and evidence binding to the **current run**.
+- `A5 — Structured refusal`: `NO_AUTHORITATIVE_INFORMATION_FOUND` is a designed
+  output. Nova must never answer a regulatory question from model memory,
+  because it has no model to remember with.
+
+**Generative Nova remains out of scope** until ADR-0018's evaluation harness
+exists and its hard gates (citation validity 100%, fabrication 0) can be
+demonstrated. The reasoner is isolated behind one module so that swap is
+contained.
+
+**Still out of scope until their phases: generative AI agents, Knowledge
+authoring, Funding, Compliance.** Do not implement them, and never add mock data
+that could be mistaken for real guidance — including in seeds, placeholders and
+demos.
 
 **Implementation is blocked on founder decisions:** embedding model (KI1/MP-1),
 gold-standard curation (EV1), data residency (MP-2), reviewer staffing (HR1),
 legal disclaimer and accountability (SF1/SF3), reproducibility vs erasure (VR1).
+
+Extractive Nova does **not** depend on KI1/MP-1 or MP-2 — it performs no
+embedding and makes no external inference call, so neither the model nor the
+residency decision gates it. **SF1/SF3 still gates it**: Nova is founder-facing
+regulatory guidance, and the disclaimer and accountability position must be
+settled before it ships to founders, even though every sentence it produces is a
+quotation with a citation.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

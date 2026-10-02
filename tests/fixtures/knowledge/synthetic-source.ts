@@ -9,6 +9,8 @@ export const SYNTHETIC_KNOWLEDGE_VERSION = 'ZZ-v1.0';
 
 export const syntheticRegistration = {
   knowledgePackId: SYNTHETIC_PACK_ID,
+  // Stable manifest key — the amendment chain resolves through this, not the URL.
+  manifestId: 'ZZ-WIDGET-ACT-SYNTHETIC',
   agency: 'Example Regulatory Authority',
   title: 'Example Widget Licensing Act (SYNTHETIC — not real legislation)',
   sourceUrl: 'https://example.invalid/widget-licensing-act',
@@ -19,6 +21,10 @@ export const syntheticRegistration = {
   // primary_legislation ⇒ Authority 5 (K2 §8.1)
   sourceAuthority: 5,
   legalSourceCategory: 'primary_legislation' as const,
+  // Mandatory since 20260823000000. Stated, never defaulted.
+  freshnessState: 'current' as const,
+  // Mandatory since 20260905201714. Explicit legal standing.
+  legalStatus: 'in_force' as const,
   publicationDate: '2024-01-15',
   effectiveDate: '2024-03-01',
   expiryDate: null,
@@ -53,6 +59,7 @@ export const syntheticDraftChunks = [
     regulatoryDomain: 'licensing',
     keywords: ['widget', 'licence'],
     effectiveDate: '2024-03-01',
+    instrumentRole: 'substantive' as const,
   },
   {
     chunkIndex: 1,
@@ -65,5 +72,6 @@ export const syntheticDraftChunks = [
     regulatoryDomain: 'licensing',
     keywords: ['renewal'],
     effectiveDate: '2024-03-01',
+    instrumentRole: 'substantive' as const,
   },
 ];

@@ -3,7 +3,7 @@ import Link from 'next/link';
 /**
  * Footer.
  *
- * FoundryAI is the product and owns the page; Solvane Hub is the builder and
+ * Islanda is the product and owns the page; Solvane Hub is the builder and
  * appears once, here, at body-text weight. Brand hierarchy is a decision, and
  * this is where it is enforced.
  *
@@ -17,7 +17,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-2">
             <span className="text-on-ink text-[0.9375rem] font-semibold tracking-[-0.02em]">
-              FoundryAI
+              Islanda
             </span>
             <p className="text-sm">An operating system for building a business in The Bahamas.</p>
           </div>
@@ -33,7 +33,7 @@ export function SiteFooter() {
         </div>
 
         <div className="border-ink-line mt-10 flex flex-col gap-2 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-on-ink-subtle text-xs">FoundryAI is built by Solvane Hub.</p>
+          <p className="text-on-ink-subtle text-xs">Islanda is built by Solvane Hub.</p>
           <p className="text-on-ink-subtle text-xs">Nassau, The Bahamas</p>
         </div>
       </div>

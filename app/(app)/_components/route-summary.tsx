@@ -40,9 +40,10 @@ export function RouteSummary({ milestones }: { milestones: Milestone[] }) {
               aria-hidden="true"
               className={cn(
                 'relative z-10 flex size-3.5 shrink-0 items-center justify-center rounded-full',
-                complete && 'bg-bahama-turquoise text-abyss',
-                current && 'bg-bahama-turquoise ring-bahama-turquoise/25 ring-4',
-                m.state === 'upcoming' && 'bg-abyss ring-1 ring-white/44',
+                complete && 'bg-bahama-turquoise/70 text-abyss',
+                current &&
+                  'bg-bahama-turquoise ring-bahama-turquoise/20 shadow-[0_0_14px_rgba(18,200,213,0.55)] ring-4',
+                m.state === 'upcoming' && 'bg-abyss ring-1 ring-white/40',
               )}
             >
               {complete ? <Check className="size-2" strokeWidth={4.5} /> : null}
@@ -112,11 +113,11 @@ function Connector({ last }: { last: boolean }) {
     <>
       <span
         aria-hidden="true"
-        className="absolute top-4 -bottom-7 left-[0.40625rem] w-px bg-white/12 lg:hidden"
+        className="absolute top-4 -bottom-7 left-[0.40625rem] w-px bg-gradient-to-b from-white/20 to-white/5 lg:hidden"
       />
       <span
         aria-hidden="true"
-        className="absolute top-[0.40625rem] -right-6 left-4 hidden h-px bg-white/12 lg:block"
+        className="absolute top-[0.40625rem] -right-6 left-4 hidden h-px bg-gradient-to-r from-white/20 to-white/5 lg:block"
       />
     </>
   );

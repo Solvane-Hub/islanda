@@ -1,5 +1,34 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { anonClient, archiveAll, rlsConfigured, rlsRequired, RUN, signIn, type Db } from './client';
+import { isUserAssignedCountryCode } from '@/lib/knowledge/jurisdiction';
+
+/**
+ * A country code that is not, and will not become, a row in `countries`.
+ *
+ * ⚠ This was `'ZZ'` until ZZ became the SYNTHETIC demonstration jurisdiction and
+ *   was registered for real. The test then inserted successfully, failed its
+ *   assertion, and — worse — briefly created a ZZ business owned by a test
+ *   tenant. Under `app.knowledge_jurisdiction_access` that would have handed
+ *   that tenant read access to the ZZ Knowledge Pack. A constraint test must
+ *   never be able to grant a privilege as a side effect.
+ *
+ * `ZY` is chosen because it is:
+ *   • syntactically valid, so `countries_code_format` passes and the FOREIGN KEY
+ *     is what does the rejecting — which is the constraint under test;
+ *   • unassigned in ISO 3166-1;
+ *   • deliberately OUTSIDE the user-assigned ranges (AA, QM–QZ, XA–XZ, ZZ), so
+ *     it can never be adopted as a future synthetic jurisdiction. That
+ *     convention is asserted below rather than trusted to memory.
+ */
+const UNREGISTERED_COUNTRY_CODE = 'ZY';
+
+if (isUserAssignedCountryCode(UNREGISTERED_COUNTRY_CODE)) {
+  throw new Error(
+    `tests/rls: "${UNREGISTERED_COUNTRY_CODE}" is an ISO 3166-1 user-assigned code, which this ` +
+      'project reserves for synthetic jurisdictions. Pick an unassigned code instead — otherwise ' +
+      'this test will one day insert a real row and grant a test tenant access to a Knowledge Pack.',
+  );
+}
 
 if (!rlsConfigured && rlsRequired) {
   throw new Error(
@@ -251,9 +280,21 @@ describe.skipIf(!rlsConfigured)('Row Level Security — tenant isolation', () =>
       const { error } = await A.from('businesses').insert({
         owner_id: aId,
         name: `${RUN}-badcountry`,
-        country_code: 'ZZ',
+        country_code: UNREGISTERED_COUNTRY_CODE,
       });
       expect(error).not.toBeNull();
+    });
+
+    it('leaves no business behind when the country code is rejected', async () => {
+      // The failure mode this guards is not the constraint — it is the test.
+      // While the fixture used a code that had quietly become real, this insert
+      // SUCCEEDED, and the row it created granted its owner jurisdiction access
+      // to a published Knowledge Pack until cleanup archived it.
+      const { data } = await A.from('businesses')
+        .select('id')
+        .eq('country_code', UNREGISTERED_COUNTRY_CODE);
+
+      expect(data ?? []).toHaveLength(0);
     });
 
     it('rejects archived status without archived_at', async () => {

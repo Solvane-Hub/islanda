@@ -6,3 +6,5 @@ test-results/
 supabase/migrations/
 package-lock.json
 *.sql
+# Design source material (images, video, HTML mockups) — not code.
+design/

@@ -3,10 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
-import { NAV_GROUPS } from './nav-items';
+import { NAV_SECTORS, type NavSector } from './nav-items';
 
 /**
- * Primary navigation, on the floating rail.
+ * Shared sector-grouped nav list — the desktop rail (`SidebarNav`) and the
+ * mobile "More" sheet (`mobile-bottom-nav.tsx`) render the same markup over a
+ * different slice of `NAV_SECTORS`, so the two surfaces can never drift into
+ * two different hierarchies for the same product.
  *
  * Turquoise is the system's active signal here exactly as it is on the landing
  * page — it marks where you are, and nothing else in the rail uses it. The
@@ -15,30 +18,43 @@ import { NAV_GROUPS } from './nav-items';
  *
  * Unavailable routes stay visible and readable rather than being hidden or
  * dimmed into illegibility: `on-glass-subtle` measures 6.45:1 on the rail, so
- * a founder can read where the product is going.
+ * a founder can read where the product is going. A sector's own heading is
+ * never what marks an item unavailable — Compliance/Timeline/Funding sit
+ * inside "Intelligence" alongside Nova, and the muted colour plus "Soon"
+ * badge are what keep them honestly secondary.
  *
  * Rows are 40px rather than 44px now that the rail is a panel with its own
  * padding — the touch target on mobile comes from the sheet, which keeps the
  * larger rhythm.
  */
-export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+export function NavSectorList({
+  sectors,
+  onNavigate,
+}: {
+  sectors: readonly NavSector[];
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
 
   return (
     <nav aria-label="Primary" className="flex flex-1 flex-col gap-6">
-      {NAV_GROUPS.map((group, gi) => (
+      {sectors.map((sector, si) => (
         <div
-          key={group.label ?? `group-${gi}`}
-          className={cn('flex flex-col gap-0.5', gi === NAV_GROUPS.length - 1 && 'mt-auto')}
+          key={sector.label ?? `sector-${si}`}
+          className={cn('flex flex-col gap-0.5', si === sectors.length - 1 && 'mt-auto')}
         >
-          {group.label ? (
+          {sector.label ? (
             <h2 className="text-2xs text-on-glass-subtle mb-1.5 px-3 font-medium tracking-[0.14em] uppercase">
-              {group.label}
+              {sector.label}
             </h2>
           ) : null}
 
-          {group.items.map((item) => {
+          {sector.items.map((item) => {
             const Icon = item.icon;
+            // A hash-anchor href (Goals, Financials) never equals or prefixes
+            // `pathname` — `usePathname()` never includes a hash — so these
+            // naturally never highlight as active. The page they scroll into
+            // (Overview) carries that state instead.
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
@@ -80,4 +96,9 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       ))}
     </nav>
   );
+}
+
+/** The desktop rail — every sector, in order. */
+export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+  return <NavSectorList sectors={NAV_SECTORS} onNavigate={onNavigate} />;
 }

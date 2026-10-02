@@ -7,6 +7,7 @@ import { findProfileByBusinessId, insertProfile, updateProfile } from '@/lib/db/
 import { findBusinessById, updateBusiness } from '@/lib/db/businesses';
 import type { IntakePatch } from '@/types/business';
 import { assertTransition } from '@/services/business';
+import { evaluateBusinessRequirements } from '@/services/regulatory';
 import { INTAKE_SLOTS, knowledgeCompleteness, type IntakeSlotId } from './knowledge';
 import type { RequestContext } from '@/services/auth';
 import type { KnowledgeProvenance } from '@/lib/validation/intake';
@@ -87,7 +88,7 @@ async function resolveFundingCurrency(
 
 /**
  * The knowledge model is part of this service's public surface — callers ask
- * the Intake service what FoundryAI knows, never the database directly.
+ * the Intake service what Islanda knows, never the database directly.
  */
 export {
   INTAKE_SLOTS,
@@ -318,11 +319,8 @@ export async function completeIntake(
     });
   }
 
-  // Gated on knowledge, not on the cursor. A founder whose profile is complete
-  // must be able to finish, however the facts were established — otherwise a
-  // Nova-populated profile would be permanently unfinishable because nobody
-  // walked the five screens.
   const completeness = knowledgeCompleteness(profile);
+
   if (!completeness.isComplete) {
     throw new AppError({
       code: 'VALIDATION_FAILED',
@@ -334,10 +332,24 @@ export async function completeIntake(
 
   if (business.status !== 'intake_complete') {
     assertTransition(business.status, 'intake_complete', correlationId);
-    await updateBusiness(db, businessId, { status: 'intake_complete' });
+
+    const { error } = await updateBusiness(db, businessId, {
+      status: 'intake_complete',
+    });
+
+    if (error) {
+      throw new AppError({
+        code: 'UNEXPECTED',
+        humanMessage: 'We could not complete your intake. Please try again.',
+        developerMessage: error,
+        correlationId,
+      });
+    }
   }
 
-  await updateProfile(db, businessId, { completed_at: new Date().toISOString() });
+  await updateProfile(db, businessId, {
+    completed_at: profile.completed_at ?? new Date().toISOString(),
+  });
 
   await recordAuditEvent({
     event: 'intake.completed',
@@ -347,8 +359,9 @@ export async function completeIntake(
     ipAddress: ctx.ipAddress ?? null,
     userAgent: ctx.userAgent ?? null,
   });
-}
 
+  await evaluateBusinessRequirements(db, businessId);
+}
 /** Read-only accessor so `app/` never imports the data-access layer (ADR-0001). */
 export async function getIntakeProfile(
   db: SupabaseClient<Database>,

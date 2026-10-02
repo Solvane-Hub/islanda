@@ -1,6 +1,12 @@
 import { cn } from '@/lib/utils/cn';
 
-export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+/**
+ * Includes `ref`. React 19 passes refs as ordinary props to function
+ * components, but `TextareaHTMLAttributes` does not declare one, so a caller
+ * that legitimately needs the element — the Nova composer, to restore focus —
+ * would fail to typecheck. `ComponentPropsWithRef` is the superset that says so.
+ */
+export type TextareaProps = React.ComponentPropsWithRef<'textarea'>;
 
 /**
  * Extracted from two copy-pasted blocks in the intake flow. Mirrors Input's
