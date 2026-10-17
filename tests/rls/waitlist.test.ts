@@ -176,13 +176,8 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist survey and recr
 
   it('the survey function accepts the right token and reveals nothing for a wrong one', async () => {
     const anon = anonClient();
-    const wrong = await anon.rpc('submit_waitlist_survey', {
-      p_token: randomBytes(32).toString('base64url'),
-      p_testing_interest: 'yes',
-    });
-    expect(wrong.error).toBeNull();
-    expect(wrong.data).toBe(false);
-
+    // PostgREST resolves functions by their full named-argument list, and this
+    // one has no defaults: every call sends all seven (the app always does).
     const answers = {
       p_country: 'The Bahamas',
       p_city_island: 'Exuma',
@@ -191,6 +186,14 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist survey and recr
       p_challenge_other: 'Finding a shop',
       p_testing_interest: 'yes' as const,
     };
+
+    const wrong = await anon.rpc('submit_waitlist_survey', {
+      p_token: randomBytes(32).toString('base64url'),
+      ...answers,
+    });
+    expect(wrong.error).toBeNull();
+    expect(wrong.data).toBe(false);
+
     const right = await anon.rpc('submit_waitlist_survey', { p_token: token, ...answers });
     expect(right.error).toBeNull();
     expect(right.data).toBe(true);

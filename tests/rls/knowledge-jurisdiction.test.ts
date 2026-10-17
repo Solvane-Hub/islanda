@@ -312,9 +312,17 @@ describe.skipIf(!rlsConfigured)('Row Level Security — knowledge jurisdiction i
 
   describe('agent executions are private to the business', () => {
     it('returns nothing for a business the caller does not own', async () => {
-      const { data } = await A.from('agent_executions').select('id');
-      // Tenant A owns only fresh businesses with no Nova runs.
-      expect(data ?? []).toHaveLength(0);
+      // Tenant A may legitimately have runs of its own — the e2e and a11y jobs
+      // sign in as A and use Nova — so "A sees zero rows" is not the invariant.
+      // The invariant is that every row A can see belongs to a business A owns.
+      const { data: runs, error } = await A.from('agent_executions').select('business_id');
+      expect(error).toBeNull();
+
+      const { data: owned } = await A.from('businesses').select('id').eq('owner_id', aId);
+      const ownedIds = new Set((owned ?? []).map((b) => b.id));
+
+      const foreign = (runs ?? []).filter((r) => !ownedIds.has(r.business_id));
+      expect(foreign).toEqual([]);
     });
   });
 

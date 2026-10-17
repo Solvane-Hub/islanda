@@ -2007,12 +2007,12 @@ export type Database = {
       };
       submit_waitlist_survey: {
         Args: {
-          p_biggest_challenge?: Database['public']['Enums']['waitlist_challenge'] | null;
-          p_business_stage?: Database['public']['Enums']['waitlist_business_stage'] | null;
-          p_challenge_other?: string | null;
-          p_city_island?: string | null;
-          p_country?: string | null;
-          p_testing_interest?: Database['public']['Enums']['waitlist_testing_interest'] | null;
+          p_biggest_challenge: Database['public']['Enums']['waitlist_challenge'] | null;
+          p_business_stage: Database['public']['Enums']['waitlist_business_stage'] | null;
+          p_challenge_other: string | null;
+          p_city_island: string | null;
+          p_country: string | null;
+          p_testing_interest: Database['public']['Enums']['waitlist_testing_interest'] | null;
           p_token: string;
         };
         Returns: boolean;
