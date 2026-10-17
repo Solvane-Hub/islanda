@@ -199,7 +199,7 @@ describe('NovaAnswerPanel — refusal states are distinct', () => {
         })}
       />,
     );
-    expect(screen.getByText(/no sources for your jurisdiction yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no sources for your country yet/i)).toBeInTheDocument();
     unmount();
 
     render(

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ACCESS_COPY, type AccessMode } from '@/lib/product/availability';
 
 /**
  * Site header — the `banner` landmark, sitting directly on the photograph.
@@ -6,7 +7,11 @@ import Link from 'next/link';
  * Quiet by design: no logo. The hero below establishes the brand with the
  * full lockup, and showing it again here would be the exact duplicate
  * branding the header is deliberately avoiding — one Islanda mark per
- * viewport, not two. "Sign in" is the header's only job.
+ * viewport, not two.
+ *
+ * Its one link is whichever door actually opens: "Sign in" when sign-in works,
+ * and the waitlist while the waitlist gate is on — a "Sign in" link that
+ * bounces straight back to this page would be a broken promise in the header.
  *
  * The vignette band remains for legibility, not decoration: measured on the
  * actual hero pixels, the top-right corner is barely scrimmed by the hero's
@@ -17,7 +22,8 @@ import Link from 'next/link';
  * Positioned by the page so it can stay a sibling of `<main>` and keep its
  * landmark role.
  */
-export function SiteHeader() {
+export function SiteHeader({ mode }: { mode: AccessMode }) {
+  const signIn = ACCESS_COPY[mode].signInAvailable;
   return (
     <header className="absolute inset-x-0 top-0 z-30">
       {/* Vignette, not chrome. Decorative and non-interactive. */}
@@ -32,10 +38,10 @@ export function SiteHeader() {
 
       <div className="mx-auto flex w-full max-w-[92rem] items-center justify-end px-6 py-6 sm:px-8 lg:px-12">
         <Link
-          href="/login"
+          href={signIn ? '/login' : '#waitlist'}
           className="text-on-ink inline-flex min-h-11 items-center rounded-sm px-1 text-sm font-medium drop-shadow-sm transition-opacity hover:opacity-80"
         >
-          Sign in
+          {signIn ? 'Sign in' : 'Join the waitlist'}
         </Link>
       </div>
     </header>

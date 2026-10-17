@@ -13,8 +13,9 @@ import type { GatewayDeps } from '@/services/intelligence/gateway';
  *   const ctx = await assembleIntelligenceContext(db, businessId);
  *   const outcome = await runIntelligence({ question, businessId, context: ctx, ... }, defaultGatewayDeps());
  *
- * Nova is NOT wired here — the Nova redesign is a separate task. This module only
- * establishes the contract and the production dependency wiring.
+ * Callers: the finance panel (`app/(app)/intelligence/actions.ts`) and Nova's
+ * general path (`services/nova/general.ts`). Nova's regulatory path never calls
+ * the gateway. This module only establishes the contract and production wiring.
  */
 export { runIntelligence, type GatewayDeps } from '@/services/intelligence/gateway';
 export { assembleIntelligenceContext } from '@/services/intelligence/context';

@@ -3,14 +3,14 @@ import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { getActiveCountries, listBusinesses, resolveCurrentBusiness } from '@/services/business';
 import { getIntakeProfile } from '@/services/intake';
-import { getJurisdictionCapability } from '@/services/knowledge/capability';
+import { getJurisdictionCapability, listPublishedSources } from '@/services/knowledge/capability';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
 import { cn } from '@/lib/utils/cn';
 import { PageHeader } from '@/components/ui/page-header';
 import { RoadmapSurface, type Prerequisite } from '@/components/ui/roadmap-surface';
 import { NovaConsole } from './_components/nova-console';
 
-export const metadata: Metadata = { title: 'Nova' };
+export const metadata: Metadata = { title: 'Get help' };
 
 /**
  * Nova.
@@ -43,10 +43,14 @@ export default async function AssistantPage({
   const [businesses, store] = await Promise.all([listBusinesses(db), cookies()]);
   const current = resolveCurrentBusiness(businesses, store.get(CURRENT_BUSINESS_COOKIE)?.value);
 
-  const [intake, capability, countries] = await Promise.all([
+  const [intake, capability, countries, sources] = await Promise.all([
     current ? getIntakeProfile(db, current.id) : Promise.resolve(null),
     getJurisdictionCapability(db, current?.country_code),
     getActiveCountries(db),
+    // What Nova can search, shown by title so a founder can see the edge of
+    // its coverage before asking — read from the published pack, never listed
+    // by hand.
+    listPublishedSources(db, current?.country_code),
   ]);
 
   const intakeComplete = Boolean(intake?.completed_at);
@@ -86,16 +90,16 @@ export default async function AssistantPage({
   );
   const businessContextLine =
     current && hasBusinessContext
-      ? `I already have the basics of ${current.name}. Ask about the requirements that may affect it.`
+      ? `Nova uses what you have told Islanda about ${current.name}, such as its country and industry, to focus its search.`
       : null;
 
   const knowledgeLine =
     countryName && capability.knowledgePublished
       ? capability.syntheticCorpus
-        ? `${countryName} · ${capability.knowledgeVersion} — a SYNTHETIC demonstration corpus. Not real law.`
-        : `${countryName} · ${capability.knowledgeVersion} published. Nova quotes only from these sources.`
+        ? `${countryName}: a SYNTHETIC demonstration set of documents (${capability.knowledgeVersion}). Not real law.`
+        : `${countryName}: Nova quotes only from these official documents (${capability.knowledgeVersion}).`
       : countryName
-        ? `${countryName} — no published Knowledge Pack yet. Nova answers only from published, cited sources, so it has nothing to quote here.`
+        ? `${countryName}: Islanda doesn't hold any official documents for this country yet, so Nova has nothing to quote here.`
         : null;
 
   return (
@@ -115,7 +119,7 @@ export default async function AssistantPage({
         ready && current ? null : 'max-w-4xl',
       )}
     >
-      {!ready ? <PageHeader eyebrow="In development" title="Nova" /> : null}
+      {!ready ? <PageHeader eyebrow="Nova" title="Get help with your business" /> : null}
 
       {ready && current ? (
         <NovaConsole
@@ -123,23 +127,24 @@ export default async function AssistantPage({
           knowledgeLine={knowledgeLine}
           businessContextLine={businessContextLine}
           knowledgePublished={knowledgePublished}
+          sources={sources}
           {...(initialQuestion ? { initialQuestion } : {})}
         />
       ) : (
         <RoadmapSurface
-          purpose="Questions about your business answered from the same cited evidence as the rest of the workspace — never from a model’s memory."
+          purpose="Ask questions about your business and get answers quoted from official documents, with a link to each source. Create your business first so Nova knows which country's documents to search."
           prerequisites={prerequisitesFor({ knowledgePublished, intakeComplete })}
           today={
             intakeComplete
               ? {
-                  text: 'Your intake is complete, so Islanda already holds the profile this surface is built on. The remaining work is ours.',
+                  text: 'Your business details are complete. Create or choose a business to start asking questions.',
                   href: '/dashboard',
-                  label: 'Back to your workspace',
+                  label: 'Go to Home',
                 }
               : {
-                  text: 'Completing your intake is the part of this that depends on you. The rest is ours to build.',
-                  href: '/intake',
-                  label: 'Continue intake',
+                  text: 'Start by creating your business and answering a few questions about it.',
+                  href: '/dashboard',
+                  label: 'Go to Home',
                 }
           }
         />
@@ -164,21 +169,20 @@ function prerequisitesFor({
 }): Prerequisite[] {
   return [
     {
-      label: 'A published Knowledge Pack',
+      label: 'Official documents for your country',
       detail:
-        'Validated regulatory sources for your jurisdiction, each one citable. The sources are identified and verified; publication is pending a legal review of reuse terms.',
+        'Checked official documents Islanda can quote. They are identified; publishing them is waiting on a legal review of how they may be reused.',
       met: knowledgePublished,
     },
     {
-      label: 'The reasoning layer',
+      label: 'Nova',
       detail:
-        'The component that turns retrieved sources into a cited answer, and refuses when the sources do not support one.',
+        'Built: it quotes the documents it finds, and says so when they do not answer the question.',
       met: true,
     },
     {
-      label: 'Your business profile',
-      detail:
-        'Nova scopes every search to your jurisdiction and industry, which it reads from your intake.',
+      label: 'Your business details',
+      detail: 'Nova searches the documents for your country, which it reads from your business.',
       met: intakeComplete,
     },
   ];

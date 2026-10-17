@@ -1,68 +1,46 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
-import { NovaVideo } from '@/components/nova/nova-video';
-import { SurfaceLabel } from '@/components/ui/workspace-surface';
+import { ArrowRight, LifeBuoy } from 'lucide-react';
+import { SurfaceLabel, WorkspaceSurface } from '@/components/ui/workspace-surface';
 import { cn } from '@/lib/utils/cn';
 
 /**
- * Nova on the dashboard — an intelligence presence, not a card with a video in it.
+ * "Get help" on the dashboard — a doorway to Nova, introduced by its job.
  *
- * ## Dissolved into the environment
+ * Nova is named, but as the helper, not as the explanation of the product.
+ * The copy claims only what the extractive path does — quote the official
+ * documents Islanda holds and link each one — and says plainly that it does not
+ * hold every rule. `/assistant` gates itself, so this entry can never imply an
+ * answer the published sources cannot support.
  *
- * The container is deliberately NOT a `WorkspaceSurface`: no shadow, only a
- * hairline edge and a soft cyan atmosphere, so the Nova asset (already radially
- * masked) bleeds into the surface rather than sitting in a rectangle. The result
- * reads as "Nova is here", not "a video embed". The CTA is a quiet text link —
- * secondary to the presence itself.
- *
- * ## Honesty
- *
- * It makes no capability claim. The copy states only what Nova does — quote
- * published sources and cite them — and `/assistant` gates itself, so a prominent
- * entry here can never imply an answer the corpus cannot support.
+ * No video here: an autoplaying presence on the most-visited page cost every
+ * visit bandwidth on exactly the modest phones this product is for.
  */
 export function NovaInvite({ className }: { className?: string }) {
   return (
-    <section
+    <WorkspaceSurface
+      as="section"
+      tone="inset"
       aria-labelledby="nova-invite-heading"
-      className={cn(
-        'relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-white/[0.06] p-5 sm:p-6',
-        className,
-      )}
+      className={cn('flex flex-col gap-3 p-5 sm:p-6', className)}
     >
-      {/* Atmospheric cyan light — Nova's environment bleeding onto the workspace. */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(75% 60% at 50% 32%, oklch(76% 0.127 203 / 0.12), transparent 66%)',
-        }}
-      />
-
-      <SurfaceLabel as="p" id="nova-invite-heading" className="text-bahama-turquoise relative">
-        Nova · Intelligence layer
-      </SurfaceLabel>
-
-      {/* The generated presence, idle — the dominant visual of this module. */}
-      <NovaVideo state="idle" label="" className="relative aspect-video w-full" />
-
-      <div className="relative min-w-0">
-        <h2 className="text-on-ink text-base font-semibold tracking-[-0.01em] text-balance">
-          Investigate with Nova
-        </h2>
-        <p className="text-on-ink-muted mt-1.5 max-w-md text-sm text-pretty">
-          Answered only from the published sources for your jurisdiction, and cites every one.
-        </p>
+      <div className="flex items-center gap-2.5">
+        <LifeBuoy aria-hidden="true" className="text-bahama-turquoise size-4" strokeWidth={2} />
+        <SurfaceLabel as="h2" id="nova-invite-heading">
+          Get help with your business
+        </SurfaceLabel>
       </div>
-
+      <p className="text-on-ink-muted max-w-md text-sm text-pretty">
+        Ask Nova a question. It answers with the exact words from the official documents Islanda
+        holds, and cites every one. It doesn&apos;t have every rule yet, and it tells you when it
+        can&apos;t find an answer.
+      </p>
       <Link
         href="/assistant"
-        className="text-bahama-turquoise hover:text-on-ink relative mt-auto inline-flex w-fit items-center gap-1.5 rounded-sm pt-1 text-sm font-medium transition-colors duration-150"
+        className="text-bahama-turquoise hover:text-on-ink inline-flex min-h-11 w-fit items-center gap-1.5 rounded-sm text-sm font-medium transition-colors duration-150"
       >
-        Investigate with Nova
+        Ask a question
         <ArrowRight aria-hidden="true" className="size-4" strokeWidth={2} />
       </Link>
-    </section>
+    </WorkspaceSurface>
   );
 }

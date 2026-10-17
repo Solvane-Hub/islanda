@@ -20,7 +20,7 @@ import {
   stepFromParam,
   TOTAL_INTAKE_STEPS,
 } from '@/lib/validation/intake';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { WorkspaceCanvas } from '@/components/ui/workspace-canvas';
 import { WorkspaceSurface } from '@/components/ui/workspace-surface';
@@ -28,7 +28,7 @@ import { StepForm } from './_components/step-form';
 import { IntakeProgress, type RailSlot } from './_components/progress';
 import type { IntakeValues, StageOption } from './_components/step-fields';
 
-export const metadata: Metadata = { title: 'Business intake' };
+export const metadata: Metadata = { title: 'About your business' };
 
 /**
  * Business intake — one question at a time.
@@ -67,14 +67,14 @@ export default async function IntakePage({
     return (
       <WorkspaceCanvas>
         <div className="flex flex-col gap-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Business intake</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">About your business</h1>
           <EmptyState
-            title="No business yet"
-            explanation="Intake collects the details Islanda needs to work out your requirements — so it needs a business first."
-            nextStep="Create a business to begin."
+            title="Create your business first"
+            explanation="These questions describe a business, so you need to create one first: its name, the country it operates in, and what it does."
+            nextStep="Create your business to begin."
             action={
-              <Link href="/businesses/new">
-                <Button>Create a business</Button>
+              <Link href="/businesses/new" className={buttonVariants()}>
+                Create your business
               </Link>
             }
           />
@@ -106,10 +106,10 @@ export default async function IntakePage({
 
   // Short forms for the rail. The full question stays the page's headline.
   const RAIL_LABELS: Record<string, string> = {
-    business: 'Business',
+    business: 'About',
     stage: 'Stage',
     team: 'Team',
-    funding: 'Funding',
+    funding: 'Money',
     goals: 'Goals',
   };
   const slots: RailSlot[] = knowledge.map((k) => ({
@@ -142,11 +142,17 @@ export default async function IntakePage({
 
   return (
     <div className="workspace-env flex flex-col gap-6 pt-4 sm:gap-8 sm:pt-8 lg:pt-10">
-      <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 px-1">
-        <h1 className="text-2xs text-champagne font-medium tracking-[0.18em] uppercase">
-          Business intake
+      <header className="flex flex-col gap-1.5 px-1">
+        <p className="text-2xs text-champagne min-w-0 truncate font-medium tracking-[0.18em] uppercase">
+          {current.name}
+        </p>
+        <h1 className="text-on-ink text-xl font-semibold tracking-[-0.02em] sm:text-2xl">
+          About your business
         </h1>
-        <p className="text-on-ink-muted min-w-0 truncate text-sm">{current.name}</p>
+        <p className="text-on-ink-muted max-w-xl text-sm text-pretty">
+          Five short questions. Your answer is saved each time you continue, so you can stop and
+          come back later.
+        </p>
       </header>
 
       <WorkspaceSurface className="flex flex-col">
@@ -160,7 +166,13 @@ export default async function IntakePage({
           />
         </div>
 
+        {/* Keyed by step so each question gets a fresh form. Without it the
+            instance survived the client navigation from step 4 to step 5 with
+            step 4's successful save still in its action state; `isLastStep`
+            flipping to true re-ran the redirect effect, and the founder was
+            sent to the review page without ever seeing question 5. */}
         <StepForm
+          key={step}
           step={step}
           totalSteps={TOTAL_INTAKE_STEPS}
           isLastStep={isLastStep}

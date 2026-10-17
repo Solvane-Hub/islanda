@@ -1,4 +1,4 @@
-import type { NovaAnswerView } from '@/types/nova';
+import type { NovaResponseView } from '@/types/nova';
 
 /**
  * The investigation thread.
@@ -39,7 +39,7 @@ export interface ThreadEntry {
   /** Exactly what the founder asked. */
   question: string;
   /** The complete, independent result of that investigation. */
-  answer: NovaAnswerView;
+  answer: NovaResponseView;
 }
 
 /** Newest last, so the thread reads top to bottom like a record of work. */
@@ -64,7 +64,7 @@ export const THREAD_LIMIT = 6;
  * both would imply Nova had two different answers to the same question, when in
  * fact reproducibility guarantees they are identical.
  */
-export function appendInvestigation(thread: NovaThread, answer: NovaAnswerView): NovaThread {
+export function appendInvestigation(thread: NovaThread, answer: NovaResponseView): NovaThread {
   const question = answer.question;
   const withoutDuplicate = thread.filter((entry) => entry.question !== question);
 
@@ -96,6 +96,12 @@ export function priorEntries(thread: NovaThread): NovaThread {
  */
 export function summariseEntry(entry: ThreadEntry): string {
   const { answer } = entry;
+
+  if (answer.outcome === 'general') {
+    return answer.status === 'answered'
+      ? 'General guidance · not from cited sources'
+      : 'Not answered';
+  }
 
   if (answer.outcome !== 'answered') return 'No supporting passage found';
 

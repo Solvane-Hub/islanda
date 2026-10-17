@@ -73,11 +73,12 @@ export function GoalsModule({ items }: { items: readonly GoalItem[] }) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <Target aria-hidden="true" className="text-champagne size-3.5" strokeWidth={2} />
-          <SurfaceLabel as="h2">Goals</SurfaceLabel>
+          <SurfaceLabel as="h2">My goals</SurfaceLabel>
         </div>
         <button
           type="button"
           onClick={() => setShowForm((v) => !v)}
+          aria-expanded={showForm}
           className="text-bahama-turquoise hover:text-on-ink inline-flex items-center gap-1.5 rounded-sm text-xs font-medium transition-colors duration-150"
         >
           <Plus aria-hidden="true" className="size-3.5" strokeWidth={2} />
@@ -108,8 +109,8 @@ export function GoalsModule({ items }: { items: readonly GoalItem[] }) {
                 />
               ) : (
                 <p className="text-on-ink-muted text-xs">
-                  {goal.targetLabel ? `Target: ${goal.targetLabel}. ` : ''}Not yet measured — record
-                  a matching figure and progress will appear here.
+                  {goal.targetLabel ? `Target: ${goal.targetLabel}. ` : ''}Not tracked yet — record
+                  a matching figure and your progress will appear here.
                 </p>
               )}
 
@@ -123,7 +124,7 @@ export function GoalsModule({ items }: { items: readonly GoalItem[] }) {
                     className="text-bahama-turquoise hover:text-on-ink inline-flex items-center gap-1.5 text-xs font-medium"
                   >
                     <Sparkles aria-hidden="true" className="size-3.5" strokeWidth={1.75} />
-                    Ask Nova
+                    Ask about this
                   </Link>
                 ) : null}
               </div>
@@ -132,8 +133,8 @@ export function GoalsModule({ items }: { items: readonly GoalItem[] }) {
         </ul>
       ) : !showForm ? (
         <p className="text-on-ink-muted max-w-prose text-sm text-pretty">
-          Set what the business is working toward — a revenue target, a launch, a licence. Goals
-          become the anchors for planning and progress.
+          You haven&apos;t set a goal yet. A goal can be a sales target, an opening date or getting
+          a licence. Set one to keep track of your progress.
         </p>
       ) : null}
 
@@ -146,7 +147,7 @@ export function GoalsModule({ items }: { items: readonly GoalItem[] }) {
               <Input
                 {...aria}
                 name="title"
-                placeholder="e.g. Reach $250k annual revenue"
+                placeholder="e.g. Sell $2,000 a month by December"
                 required
               />
             )}
@@ -165,10 +166,15 @@ export function GoalsModule({ items }: { items: readonly GoalItem[] }) {
               )}
             </Field>
 
-            <Field id="targetMetricKey" label="Measured by" optional error={err('targetMetricKey')}>
+            <Field
+              id="targetMetricKey"
+              label="Track progress with"
+              optional
+              error={err('targetMetricKey')}
+            >
               {(aria) => (
                 <Select {...aria} name="targetMetricKey" defaultValue="">
-                  <option value="">Not measured by a metric</option>
+                  <option value="">Don’t track with a figure</option>
                   {METRIC_KEYS.map((k) => (
                     <option key={k} value={k}>
                       {METRIC_LABELS[k]}

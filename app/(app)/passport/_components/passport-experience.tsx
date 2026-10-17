@@ -158,7 +158,11 @@ export function PassportExperience({ passport }: { passport: BusinessPassport })
           fixed-height column exists to prevent. The leaf is also capped at
           document proportions: a full-bleed 676px-wide board is a panel, not
           a passport. */}
-      <div className="mx-auto flex h-[calc(100dvh-6rem)] min-h-[26rem] w-full max-w-[26rem] flex-col justify-center gap-3 sm:h-[calc(100dvh-10.5rem)] lg:h-[calc(100dvh-12rem)] xl:hidden">
+      {/* Two more things now sit outside this column: the page's "My Business"
+          header (~4rem on phones, ~5.5rem from `sm` where its sentence shows),
+          and below `md` the mobile tab bar (~3.75rem) — it stays on this route,
+          because "My Business" is one of its tabs. */}
+      <div className="mx-auto flex h-[calc(100dvh-14rem)] min-h-[26rem] w-full max-w-[26rem] flex-col justify-center gap-3 sm:h-[calc(100dvh-19.75rem)] md:h-[calc(100dvh-16rem)] lg:h-[calc(100dvh-17.5rem)] xl:hidden">
         <PassportPageIndex
           active={active}
           onChange={goTo}
@@ -202,7 +206,7 @@ export function PassportExperience({ passport }: { passport: BusinessPassport })
               bookEdge,
               // The object is sized to the window it is held up to, within
               // believable document limits, rather than to a fixed pixel box.
-              'flex h-[clamp(26rem,calc(100dvh-16rem),40rem)] w-full transition-[max-width] duration-300 ease-out',
+              'flex h-[clamp(26rem,calc(100dvh-21.5rem),40rem)] w-full transition-[max-width] duration-300 ease-out',
               isCover ? 'max-w-[23rem]' : 'max-w-[44rem]',
             )}
           >

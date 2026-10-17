@@ -1,26 +1,31 @@
 import {
   Banknote,
+  CalendarClock,
   ClipboardList,
   FileText,
-  LayoutDashboard,
+  House,
+  IdCard,
+  LifeBuoy,
   type LucideIcon,
   Settings,
   ShieldCheck,
-  Sparkles,
   Target,
   TrendingUp,
-  Waypoints,
 } from 'lucide-react';
+import { capability } from '@/lib/product/availability';
 
 /**
- * Primary navigation — organized by product sector (P7 Phase 1), not by
- * build status. Routes for phases not yet built still get `available: false`
- * and render as visibly disabled rather than hidden or linked to a dead end;
- * what changed is that they now sit inside the sector they conceptually
- * belong to (Intelligence) instead of being pulled out into their own
- * "Coming soon" group. `SidebarNav`'s existing per-item muted styling and
- * "Soon" badge are what keep them honestly secondary — a group heading was
- * never the thing doing that work.
+ * Primary navigation — grouped by what a person is trying to do, not by how
+ * the system is built.
+ *
+ *   Home · Your business (summary, details, goals, money, documents) · Get help
+ *   · Coming later · Settings
+ *
+ * Every existing route keeps its URL; only labels and grouping changed, so
+ * deep links still work. "Coming later" items are still listed (with a "Soon"
+ * badge) rather than hidden, and their availability is read from the product
+ * availability register — the same source the public homepage uses — so the
+ * app cannot advertise a surface the homepage calls unbuilt, or the reverse.
  */
 export interface NavItem {
   href: string;
@@ -29,66 +34,86 @@ export interface NavItem {
   icon: LucideIcon;
   /**
    * True for an in-page anchor into another route's section, for a concept
-   * (Goals, Financials) that is real and built but has no page of its own
-   * yet — not a new route invented to satisfy the nav structure. `usePathname`
-   * never includes a hash, so these naturally never match as the active
-   * route; the page they point into (Overview) carries that state instead.
+   * (goals, money) that is real and built but has no page of its own yet — not
+   * a new route invented to satisfy the nav structure. `usePathname` never
+   * includes a hash, so these never match as the active route; the page they
+   * point into (Home) carries that state instead.
    */
   isAnchor?: boolean;
+  /** Other path prefixes this item owns for "you are here" — e.g. the intake form under Business details. */
+  alsoActiveFor?: readonly string[];
 }
 
 export interface NavSector {
-  /** Omitted for Overview — a lone heading above one item is noise. */
+  /** Omitted for Home — a lone heading above one item is noise. */
   label?: string;
   items: readonly NavItem[];
 }
 
+const built = (id: Parameters<typeof capability>[0]) => capability(id).status === 'available';
+
 export const NAV_SECTORS: readonly NavSector[] = [
   {
-    items: [{ href: '/dashboard', label: 'Overview', available: true, icon: LayoutDashboard }],
+    items: [{ href: '/dashboard', label: 'Home', available: true, icon: House }],
   },
   {
-    label: 'Business',
+    label: 'Your business',
     items: [
-      { href: '/intake', label: 'Business', available: true, icon: ClipboardList },
+      // The Business Passport, introduced by what it is for.
+      { href: '/passport', label: 'My Business', available: true, icon: IdCard },
+      {
+        href: '/intake/review',
+        label: 'Business details',
+        available: true,
+        icon: ClipboardList,
+        alsoActiveFor: ['/intake'],
+      },
       {
         href: '/dashboard#goals',
-        label: 'Goals',
+        label: 'My goals',
         available: true,
         icon: Target,
+        isAnchor: true,
+      },
+      {
+        href: '/dashboard#financials',
+        label: 'Money and sales',
+        available: true,
+        icon: TrendingUp,
         isAnchor: true,
       },
       { href: '/documents', label: 'Documents', available: true, icon: FileText },
     ],
   },
   {
-    label: 'Intelligence',
+    label: 'Help',
+    items: [
+      /**
+       * Nova. The extractive reasoner, its envelope gate, citation grounding,
+       * jurisdiction-scoped retrieval, rate limiting and execution recording
+       * are built and tested, and the route gates itself on a published
+       * Knowledge Pack — so it is listed as available, under the name of the
+       * job it does rather than the name of the assistant.
+       */
+      { href: '/assistant', label: 'Get help', available: true, icon: LifeBuoy },
+    ],
+  },
+  {
+    label: 'Coming later',
     items: [
       {
-        href: '/dashboard#financials',
-        label: 'Financials',
-        available: true,
-        icon: TrendingUp,
-        isAnchor: true,
+        href: '/compliance',
+        label: 'Requirements',
+        available: built('requirements_guidance'),
+        icon: ShieldCheck,
       },
-      /**
-       * Nova is `available`. It was listed under "Coming soon" long after it
-       * shipped. The extractive reasoner, its envelope gate, citation
-       * grounding, jurisdiction-scoped retrieval, rate limiting and execution
-       * recording are all built and tested, and a Knowledge Pack is
-       * published — so describing it as forthcoming was the same class of
-       * error as describing an unbuilt surface as ready, in the other
-       * direction.
-       *
-       * The route gates itself: with no published pack for the founder's
-       * jurisdiction it shows the roadmap surface rather than a composer
-       * (app/(app)/assistant/page.tsx), so promoting it here cannot imply a
-       * capability the corpus does not support.
-       */
-      { href: '/assistant', label: 'Nova', available: true, icon: Sparkles },
-      { href: '/compliance', label: 'Compliance', available: false, icon: ShieldCheck },
-      { href: '/timeline', label: 'Timeline', available: false, icon: Waypoints },
-      { href: '/funding', label: 'Funding', available: false, icon: Banknote },
+      {
+        href: '/timeline',
+        label: 'Important dates',
+        available: built('important_dates'),
+        icon: CalendarClock,
+      },
+      { href: '/funding', label: 'Funding', available: built('funding'), icon: Banknote },
     ],
   },
   {
@@ -99,3 +124,13 @@ export const NAV_SECTORS: readonly NavSector[] = [
 
 /** Flat list retained for any caller that needs every route. */
 export const NAV_ITEMS: readonly NavItem[] = NAV_SECTORS.flatMap((g) => g.items);
+
+/** Whether `item` is where the reader is. Anchors never are (no hash in a pathname). */
+export function isNavItemActive(item: NavItem, pathname: string): boolean {
+  if (item.isAnchor) return false;
+  const owns = (prefix: string) => pathname === prefix || pathname.startsWith(`${prefix}/`);
+  if (owns(item.href)) return true;
+  // A more specific item owns its own path: "/intake/review" is Business details
+  // through its href, and "/intake" (the form) through `alsoActiveFor`.
+  return (item.alsoActiveFor ?? []).some(owns);
+}

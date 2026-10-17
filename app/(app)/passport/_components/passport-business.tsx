@@ -34,12 +34,12 @@ export function PassportBusiness({
             ? 'Just you'
             : `${definition.employeeCount} people`,
     },
-    { label: 'Founder goals', value: definition.founderGoals },
+    { label: 'Your goals', value: definition.founderGoals },
   ];
 
   return (
     <PassportPage
-      title="Business"
+      title="About my business"
       subtitle="What the business does"
       pageNumber={3}
       totalPages={totalPages}

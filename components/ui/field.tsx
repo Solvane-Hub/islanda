@@ -13,6 +13,7 @@ export function Field({
   error,
   description,
   optional,
+  required,
   size = 'default',
   children,
   className,
@@ -22,6 +23,8 @@ export function Field({
   error?: string | undefined;
   description?: string | undefined;
   optional?: boolean;
+  /** Shows a visible "Required" tag. Use where some fields on the form are optional and some are not. */
+  required?: boolean;
   /**
    * `question` sets the label at display size and the description at reading
    * size, for a screen that asks one thing.
@@ -64,14 +67,14 @@ export function Field({
         >
           {label}
         </label>
-        {optional ? (
+        {optional || required ? (
           <span
             className={cn(
               'text-foreground-subtle font-normal',
               question ? 'text-2xs tracking-[0.14em] uppercase' : 'text-xs',
             )}
           >
-            Optional
+            {optional ? 'Optional' : 'Required'}
           </span>
         ) : null}
       </div>

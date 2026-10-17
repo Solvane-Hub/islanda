@@ -28,15 +28,16 @@ export const NOVA_ABOUT: readonly AboutSection[] = [
     id: 'what',
     title: 'What Nova is',
     body:
-      'Nova answers questions about your business by searching the published sources Islanda ' +
-      'holds for your jurisdiction, and quoting the passages it finds. It is a way to navigate ' +
-      'information that is otherwise spread across separate Acts, regulations and agency notices.',
+      'Nova answers regulatory questions about your business by searching the published sources ' +
+      'Islanda holds for your country, and quoting the passages it finds. It is a way to ' +
+      'navigate information that is otherwise spread across separate Acts, regulations and agency ' +
+      'notices.',
   },
   {
     id: 'searches',
     title: 'What Nova searches',
     body:
-      'Only the Knowledge Pack published for the jurisdiction your business operates in. Every ' +
+      'For regulatory questions, only the Knowledge Pack published for the jurisdiction your business operates in. Every ' +
       'source in a pack has been validated and carries the agency, document and provision it ' +
       'came from. Nova searches nothing else — not the open web, not your files, not other ' +
       'jurisdictions.',
@@ -45,16 +46,27 @@ export const NOVA_ABOUT: readonly AboutSection[] = [
     id: 'quotes',
     title: 'Nova quotes, it does not paraphrase',
     body:
-      'Every sentence Nova produces is a verbatim passage from a cited source. There is no ' +
-      'language model writing prose in the answer path, which means Nova cannot invent a ' +
+      'Every sentence in a regulatory answer is a verbatim passage from a cited source. There is ' +
+      'no language model writing prose in that path, which means Nova cannot invent a ' +
       'requirement, soften a provision, or fill a gap with something plausible.',
+  },
+  {
+    id: 'general',
+    title: 'General business questions are answered differently',
+    body:
+      'A recognised general business question — about marketing, pricing or planning, say — is ' +
+      'answered, where that capability is switched on, by a language model using the business ' +
+      'details you have given Islanda. Those answers are labelled as general guidance, carry no ' +
+      'citations, and are never allowed to state a law, rate, fee or deadline. Anything that ' +
+      'touches regulation, or that Nova cannot clearly recognise as general, goes to the sourced ' +
+      'research instead.',
   },
   {
     id: 'refuses',
     title: 'What happens when the sources do not answer',
     body:
       'Nova says so. It does not summarise something close, and it does not offer a general ' +
-      'answer in place of a specific one. A refusal means the published sources were searched ' +
+      'answer in place of a sourced one. A refusal means the published sources were searched ' +
       'and no passage in them supported an answer.',
   },
   {

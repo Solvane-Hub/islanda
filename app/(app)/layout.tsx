@@ -106,7 +106,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <header className="bg-abyss/40 flex h-14 shrink-0 items-center gap-3 border-b border-white/8 px-4 sm:px-6">
             <Link
               href="/dashboard"
-              aria-label="Islanda dashboard"
+              aria-label="Islanda home"
               className="text-on-ink shrink-0 rounded-sm"
             >
               <Logo height={20} />
@@ -128,7 +128,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
           {/* Internal navigation rail + the scrolling workspace. */}
           <div className="flex min-h-0 flex-1">
-            <aside className="hidden w-52 shrink-0 overflow-y-auto border-r border-white/8 px-3 py-5 md:block">
+            <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-white/8 px-3 py-5 md:block">
               <SidebarNav />
             </aside>
 

@@ -93,7 +93,7 @@ export function StepForm({
         {step > 1 ? (
           <a
             href={`/intake?step=${step - 1}`}
-            className="text-on-ink-muted hover:text-on-ink inline-flex items-center gap-1.5 rounded-sm text-sm transition-colors duration-150"
+            className="text-on-ink-muted hover:text-on-ink inline-flex min-h-11 items-center gap-1.5 rounded-sm text-sm transition-colors duration-150"
           >
             <ArrowLeft aria-hidden="true" className="size-3.5" strokeWidth={2} />
             Back
@@ -112,7 +112,7 @@ export function StepForm({
             </>
           ) : (
             <>
-              Step <span data-numeric>{step}</span> of <span data-numeric>{totalSteps}</span> ·
+              Question <span data-numeric>{step}</span> of <span data-numeric>{totalSteps}</span> ·
               saved when you continue
             </>
           )}

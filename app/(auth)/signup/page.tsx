@@ -14,8 +14,9 @@ export default function SignUpPage() {
         <h1 className="text-on-ink text-[1.75rem] font-semibold tracking-[-0.02em] text-balance">
           Create your account
         </h1>
-        <p className="text-foreground-muted text-sm">
-          Start turning your business idea into a plan.
+        <p className="text-foreground-muted text-sm text-pretty">
+          Give your business idea a home: a profile, a few guided questions and a private place for
+          your files. Islanda is in early access, so some features are still being built.
         </p>
       </div>
 
@@ -23,7 +24,10 @@ export default function SignUpPage() {
 
       <p className="text-foreground-muted text-sm">
         Already have an account?{' '}
-        <Link href="/login" className="text-brand underline underline-offset-4">
+        <Link
+          href="/login"
+          className="text-brand inline-flex min-h-11 items-center underline underline-offset-4"
+        >
           Sign in
         </Link>
       </p>

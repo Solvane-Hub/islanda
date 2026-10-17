@@ -122,8 +122,8 @@ facts/calculations from deterministic services, LLM reasoning on top.
 "How are we doing?" → combine business context, performance, goals, documents and
 regulatory context to answer **What changed / Why it may matter / What we know /
 What we don't / What to investigate / Possible next actions**, keeping
-evidence-vs-strategy explicit. Nova is not wired to the gateway yet (separate
-redesign task).
+evidence-vs-strategy explicit. Nova's `/assistant` console now uses the gateway
+for general questions only — see "Nova general path" below.
 
 ## Extension points
 
@@ -180,5 +180,58 @@ Nova (dashboard panel) → askNovaFinanceAction
 - **Security.** Server-side execution, RLS-scoped context, business-isolation
   guard in the gateway, no sensitive identifiers in context, key server-only.
 
-Nova's regulatory (extractive) console at `/assistant` is unchanged; unifying the
-two Nova surfaces is a later redesign.
+## Nova general path — `/assistant` (2026-10-10)
+
+> ⚠ **Internal testing only.** Governed by
+> `docs/decisions/proposed/ADR-0023-general-business-guidance-scope.md` — D1 accepted in
+> principle, D2 accepted as an exception to ADR-0018 for internal testing; SF1/SF3 and data
+> residency/retention remain blockers for founder-facing release. `CLAUDE.md` not yet amended.
+>
+> The router also vetoes **imposed charges asked about in marketing language** (a percentage
+> "added at checkout", surcharges, "the state adds", government-collected charges, copy that
+> explains a charge). This group was added after a live probe in which a banner-copy question
+> about a checkout charge reached the model.
+
+`askNovaAction` now routes each question before answering:
+
+```
+askNovaAction → validate → auth/business → rate limit (fails closed)
+  → routeNovaQuestion (lib/nova/routing.ts — pure; general is an ALLOWLIST)
+       ├─ regulatory → extractive path, UNCHANGED (retrieval → quoting reasoner →
+       │               assertCitationsGrounded → agent_executions, fails closed)
+       └─ general    → answerGeneralNovaQuestion (services/nova/general.ts)
+                         → assembleIntelligenceContext → runIntelligence
+                           (requiresReasoning: true ⇒ mini tier, never premium-by-default)
+                         ├─ model says category regulatory|compliance → DISCARD, run extractive path
+                         ├─ legal vocabulary in answer/recommendations → DISCARD, run extractive path
+                         └─ answered | unavailable → NovaGeneralAnswerView
+```
+
+- **Routing is a safety decision, not a cost one.** A question is general only if
+  it names a recognised general-business topic (marketing, branding, customers,
+  pricing, planning, margins) AND carries no veto (regulatory vocabulary;
+  permission framing like "Can I…", "Do I need…", "Is it okay…"; or a regulated
+  domain — employment, contracts, IP, privacy, records, business structure,
+  financial products, restricted goods, trade, set-up). Everything else is
+  regulatory. A denylist was tried first and audited: it routed "Can I sell
+  homemade food from my kitchen?" to the model. The gateway's cost router is not
+  used for this.
+- **Three independent gates.** The allowlist router; the model's own category
+  (prompt rule 9, `intelligence-gateway@1.1.0`, forbids stating laws, rates, fees,
+  deadlines or requirements and asks for `regulatory`/`compliance`); and a
+  legal-vocabulary scan of the answer and recommendations. Either downstream gate
+  discards the answer unseen. A model can only move a question toward cited research.
+- **Rule 9 is shared with the finance panel**, with an explicit carve-out for
+  figures, labels and goals supplied in context, so the founder's own records stay
+  reportable.
+- **A separate view type.** `NovaGeneralAnswerView` (`outcome: 'general'`) has no
+  claims, citations or knowledge version, and renders in its own panel with a
+  permanent "general guidance, not from cited sources" notice.
+- **Records.** A general answer is not an `agent_executions` run (no agent, no pack);
+  its record is the gateway's `ai_usage` row plus a shape-only audit event, as for
+  the finance surface.
+- **Degraded states.** No key → `provider_not_configured`; provider failure →
+  `provider_error`; invalid/fabricated-evidence response → `validation_failed`.
+  Regulatory answering never depends on the key.
+- **Voice.** Fish Audio speaks a general answer (sanitised, clamped to the
+  600-character speak limit at a sentence boundary) or its unavailable line.

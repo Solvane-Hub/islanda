@@ -1,8 +1,13 @@
 import Link from 'next/link';
-import { ArrowRight, Layers } from 'lucide-react';
+import { ArrowRight, ExternalLink, Layers } from 'lucide-react';
 import { NovaField } from '@/components/nova/nova-field';
 import { SurfaceLabel, WorkspaceSurface } from '@/components/ui/workspace-surface';
 import { currentNovaUpdate } from '@/lib/nova/updates';
+import {
+  isUsedAsCurrentLaw,
+  sourceStandingLabel,
+  type PublishedSourceSummary,
+} from '@/lib/knowledge/source-display';
 
 /**
  * What a founder sees before they have asked anything.
@@ -27,11 +32,14 @@ import { currentNovaUpdate } from '@/lib/nova/updates';
 export function NovaLanding({
   businessName,
   knowledgeLine,
+  sources = [],
   contextLine,
   hero,
   children,
 }: {
   businessName: string;
+  /** The documents Nova searches, from the published pack. Empty when none are published. */
+  sources?: readonly PublishedSourceSummary[];
   /**
    * What Islanda holds for this jurisdiction, in one line.
    *
@@ -74,16 +82,21 @@ export function NovaLanding({
 
         <div className="flex items-start gap-5 sm:gap-6">
           <div className="min-w-0">
-            <SurfaceLabel as="p" id="nova-intro-heading">
-              Nova
-            </SurfaceLabel>
-            <h1 className="text-on-ink mt-3 text-2xl font-semibold tracking-[-0.02em] text-balance sm:text-3xl lg:text-4xl">
-              What do you want to understand about {businessName}?
+            <SurfaceLabel as="p">Nova · {businessName}</SurfaceLabel>
+            <h1
+              id="nova-intro-heading"
+              className="text-on-ink mt-3 text-2xl font-semibold tracking-[-0.02em] text-balance sm:text-3xl lg:text-4xl"
+            >
+              Get help with your business
             </h1>
             <p className="text-on-ink-muted mt-3 max-w-xl text-sm text-pretty sm:text-base">
-              What applies to your business is spread across separate Acts, regulations and agency
-              notices. Nova searches the published sources Islanda holds for your jurisdiction and
-              quotes what it finds — with the provision it came from.
+              Ask a question about your business or the rules that may apply to it. Nova searches
+              the official documents Islanda holds and shows you the exact words, with a link to
+              each source.
+            </p>
+            <p className="text-on-ink-muted mt-2 max-w-xl text-sm text-pretty">
+              It doesn&rsquo;t have every rule yet, and it isn&rsquo;t legal advice. If it
+              can&rsquo;t find an answer, it tells you instead of guessing.
             </p>
 
             {contextLine ? (
@@ -114,10 +127,48 @@ export function NovaLanding({
             <div className="flex items-center gap-2.5">
               <Layers aria-hidden="true" className="text-champagne size-3.5" strokeWidth={2} />
               <SurfaceLabel as="h2" id="nova-knowledge-heading">
-                Knowledge
+                What Nova can search
               </SurfaceLabel>
             </div>
             <p className="text-on-ink-muted text-xs text-pretty">{knowledgeLine}</p>
+            {sources.length > 0 ? (
+              <ul className="mt-1 flex flex-col gap-2">
+                {sources.map((source) => (
+                  <li key={source.title} className="flex flex-col gap-0.5">
+                    {source.sourceUrl ? (
+                      <a
+                        href={source.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-on-ink hover:text-bahama-turquoise inline-flex items-start gap-1.5 text-xs font-medium text-pretty underline-offset-4 hover:underline"
+                      >
+                        {source.title}
+                        <ExternalLink
+                          aria-hidden="true"
+                          className="mt-0.5 size-3 shrink-0"
+                          strokeWidth={2}
+                        />
+                        <span className="sr-only">(opens in a new tab)</span>
+                      </a>
+                    ) : (
+                      <span className="text-on-ink text-xs font-medium text-pretty">
+                        {source.title}
+                      </span>
+                    )}
+                    <span
+                      className={
+                        isUsedAsCurrentLaw(source.legalStatus)
+                          ? 'text-on-glass-subtle text-2xs'
+                          : 'text-champagne-dim text-2xs'
+                      }
+                    >
+                      {sourceStandingLabel(source.legalStatus)}
+                      {source.effectiveDate ? ` · from ${source.effectiveDate}` : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </WorkspaceSurface>
         ) : null}
 

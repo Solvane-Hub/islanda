@@ -1,7 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { findPublishedPack } from '@/lib/db/knowledge/packs';
+import { listSourcesForPack } from '@/lib/db/knowledge/sources';
+import type { PublishedSourceSummary } from '@/lib/knowledge/source-display';
 import { isUserAssignedCountryCode } from '@/lib/knowledge/jurisdiction';
+
+export type { PublishedSourceSummary } from '@/lib/knowledge/source-display';
 
 /**
  * What Islanda can actually do for a jurisdiction, read from the database.
@@ -85,15 +89,15 @@ export function knowledgePackStatus(capability: JurisdictionCapability): {
   detail: string;
   met: boolean;
 } {
-  const label = 'A published Knowledge Pack';
+  const label = 'Official documents for your country';
 
   if (!capability.knowledgePublished) {
     return {
       label,
       met: false,
       detail:
-        'Validated regulatory sources for your jurisdiction, each one citable. The sources are ' +
-        'identified and verified; publication is pending a legal review of reuse terms.',
+        'Islanda does not hold checked official documents for your country yet. They are ' +
+        'identified; publishing them is waiting on a legal review of how they may be reused.',
     };
   }
 
@@ -102,8 +106,8 @@ export function knowledgePackStatus(capability: JurisdictionCapability): {
       label,
       met: true,
       detail:
-        `${capability.knowledgeVersion} is published for this jurisdiction — a SYNTHETIC ` +
-        'demonstration corpus. Example Jurisdiction (ZZ) is fictional, and nothing in it is ' +
+        `${capability.knowledgeVersion} is published for this country — a SYNTHETIC ` +
+        'demonstration set. Example Jurisdiction (ZZ) is fictional, and nothing in it is ' +
         'real law or may be used for legal or business decisions.',
     };
   }
@@ -112,8 +116,8 @@ export function knowledgePackStatus(capability: JurisdictionCapability): {
     label,
     met: true,
     detail:
-      `${capability.knowledgeVersion} is published for this jurisdiction. Every requirement ` +
-      'this surface produces will quote the source it came from.',
+      `Islanda holds official documents for your country (${capability.knowledgeVersion}). ` +
+      'Anything this page shows will quote the document it came from.',
   };
 }
 
@@ -124,8 +128,35 @@ export function businessProfileStatus(intakeComplete: boolean): {
   met: boolean;
 } {
   return {
-    label: 'Your business profile',
-    detail: 'The answers from your intake — jurisdiction, industry, stage and size.',
+    label: 'Your business details',
+    detail:
+      'Your answers to the five questions: what the business does, its stage, team and goals.',
     met: intakeComplete,
   };
+}
+
+/**
+ * The documents Nova can search for a jurisdiction — read, never inferred.
+ *
+ * Reads through the caller's RLS-scoped client, so it returns only sources in
+ * a published pack for a jurisdiction the caller holds a business in (policy
+ * `knowledge_sources_read_published_in_jurisdiction`). Empty when nothing is
+ * published, which the caller renders as "nothing to search yet" rather than
+ * as a list of zero.
+ */
+export async function listPublishedSources(
+  db: SupabaseClient<Database>,
+  countryCode: string | null | undefined,
+): Promise<PublishedSourceSummary[]> {
+  if (!countryCode) return [];
+  const pack = await findPublishedPack(db, countryCode);
+  if (!pack) return [];
+  const sources = await listSourcesForPack(db, pack.id);
+  return sources.map((s) => ({
+    title: s.title,
+    agency: s.agency,
+    sourceUrl: s.source_url,
+    effectiveDate: s.effective_date,
+    legalStatus: s.legal_status,
+  }));
 }

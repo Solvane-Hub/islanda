@@ -14,7 +14,7 @@ export default function FundingPage() {
   return (
     <RoadmapRoute
       title="Funding"
-      purpose="Programmes and facilities assessed against where your business genuinely is, with the eligibility rules that decided the match shown alongside."
+      purpose="This will show funding programmes that may suit a business at your stage, and explain why each one may or may not fit. It is not available yet."
     />
   );
 }

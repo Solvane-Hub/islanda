@@ -92,7 +92,7 @@ export default async function AboutNovaPage() {
           </div>
           <p className="text-on-ink-muted text-sm text-pretty">{SYNTHETIC_CORPUS_EXPLANATION}</p>
           <p className="text-on-glass-subtle text-xs">
-            Currently in use for your jurisdiction: {capability.knowledgeVersion}.
+            Currently in use for your country: {capability.knowledgeVersion}.
           </p>
         </WorkspaceSurface>
       ) : null}

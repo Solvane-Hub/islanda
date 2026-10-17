@@ -14,6 +14,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const { pathname } = request.nextUrl;
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
   const isAuthRoute = AUTH_ROUTES.some((p) => pathname.startsWith(p));
+  const isStaffRoute = STAFF_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   if (serverEnv.WAITLIST_ONLY_MODE) {
     if (isProtected || isAuthRoute) {
@@ -25,7 +26,9 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     }
 
     // Public pages do not need an auth-provider round trip in waitlist mode.
-    return NextResponse.next({ request });
+    // The team-only area does: its session must still be refreshed. Access to
+    // it is decided by the page itself (staff role + RLS), never here.
+    if (!isStaffRoute) return NextResponse.next({ request });
   }
 
   let response = NextResponse.next({ request });
@@ -91,3 +94,11 @@ export const PROTECTED_PREFIXES = [
 ] as const;
 
 export const AUTH_ROUTES = ['/login', '/signup'] as const;
+
+/**
+ * Team-only routes (`app/admin`). Not in PROTECTED_PREFIXES: they stay
+ * reachable while WAITLIST_ONLY_MODE closes the founder product, and they
+ * redirect to their own staff sign-in rather than `/login`. Each page
+ * enforces the `waitlist_admin` role server-side; RLS enforces it again.
+ */
+export const STAFF_PREFIXES = ['/admin'] as const;

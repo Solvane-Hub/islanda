@@ -6,6 +6,58 @@ This project is pre-release; versions are sprint-scoped until first deployment.
 
 ---
 
+## [Unreleased] — Waitlist survey and pilot recruitment · 2026-10-17
+
+- **Signup** keeps first name, last name and email (required) and adds an **optional
+  phone number**. Duplicate handling, rate limiting and both emails are unchanged.
+- **Optional questionnaire** shown only after a successful signup: location (country,
+  city/island), business stage, biggest challenge (with optional "Other" text) and
+  interest in early testing. All optional; "Skip for Now" never contacts the server.
+  Answers update the visitor's existing row via a one-time token (SHA-256 stored,
+  never the token); repeat submissions overwrite, never duplicate. Survives a refresh
+  in the same tab (sessionStorage). A duplicate signup gets no token.
+- **Team-only admin** at `/admin/waitlist` (staff sign-in at `/admin/login`, works in
+  `WAITLIST_ONLY_MODE`): server-side filtering by country, city/island, stage,
+  challenge, testing interest, recruitment status, questionnaire completion, signup
+  date range and name/email search; paginated; quick views for pilot candidates.
+  Recruitment status (Not Contacted · Contacted · Confirmed · Tested) and internal
+  notes, with a trigger-maintained update timestamp and an audit event
+  (`waitlist.recruitment_updated`, no personal data).
+- **Schema** (`20261017000000_waitlist_survey_and_recruitment`): nullable survey and
+  phone columns, `recruitment_status` defaulting to `not_contacted`, new
+  `staff_members` table + `app.is_waitlist_admin()`, admin-only SELECT/UPDATE RLS
+  policies, and **column-level grants**: the public may now INSERT only contact
+  columns (previously any column, including `status`), admins may UPDATE only the
+  recruitment columns, and nobody may read the token hash.
+- **Copy:** homepage FAQ privacy answer and waitlist intro now mention the optional
+  phone number and follow-up questions; submit button reads "Join the Waitlist".
+
+## [Unreleased] — UX simplification and product clarity · 2026-10-16
+
+Presentation and copy only, plus three bug fixes. No schema, RLS, service contract,
+Nova retrieval or citation change.
+
+- **Single availability register** (`lib/product/availability.ts`, traced in
+  `docs/product/availability.md`). The homepage, navigation and Home page read it.
+- **Homepage** rebuilt for a first-time Bahamian visitor: who it is for, what works
+  today, one example labelled as made up, one "coming next" list, an FAQ, and the
+  waitlist as the single primary action. Every sign-in / sign-up link follows
+  `WAITLIST_ONLY_MODE`, so none is shown while the gate would redirect it.
+- **App navigation** by task: Home · My Business (the Business Passport) · Business
+  details · My goals · Money and sales · Documents · Get help (Nova) · Coming later ·
+  Settings. All existing routes keep their URLs.
+- **Home, intake, documents, Get help**: plain language throughout; one primary next
+  action; required/optional marked; Nova lists the documents it can search, with each
+  one's legal standing; example questions checked against the published pack.
+- **Fixed:** `/businesses/new/build` ("Build my business") was never committed — the
+  root `.gitignore` rule `build/` matched it. Rule anchored to `/build/`; page added.
+- **Fixed:** finishing question 4 could skip question 5 and land on the review page
+  (form state survived the client navigation). `StepForm` is now keyed by step.
+- **Fixed:** document-upload validation errors were dropped, so "correct the
+  highlighted fields" highlighted nothing. Errors now show on their field.
+
+---
+
 ## [Unreleased] — Post-competition rebrand
 
 **FoundryAI was renamed to Islanda following the competition.** The company remains

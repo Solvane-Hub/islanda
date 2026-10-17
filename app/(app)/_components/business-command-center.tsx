@@ -125,7 +125,7 @@ export function BusinessCommandCenter({
     // Jurisdiction is set explicitly at creation and is the one fact the platform
     // treats as authoritative for retrieval — but it is still founder-declared.
     {
-      label: 'Jurisdiction',
+      label: 'Country',
       value: passportIdentity.jurisdictionName,
       provenance: 'founder_provided',
     },
@@ -170,9 +170,8 @@ export function BusinessCommandCenter({
       <Section title="Records">
         {identifiers.length === 0 ? (
           <p className="text-on-ink-muted text-sm">
-            No registration or tax identifiers on file yet. You can add them at any time — Islanda
-            keeps them private to your business and does not treat anything as verified until an
-            official check is possible.
+            No registration or tax numbers added yet. They are optional. If you add them, they stay
+            private to your business, and Islanda does not treat them as checked.
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
@@ -205,7 +204,7 @@ export function BusinessCommandCenter({
         href="/passport"
         className="text-bahama-turquoise hover:text-on-ink inline-flex w-fit items-center gap-1.5 text-xs font-medium transition-colors duration-150"
       >
-        View Business Passport
+        See it all in My Business
         <ArrowRight aria-hidden="true" className="size-3" strokeWidth={2} />
       </Link>
     </div>

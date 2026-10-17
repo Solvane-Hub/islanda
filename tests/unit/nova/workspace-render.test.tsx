@@ -57,17 +57,17 @@ function composerRef() {
 }
 
 describe('NovaComposer — an instrument, not a chat input', () => {
-  it('labels the field as an investigation, not a message', () => {
+  it('labels the field plainly, and never as a chat message to send', () => {
     render(<NovaComposer inputRef={composerRef()} />);
 
-    expect(screen.getByRole('textbox', { name: /what do you want to understand/i })).toBeVisible();
+    expect(screen.getByRole('textbox', { name: /your question/i })).toBeVisible();
     expect(screen.queryByRole('button', { name: /send/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /investigate/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /ask this question/i })).toBeInTheDocument();
   });
 
   it('states the keyboard contract rather than assuming it is known', () => {
     render(<NovaComposer inputRef={composerRef()} />);
-    expect(screen.getByText(/press enter to investigate/i)).toBeInTheDocument();
+    expect(screen.getByText(/press enter to ask/i)).toBeInTheDocument();
   });
 
   it('carries the advice disclaimer at the point of asking', () => {
@@ -84,7 +84,7 @@ describe('NovaComposer — an instrument, not a chat input', () => {
     const field = screen.getByRole('textbox');
     expect(field).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByText(/at least a few words/i)).toBeInTheDocument();
-    expect(screen.queryByText(/press enter to investigate/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/press enter to ask/i)).not.toBeInTheDocument();
   });
 
   it('caps the question at the length the server action accepts', () => {
@@ -101,24 +101,29 @@ describe('NovaComposer — an instrument, not a chat input', () => {
 });
 
 describe('NovaLanding — names the problem, shows only real facts', () => {
-  it('states the fragmentation problem in the founder’s terms', () => {
+  it('says what Nova does, and its limits, in plain words', () => {
     render(
       <NovaLanding businessName="Example Demo Trading Co." knowledgeLine={null}>
         <div />
       </NovaLanding>,
     );
 
-    expect(screen.getByText(/spread across separate acts, regulations/i)).toBeInTheDocument();
+    expect(screen.getByText(/official documents Islanda holds/i)).toBeInTheDocument();
+    expect(screen.getByText(/isn.t legal advice/i)).toBeInTheDocument();
+    expect(screen.getByText(/doesn.t have every rule yet/i)).toBeInTheDocument();
   });
 
-  it('asks about the founder’s own business by name', () => {
+  it('is titled by its job and names the founder’s business', () => {
     render(
       <NovaLanding businessName="Da Back Yard" knowledgeLine={null}>
         <div />
       </NovaLanding>,
     );
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Da Back Yard');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Get help with your business',
+    );
+    expect(screen.getByText(/Da Back Yard/)).toBeInTheDocument();
   });
 
   it('shows the knowledge panel only when there is something true to say', () => {
@@ -127,7 +132,9 @@ describe('NovaLanding — names the problem, shows only real facts', () => {
         <div />
       </NovaLanding>,
     );
-    expect(screen.queryByRole('heading', { name: /^knowledge$/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /^what nova can search$/i }),
+    ).not.toBeInTheDocument();
     unmount();
 
     render(
@@ -135,7 +142,7 @@ describe('NovaLanding — names the problem, shows only real facts', () => {
         <div />
       </NovaLanding>,
     );
-    expect(screen.getByRole('heading', { name: /^knowledge$/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /^what nova can search$/i })).toBeInTheDocument();
     expect(screen.getByText(/ZZ-v0\.1/)).toBeInTheDocument();
   });
 
@@ -283,5 +290,52 @@ describe('AnswerFeedback — product feedback, honestly described', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent(/noted for the team/i);
     expect(screen.queryByText(/saved/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('NovaLanding — what Nova can search', () => {
+  const SOURCES = [
+    {
+      title: 'Value Added Tax Act (Reprint), Chapter 370A',
+      agency: 'Government',
+      sourceUrl: 'https://example.test/vat',
+      effectiveDate: null,
+      legalStatus: 'base_text_amended' as const,
+    },
+    {
+      title: 'Data Protection Act, 2025',
+      agency: 'Government',
+      sourceUrl: null,
+      effectiveDate: null,
+      legalStatus: 'enacted_not_in_force' as const,
+    },
+  ];
+
+  it('lists each published document by name, with its standing in plain words', () => {
+    render(
+      <NovaLanding
+        businessName="X"
+        knowledgeLine="The Bahamas: official documents."
+        sources={SOURCES}
+      >
+        <div />
+      </NovaLanding>,
+    );
+    const link = screen.getByRole('link', { name: /Value Added Tax Act/ });
+    expect(link).toHaveAttribute('href', 'https://example.test/vat');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(screen.getByText('In force, with later amendments')).toBeInTheDocument();
+    // A passed-but-not-commenced Act is listed, and says it is not used as current law.
+    expect(screen.getByText('Data Protection Act, 2025')).toBeInTheDocument();
+    expect(screen.getByText(/not yet in force, so not used as current law/)).toBeInTheDocument();
+  });
+
+  it('lists nothing when nothing is published', () => {
+    render(
+      <NovaLanding businessName="X" knowledgeLine={null} sources={[]}>
+        <div />
+      </NovaLanding>,
+    );
+    expect(screen.queryByRole('heading', { name: /what nova can search/i })).toBeNull();
   });
 });

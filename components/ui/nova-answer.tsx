@@ -58,7 +58,7 @@ import type { NovaAnswerView } from '@/types/nova';
 /**
  * The four outcomes, worded distinctly.
  *
- * "We hold no sources for your jurisdiction" and "we hold sources but none
+ * "We hold no sources for your country" and "we hold sources but none
  * addresses this" are different truths. Collapsing them into one message would
  * tell a founder their question was unanswerable when the real problem is that
  * the corpus has not reached their country yet.
@@ -68,19 +68,20 @@ const REFUSAL_COPY: Record<
   { title: string; body: string; searched: string }
 > = {
   no_published_knowledge: {
-    title: 'Nova has no sources for your jurisdiction yet',
-    body: 'No Knowledge Pack has been published for your country, so there is nothing authoritative to quote. This is a gap in what we hold, not an answer about the law.',
-    searched: 'Nothing was searched, because nothing is published for this jurisdiction yet.',
+    title: 'Nova has no sources for your country yet',
+    body: 'Islanda does not hold official documents for your country yet, so there is nothing to quote. This is a gap in what we hold, not an answer about the law. Check with the government office responsible, or a qualified professional.',
+    searched:
+      'Nothing was searched, because Islanda holds no official documents for this country yet.',
   },
   no_matching_evidence: {
     title: 'Nothing in the sources we hold addresses this',
-    body: 'Nova searched the published sources for your jurisdiction and found no passage that answers this question. Rather than summarise something close, it is saying so.',
+    body: 'Nova searched the official documents Islanda holds for your country and found nothing that answers this question. Rather than guess, it is telling you so. Check with the government office responsible, or a qualified professional.',
     searched:
-      'The published sources for your jurisdiction were searched. No passage in them matched this question closely enough to quote.',
+      'The official documents Islanda holds for your country were searched. Nothing in them matched this question closely enough to quote.',
   },
   needs_clarification: {
     title: 'Nova needs more to work with',
-    body: 'This question could not be matched against the sources we hold. Try naming the activity, the permit, or the obligation you have in mind.',
+    body: 'Nova could not match this question to the documents it holds. Try asking it a different way, and name the activity or the rule you have in mind.',
     searched: 'The question produced no terms that could be matched against the published sources.',
   },
 };
@@ -568,8 +569,8 @@ export function NovaThinking({ question }: { question: string }) {
       </div>
 
       <p className="text-on-ink-muted text-xs text-pretty">
-        Nova is searching the published sources for your jurisdiction and quoting what it finds. It
-        will say so if it finds nothing.
+        Nova is searching the published sources for your country and quoting what it finds. It will
+        say so if it finds nothing.
       </p>
     </WorkspaceSurface>
   );

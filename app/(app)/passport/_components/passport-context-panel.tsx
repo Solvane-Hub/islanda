@@ -19,7 +19,7 @@ const NOTES: Record<PassportPageId, { heading: string; body: string }> = {
   },
   business: {
     heading: 'Business',
-    body: 'What the business does, in your own words from intake. Blank sections are shown as blank rather than filled in for you.',
+    body: 'What the business does, in your own words from the questions you answered. Blank sections are shown as blank rather than filled in for you.',
   },
   state: {
     heading: 'State',

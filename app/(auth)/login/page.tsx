@@ -20,20 +20,35 @@ export default async function LoginPage({
         <h1 className="text-on-ink text-[1.75rem] font-semibold tracking-[-0.02em] text-balance">
           Sign in
         </h1>
-        <p className="text-foreground-muted text-sm">Welcome back.</p>
+        <p className="text-foreground-muted text-sm text-pretty">
+          Use the email address and password you created your Islanda account with.
+        </p>
       </div>
 
       <SignInForm {...(next ? { next } : {})} />
 
-      <div className="text-foreground-muted flex flex-col gap-2 text-sm">
-        <Link href="/forgot-password" className="underline underline-offset-4">
+      <div className="text-foreground-muted flex flex-col gap-1 text-sm">
+        <Link
+          href="/forgot-password"
+          className="inline-flex min-h-11 items-center self-start underline underline-offset-4"
+        >
           Forgot your password?
         </Link>
         <p>
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-brand underline underline-offset-4">
-            Create one
+          New to Islanda?{' '}
+          <Link
+            href="/signup"
+            className="text-brand inline-flex min-h-11 items-center underline underline-offset-4"
+          >
+            Create an account
           </Link>
+        </p>
+        <p className="text-pretty">
+          Islanda is in early access, and some features are still being built.{' '}
+          <Link href="/" className="underline underline-offset-4">
+            See what works today
+          </Link>
+          .
         </p>
       </div>
     </div>

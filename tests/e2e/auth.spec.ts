@@ -99,14 +99,15 @@ test.describe('full authenticated cycle', () => {
     await page.getByLabel('Password').fill(USER_A_PASSWORD);
     await page.getByRole('button', { name: 'Sign in' }).click();
 
-    // Lands on the dashboard.
+    // Lands on Home. The greeting is "Welcome back, …" with a business, or the
+    // "Welcome" heading of the no-business state — either way it says Welcome.
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByRole('heading', { name: /Welcome/ })).toBeVisible();
+    await expect(page.getByText(/Welcome/).first()).toBeVisible();
 
     // Session survives a full reload (Sprint 1 DoD: "Persist data / Reload").
     await page.reload();
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByRole('heading', { name: /Welcome/ })).toBeVisible();
+    await expect(page.getByText(/Welcome/).first()).toBeVisible();
 
     // Signed-in users are bounced away from auth routes.
     await page.goto('/login');
@@ -130,7 +131,14 @@ test.describe('full authenticated cycle', () => {
 
     // Constitution — Truth Before Fluency applies to demo surfaces.
     const body = await page.locator('body').innerText();
-    expect(body).not.toMatch(/Business Licence|Registrar General|\$[0-9]/);
-    await expect(page.getByText('nothing real to show')).toBeVisible();
+    expect(body).not.toMatch(/Business Licence|Registrar General/);
+    // Home leads with one next action, and names unbuilt surfaces only as
+    // "coming later" — never as available.
+    await expect(
+      page
+        .getByRole('heading', { name: 'What to do next' })
+        .or(page.getByText(/Let's get your business information together/)),
+    ).toBeVisible();
+    expect(body).not.toMatch(/Business requirements\s+Available/);
   });
 });

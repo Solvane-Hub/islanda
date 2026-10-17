@@ -65,12 +65,12 @@ describe('buildJourney', () => {
   it('directs a founder with a business to start intake', () => {
     const j = buildJourney(business(), null);
     expect(j.next?.key).toBe('intake');
-    expect(j.next?.actionLabel).toBe('Start intake');
+    expect(j.next?.actionLabel).toBe('Start the questions');
   });
 
   it('offers to continue a partially completed intake', () => {
     const j = buildJourney(business(), profile(2));
-    expect(j.next?.actionLabel).toBe('Continue intake');
+    expect(j.next?.actionLabel).toBe('Continue the questions');
     expect(j.next?.description).toContain('2 of 5');
   });
 
@@ -103,7 +103,8 @@ describe('buildJourney', () => {
   it('never promises data that does not exist', () => {
     const j = buildJourney(business(), profile(5, '2026-08-07T00:00:00Z'));
     const roadmap = j.milestones.find((m) => m.key === 'roadmap');
-    expect(roadmap?.description).toMatch(/not built yet|nothing real/i);
+    expect(roadmap?.description).toMatch(/working on this/i);
+    expect(roadmap?.description).toMatch(/nothing is shown until it can be based on real sources/i);
   });
 
   it('shows the business name once one exists', () => {

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import { Plus, Rocket } from 'lucide-react';
+import { Plus, Store } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/services/auth';
 import { getOwnProfile } from '@/services/profile';
@@ -32,54 +32,52 @@ import {
   formatGoalValue,
 } from '@/lib/business-intelligence/goal-display';
 import { buildPerformanceView } from '@/lib/business-intelligence/performance';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { Progress } from '@/components/ui/progress';
 import { WorkspaceCanvas } from '@/components/ui/workspace-canvas';
 import { WorkspaceSurface, SurfaceLabel } from '@/components/ui/workspace-surface';
 import { provenanceKindFor } from '@/components/ui/provenance-badge';
 import { BusinessSnapshot, type SnapshotRow } from '../_components/business-snapshot';
 import { BusinessCommandCenter } from '../_components/business-command-center';
 import { DashboardPriorities, type PriorityItem } from '../_components/dashboard-priorities';
-import { DashboardQuickActions } from '../_components/dashboard-quick-actions';
-import { IntakeDial } from '../_components/intake-dial';
 import { NovaInvite } from '../_components/nova-invite';
-import { RouteSummary } from '../_components/route-summary';
-import { SurfaceTiles } from '../_components/surface-tiles';
 import { PerformanceModule } from '../_components/performance-module';
 import { GoalsModule, type GoalItem } from '../_components/goals-module';
 import { DocumentsModule } from '../_components/documents-module';
 import { NovaFinance } from '../_components/nova-finance';
+import { NAV_ITEMS } from '../_components/nav-items';
 
-export const metadata: Metadata = { title: 'Dashboard' };
+export const metadata: Metadata = { title: 'Home' };
 
+/** Business lifecycle states, in the words a business owner would use. */
 const STATUS: Record<string, string> = {
-  draft: 'Draft',
-  intake_started: 'Intake in progress',
-  intake_complete: 'Intake complete',
-  launch_plan_generated: 'Launch plan ready',
+  draft: 'Getting started',
+  intake_started: 'Answering questions',
+  intake_complete: 'Questions answered',
+  launch_plan_generated: 'Plan ready',
   active: 'Active',
   archived: 'Archived',
 };
 
 /**
- * The founder briefing.
+ * Home — the business workspace.
  *
- * Four questions in order: where am I, what do I do next, what does Islanda
- * know, where am I on the route. Everything on the page comes from data the
- * founder already supplied or from `buildJourney()` — no metrics, no activity,
- * no charts of nothing.
+ * Answers three questions, in this order:
  *
- * The composition is one instrument panel, not a grid of cards. The identity
- * zone sits directly on the water; the shell below it holds four modules
- * separated by hairlines rather than by gaps, because they are sections of one
- * reading rather than four independent widgets. The tiles underneath are the
- * only free-standing objects, and that is deliberate — they are the surfaces
- * that are not part of the instrument yet.
+ *   1. What do I need to do next?        → one primary action
+ *   2. What is the state of my business? → what you've told Islanda, and progress
+ *   3. Where do I go to do it?           → goals, documents, money; get help
+ *
+ * Everything comes from data the founder supplied, `buildJourney()`, or the
+ * fixed foundational cascade below — no invented tasks, percentages, figures
+ * or requirements. Surfaces that are not built are named once, quietly, at the
+ * bottom, rather than as a grid of doors.
  *
  * Constitution, Truth Before Fluency: a fabricated requirement is
  * indistinguishable from a real one to a founder acting on it. Nothing here is
- * invented, and unanswered fields are omitted rather than filled with dashes.
+ * invented, and unanswered fields say so rather than being filled with dashes.
  */
 export default async function DashboardPage() {
   const db = await createClient();
@@ -101,18 +99,18 @@ export default async function DashboardPage() {
             title={greeting ? `Welcome, ${greeting}` : 'Welcome'}
             description={
               user?.email
-                ? `You're signed in as ${user.email}. Let's set up your first business.`
-                : "Let's set up your first business."
+                ? `This is your business workspace. You're signed in as ${user.email}.`
+                : 'This is your business workspace.'
             }
           />
           <EmptyState
-            icon={<Rocket aria-hidden="true" className="size-5" strokeWidth={1.75} />}
-            title="You haven't created a business yet"
-            explanation="Islanda works out what your business needs — registrations, licences, permits and funding — from the country and industry you're operating in."
-            nextStep="Start by telling us what you're building."
+            icon={<Store aria-hidden="true" className="size-5" strokeWidth={1.75} />}
+            title="Let's get your business information together"
+            explanation="Start by creating your business: its name, the country it operates in, and what it does. Then a few short questions help you describe it. Your answers are saved as you go."
+            nextStep="Create your business to begin."
             action={
-              <Link href="/businesses/new">
-                <Button>Create your first business</Button>
+              <Link href="/businesses/new" className={buttonVariants()}>
+                Create your business
               </Link>
             }
           />
@@ -142,7 +140,6 @@ export default async function DashboardPage() {
   const isManage = current.business_mode === 'manage';
   const journey = buildJourney(current, intake);
   const progress = intakeProgress(intake);
-  const intakeComplete = Boolean(intake?.completed_at);
   const status = STATUS[current.status] ?? current.status;
 
   // The country is stored as an ISO code; the founder should read the name.
@@ -191,7 +188,7 @@ export default async function DashboardPage() {
   // founder's understanding of the business.
   const rows: SnapshotRow[] = [
     {
-      label: 'Business',
+      label: 'What it does',
       value: intake?.description ?? undefined,
       href: '/intake?step=1',
       state: knowledge.get('business')?.state ?? 'unknown',
@@ -214,13 +211,13 @@ export default async function DashboardPage() {
       state: knowledge.get('team')?.state ?? 'unknown',
     },
     {
-      label: 'Funding',
+      label: 'Money needed',
       value: funding,
       href: '/intake?step=4',
       state: knowledge.get('funding')?.state ?? 'unknown',
     },
     {
-      label: 'Goals',
+      label: 'Your goals',
       value: intake?.founder_goals ?? undefined,
       href: '/intake?step=5',
       state: knowledge.get('goals')?.state ?? 'unknown',
@@ -246,28 +243,35 @@ export default async function DashboardPage() {
   // intake is done (`journey.next` already owns the slot until then): record
   // a first financial figure, set a first goal, add a first document. Each
   // reuses the exact route/anchor its own module already offers.
-  const foundationalPriority: Pick<Milestone, 'title' | 'href' | 'description'> | null =
-    journey.next
-      ? null
-      : metrics.length === 0
+  const foundationalPriority: Pick<
+    Milestone,
+    'title' | 'href' | 'description' | 'actionLabel'
+  > | null = journey.next
+    ? null
+    : metrics.length === 0
+      ? {
+          title: 'Record your first sales or expense figure',
+          href: '/dashboard#financials',
+          description:
+            'For example, what you sold or spent last month. It helps you see how the business is doing over time.',
+          actionLabel: 'Record a figure',
+        }
+      : goalsWithProgress.length === 0
         ? {
-            title: 'Record your first financial figure',
-            href: '/dashboard#financials',
-            description: "You haven't recorded any financial figures yet.",
+            title: 'Set your first goal',
+            href: '/dashboard#goals',
+            description: 'Write down one thing you want the business to achieve.',
+            actionLabel: 'Set a goal',
           }
-        : goalsWithProgress.length === 0
+        : documents.length === 0
           ? {
-              title: 'Set your first goal',
-              href: '/dashboard#goals',
-              description: "You haven't added a business goal yet.",
+              title: 'Add your first document',
+              href: '/documents',
+              description:
+                'Keep a receipt, licence or statement in private storage for your business.',
+              actionLabel: 'Add a document',
             }
-          : documents.length === 0
-            ? {
-                title: 'Add your first document',
-                href: '/documents',
-                description: "Your business doesn't have any documents yet.",
-              }
-            : null;
+          : null;
 
   const nextMove: Milestone | null =
     journey.next ??
@@ -278,6 +282,9 @@ export default async function DashboardPage() {
           description: foundationalPriority.description,
           state: 'current',
           href: foundationalPriority.href,
+          ...(foundationalPriority.actionLabel
+            ? { actionLabel: foundationalPriority.actionLabel }
+            : {}),
         }
       : null);
 
@@ -310,165 +317,134 @@ export default async function DashboardPage() {
         : null,
   }));
 
+  const comingLater = NAV_ITEMS.filter((item) => !item.available);
+  const answeredCount = progress.completed;
+
   return (
-    <div className="workspace-env flex flex-col gap-3 sm:gap-4">
-      {/*
-        Compact contextual header — "where am I" without the business name
-        occupying half the viewport. The name moves into the context line; the
-        heading names the surface, the way the reference's "Project Overview"
-        does.
-      */}
+    <div className="workspace-env flex flex-col gap-4 sm:gap-5">
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-1 pt-2 sm:pt-3">
         <div className="min-w-0">
           <p className="text-2xs text-champagne font-medium tracking-[0.18em] uppercase">
-            {greeting ? `${greeting}’s workspace` : 'Workspace'}
+            {greeting ? `Welcome back, ${greeting}` : 'Welcome back'}
           </p>
           <h1 className="text-on-ink mt-1.5 text-xl font-semibold tracking-[-0.02em] text-balance sm:text-2xl">
-            Business overview
+            {current.name}
           </h1>
           <p className="text-on-ink-muted mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm">
-            <span className="text-on-ink font-medium">{current.name}</span>
-            <span aria-hidden="true" className="h-3 w-px bg-white/15" />
             <span>{countryName}</span>
             {current.industry ? (
               <>
-                <span aria-hidden="true" className="text-on-glass-subtle">
-                  ·
-                </span>
+                <span aria-hidden="true">·</span>
                 <span>{current.industry}</span>
               </>
             ) : null}
-            <span aria-hidden="true" className="h-3 w-px bg-white/15" />
+            <span aria-hidden="true">·</span>
             <span className="text-on-ink">{status}</span>
           </p>
         </div>
 
-        <Link href="/businesses/new" className="shrink-0">
-          <Button variant="secondary" size="sm" className="rounded-full">
-            <Plus aria-hidden="true" strokeWidth={2} />
-            Add business
-          </Button>
+        <Link
+          href="/businesses/new"
+          className="text-on-ink-muted hover:text-on-ink inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-sm text-sm transition-colors duration-150"
+        >
+          <Plus aria-hidden="true" className="size-4" strokeWidth={2} />
+          Add another business
         </Link>
       </header>
 
-      {/*
-        Command centre — the imported business as a first-class object. Shown for
-        Manage-mode businesses, where identity and records are the point; Build
-        mode leads with the intake snapshot below instead.
-      */}
-      {isManage ? (
-        <WorkspaceSurface
-          as="section"
-          tone="shell"
-          aria-labelledby="command-center-heading"
-          className="flex flex-col gap-7 p-6 sm:p-8"
-        >
-          <SurfaceLabel id="command-center-heading">Business identity</SurfaceLabel>
-          <BusinessCommandCenter
-            identity={commandCenterIdentity}
-            definition={commandCenterDefinition}
-            identifiers={identifiers}
-          />
-        </WorkspaceSurface>
-      ) : null}
+      {/* 1 — What to do next. One primary action. */}
+      <DashboardPriorities nextMove={nextMove} openItems={openItems} />
 
-      {/*
-        The spatial workspace — not a stack of equal cards. A quiet secondary
-        control column on the left (recessed inset surfaces), the dominant
-        business-intelligence workspace on the right (a lifted shell), the
-        founder journey sitting DIRECTLY on the workspace beneath it (no card),
-        Nova as an atmospheric presence beside the journey, and one floating
-        panel breaking the grid at the foreground. Materials differ by role, so
-        the surfaces read at different depths rather than as one card grid.
-      */}
-      <div className="relative grid gap-3.5 sm:gap-4 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:items-start">
-        {/* LEFT — secondary control column. Recessed, dense, quiet. */}
-        <div className="flex flex-col gap-3.5 sm:gap-4">
-          <DashboardPriorities nextMove={nextMove} openItems={openItems} className="flex-1" />
-          <IntakeDial completed={progress.completed} total={progress.total} />
-        </div>
-
-        {/* RIGHT — the dominant workspace, then journey · Nova. */}
-        <div className="flex min-w-0 flex-col gap-5 sm:gap-6">
-          {/* PRIMARY — Islanda's understanding of the business. Lifted, spacious. */}
-          <WorkspaceSurface
-            as="section"
-            tone="shell"
-            aria-labelledby="snapshot-heading"
-            className="flex flex-col gap-7 p-6 sm:p-8 lg:p-9"
-          >
-            <div className="flex flex-col gap-2.5">
-              <SurfaceLabel id="snapshot-heading">What you&apos;ve told us</SurfaceLabel>
-              {intake?.description ? (
-                <p className="text-on-ink max-w-2xl text-lg leading-relaxed text-pretty italic sm:text-xl">
-                  “{intake.description}”
-                </p>
-              ) : null}
-            </div>
-            <BusinessSnapshot rows={rows} unanswered={progress.total - progress.completed} />
-          </WorkspaceSurface>
-
-          {/* JOURNEY (on the workspace) · NOVA (atmospheric presence). */}
-          <div className="relative grid gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
-            <section
-              aria-labelledby="route-heading"
-              className="flex min-w-0 flex-col gap-6 px-1 pt-1"
-            >
-              <SurfaceLabel id="route-heading">Founder journey</SurfaceLabel>
-              <RouteSummary milestones={journey.milestones} />
-            </section>
-
-            <NovaInvite />
-
-            {/* FLOATING — foreground utility, overlapping the workspace edge. */}
-            <DashboardQuickActions
-              intakeComplete={intakeComplete}
-              className="mt-1 lg:absolute lg:right-1 lg:-bottom-5 lg:z-20 lg:mt-0 lg:w-56"
-            />
+      {/* 2 — The state of the business: what it has been told, and progress. */}
+      <WorkspaceSurface
+        as="section"
+        tone="shell"
+        aria-labelledby="snapshot-heading"
+        className="flex flex-col gap-6 p-6 sm:p-8"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+          <div className="flex flex-col gap-1.5">
+            <SurfaceLabel as="h2" id="snapshot-heading">
+              Your business information
+            </SurfaceLabel>
+            <p className="text-on-ink-muted text-sm">
+              Based on what you told Islanda. Change anything at any time.
+            </p>
           </div>
+          <Link
+            href="/passport"
+            className="text-bahama-turquoise hover:text-on-ink inline-flex min-h-11 items-center rounded-sm text-sm font-medium transition-colors duration-150"
+          >
+            See it all in My Business
+          </Link>
         </div>
+
+        <div className="flex max-w-md flex-col gap-2">
+          {/* Counts, not a percentage: "3 of 5 questions" is the shape of the data. */}
+          <Progress
+            value={answeredCount}
+            max={progress.total}
+            showPercent={false}
+            label="Questions answered"
+            caption={`${answeredCount} of ${progress.total} questions answered`}
+          />
+        </div>
+
+        {/* An existing business carries many more recorded details. They are
+            one tap away rather than in front of the next step. */}
+        {isManage ? (
+          <details className="group rounded-xl border border-white/8">
+            <summary className="text-on-ink flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium marker:content-none">
+              Business setup details: name, type, registration
+              <span
+                aria-hidden="true"
+                className="text-on-ink-muted transition-transform duration-200 group-open:rotate-180"
+              >
+                ▾
+              </span>
+            </summary>
+            <div className="border-t border-white/8 p-4 sm:p-5">
+              <BusinessCommandCenter
+                identity={commandCenterIdentity}
+                definition={commandCenterDefinition}
+                identifiers={identifiers}
+              />
+            </div>
+          </details>
+        ) : null}
+
+        <BusinessSnapshot rows={rows} unanswered={progress.total - progress.completed} />
+      </WorkspaceSurface>
+
+      {/* 3 — Where to do things: goals and documents, then money. */}
+      <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
+        <div id="goals" className="min-w-0 scroll-mt-4">
+          <GoalsModule items={goalItems} />
+        </div>
+        <DocumentsModule documents={documents} />
       </div>
 
-      {/*
-        Command centre modules — performance, goals and documents, from real P2
-        data. Performance leads for a running business or once figures exist;
-        goals and documents always show, with honest empty states and their own
-        create/upload paths. No fabricated metrics, progress or records.
-      */}
-      <section
-        aria-labelledby="command-modules-heading"
-        className="mt-2 flex flex-col gap-3.5 sm:gap-4"
-      >
-        <SurfaceLabel id="command-modules-heading" className="px-1">
-          Your business
-        </SurfaceLabel>
-        {/* Scroll targets for the "Financials"/"Goals" nav items (P7 Phase 1) —
-            neither has a page of its own yet, so the nav links here rather
-            than inventing a route for a module that already exists. */}
-        <div id="financials" className="scroll-mt-4">
-          <PerformanceModule
-            view={performanceView}
-            periods={periodOptions}
-            documents={documentOptions}
-            evidenceByMetricId={evidenceByMetricId}
-          />
-        </div>
-        <div className="grid gap-3.5 sm:gap-4 lg:grid-cols-2">
-          <div id="goals" className="min-w-0 scroll-mt-4">
-            <GoalsModule items={goalItems} />
-          </div>
-          <DocumentsModule documents={documents} />
-        </div>
-        <NovaFinance />
-      </section>
+      <div id="financials" className="flex scroll-mt-4 flex-col gap-4 sm:gap-5">
+        <PerformanceModule
+          view={performanceView}
+          periods={periodOptions}
+          documents={documentOptions}
+          evidenceByMetricId={evidenceByMetricId}
+        />
+        {/* Asking about figures only makes sense once there are figures. */}
+        {performanceView.hasData ? <NovaFinance /> : null}
+      </div>
 
-      {/* Directly on the workspace — the rooms that are coming online. */}
-      <section aria-labelledby="surfaces-heading" className="mt-2 flex flex-col gap-3">
-        <SurfaceLabel id="surfaces-heading" className="px-1">
-          Coming online
-        </SurfaceLabel>
-        <SurfaceTiles intakeComplete={intakeComplete} />
-      </section>
+      <NovaInvite />
+
+      {/* Not built yet — named once, quietly, with no door to a dead end. */}
+      {comingLater.length > 0 ? (
+        <p className="text-on-ink-muted px-1 pb-2 text-sm text-pretty">
+          <span className="text-on-ink font-medium">Coming later:</span>{' '}
+          {comingLater.map((item) => item.label.toLowerCase()).join(', ')}. We&apos;re working on
+          these, and they aren&apos;t available yet.
+        </p>
+      ) : null}
     </div>
   );
 }

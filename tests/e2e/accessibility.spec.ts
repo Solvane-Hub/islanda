@@ -13,7 +13,7 @@ import { expect, test } from '@playwright/test';
  * necessary, not sufficient; a manual keyboard and screen-reader pass is still
  * outstanding.
  */
-const PUBLIC_PAGES = ['/', '/login', '/signup', '/forgot-password'];
+const PUBLIC_PAGES = ['/', '/login', '/signup', '/forgot-password', '/admin/login'];
 
 for (const path of PUBLIC_PAGES) {
   test(`${path} has no detectable WCAG 2.1 AA violations`, async ({ page }) => {
@@ -39,7 +39,17 @@ test.describe('authenticated pages', () => {
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
-  for (const path of ['/dashboard', '/businesses/new', '/intake', '/settings']) {
+  for (const path of [
+    '/dashboard',
+    '/businesses/new',
+    '/businesses/new/build',
+    '/intake',
+    '/intake/review',
+    '/passport',
+    '/documents',
+    '/assistant',
+    '/settings',
+  ]) {
     test(`${path} has no detectable WCAG 2.1 AA violations`, async ({ page }) => {
       await page.goto(path);
       const results = await new AxeBuilder({ page })

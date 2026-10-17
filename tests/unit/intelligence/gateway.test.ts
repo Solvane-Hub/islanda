@@ -3,6 +3,11 @@ import { runIntelligence, type GatewayDeps } from '@/services/intelligence/gatew
 import { ModelProviderError, type ModelClient } from '@/lib/ai/providers/model-client';
 import type { AiUsageEntry } from '@/lib/db/ai-usage';
 import type { IntelligenceContext, IntelligenceRequest } from '@/lib/intelligence/types';
+import {
+  INTELLIGENCE_PROMPT_VERSION,
+  REGULATORY_BOUNDARY_RULE,
+  buildSystemPrompt,
+} from '@/lib/intelligence/prompt';
 
 function context(businessId = 'biz-1'): IntelligenceContext {
   return {
@@ -166,5 +171,136 @@ describe('runIntelligence', () => {
   it('refuses a request whose context belongs to another business (isolation)', async () => {
     const req = request('Why did revenue grow?', { context: context('OTHER-biz') });
     await expect(runIntelligence(req, deps(null))).rejects.toThrow(/business isolation/i);
+  });
+
+  it('serves a "deterministic" question on the mini tier when the caller requires reasoning', async () => {
+    const client = fakeClient(async () => ({
+      text: VALID_JSON,
+      inputTokens: 10,
+      outputTokens: 10,
+      modelId: 'gpt-5.4-mini',
+    }));
+    const out = await runIntelligence(
+      request('What is a value proposition?', { requiresReasoning: true }),
+      deps(client),
+    );
+    expect(out.status).toBe('answered');
+    expect(out.usage).toMatchObject({ llmCalled: true, modelTier: 'mini' });
+    expect(recorded[0]?.modelReason).toMatch(/no deterministic answerer/);
+  });
+
+  it('never upgrades a premium request when reasoning is required', async () => {
+    const client = fakeClient(async () => ({
+      text: VALID_JSON,
+      inputTokens: 10,
+      outputTokens: 10,
+      modelId: 'gpt-5.4',
+    }));
+    const out = await runIntelligence(
+      request('Create a 12-month growth strategy.', { requiresReasoning: true }),
+      deps(client),
+    );
+    expect(out.usage.modelTier).toBe('premium');
+  });
+
+  it('still bypasses the LLM for a deterministic question when reasoning is not required', async () => {
+    const out = await runIntelligence(request('What is a value proposition?'), deps(null));
+    expect(out.status).toBe('deterministic');
+  });
+});
+
+describe('gateway prompt — regulatory boundary (rule 9)', () => {
+  it('forbids stating law, rates, fees or deadlines, and asks for a regulatory category instead', () => {
+    const system = buildSystemPrompt();
+    expect(system).toContain(REGULATORY_BOUNDARY_RULE);
+    expect(REGULATORY_BOUNDARY_RULE).toMatch(/NEVER state laws/);
+    expect(REGULATORY_BOUNDARY_RULE).toMatch(/tax or VAT rates, fees/);
+    expect(REGULATORY_BOUNDARY_RULE).toMatch(/filing deadlines/);
+    expect(REGULATORY_BOUNDARY_RULE).toMatch(/NEVER cite or name a law/);
+    expect(REGULATORY_BOUNDARY_RULE).toMatch(/"regulatory" or "compliance"/);
+  });
+
+  it("keeps the founder's own context figures reportable (finance-panel carve-out)", () => {
+    expect(REGULATORY_BOUNDARY_RULE).toMatch(
+      /does not restrict figures, labels or goals supplied in CONTEXT/,
+    );
+  });
+
+  it('is versioned', () => {
+    expect(INTELLIGENCE_PROMPT_VERSION).toBe('intelligence-gateway@1.1.0');
+  });
+});
+
+/**
+ * D6 — rule 9 is shared with the finance panel provisionally, subject to these
+ * regressions. The finance panel calls `runIntelligence` WITHOUT
+ * `requiresReasoning` and does NOT apply Nova's general-path gates (router,
+ * category discard, output scan); those live in `services/nova/general.ts`.
+ */
+describe('finance-panel regressions under prompt 1.1.0 (D6)', () => {
+  it('keeps the deterministic bypass for finance fact questions — no model call', async () => {
+    let called = false;
+    const client = fakeClient(async () => {
+      called = true;
+      throw new Error('must not be called');
+    });
+    for (const q of ['How much revenue did I make?', 'What is my margin?']) {
+      const out = await runIntelligence(request(q), deps(client));
+      expect(out.status).toBe('deterministic');
+    }
+    expect(called).toBe(false);
+  });
+
+  it('still routes finance reasoning questions to mini, not premium', async () => {
+    const client = fakeClient(async () => ({
+      text: VALID_JSON,
+      inputTokens: 10,
+      outputTokens: 10,
+      modelId: 'gpt-5.4-mini',
+    }));
+    for (const q of ['Why did revenue change?', 'How is my business doing?']) {
+      const out = await runIntelligence(request(q), deps(client));
+      expect(out.status).toBe('answered');
+      expect(out.usage.modelTier).toBe('mini');
+    }
+  });
+
+  it('returns a finance answer that reports a founder-recorded label containing "licence fees"', async () => {
+    // The carve-out case: the founder's own goal title mentions licence fees. The
+    // gateway must still return it — Nova's output scan is not applied here.
+    const withGoal = {
+      ...context(),
+      goals: [{ title: 'Pay licence fees on time', targetLabel: null, progressPercent: 50 }],
+    };
+    const reply = JSON.stringify({
+      ...JSON.parse(VALID_JSON),
+      answer: 'You are halfway to your goal "Pay licence fees on time".',
+    });
+    const client = fakeClient(async () => ({
+      text: reply,
+      inputTokens: 10,
+      outputTokens: 10,
+      modelId: 'gpt-5.4-mini',
+    }));
+    const out = await runIntelligence(
+      request('How is my business doing against my goals?', { context: withGoal }),
+      deps(client),
+    );
+    expect(out.status).toBe('answered');
+    expect(out.status === 'answered' && out.response.answer).toContain('licence fees');
+  });
+
+  it('keeps rules 1–8 of the system prompt intact', () => {
+    const system = buildSystemPrompt();
+    for (const rule of [
+      '1. Respond with a SINGLE JSON object',
+      '4. NEVER invent numbers, dates, names or figures',
+      '5. Preserve provenance.',
+      '6. Cite evidence ONLY by an id that appears in CONTEXT.evidence',
+      '7. Recommendations are suggestions, not facts',
+      '8. Be calm, precise and honest.',
+    ]) {
+      expect(system).toContain(rule);
+    }
   });
 });

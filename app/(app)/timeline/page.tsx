@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { RoadmapRoute } from '../_components/roadmap-route';
 
-export const metadata: Metadata = { title: 'Timeline' };
+export const metadata: Metadata = { title: 'Important dates' };
 
 /**
  * Timeline is not built yet.
@@ -13,8 +13,8 @@ export const metadata: Metadata = { title: 'Timeline' };
 export default function TimelinePage() {
   return (
     <RoadmapRoute
-      title="Timeline"
-      purpose="Every requirement your business has to meet, sequenced by what blocks what, with the dates that actually matter surfaced against them."
+      title="Important dates"
+      purpose="This will show what needs to happen first, the order of the steps after it, and the deadlines and renewals to keep track of. It is not available yet."
     />
   );
 }

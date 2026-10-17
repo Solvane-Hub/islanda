@@ -37,15 +37,15 @@ export function PassportIdentity({
     { label: 'Business type', value: identity.businessType },
     { label: 'Industry', value: identity.industry },
     { label: 'Country code', value: identity.countryCode, mono: true },
-    { label: 'Jurisdiction', value: identity.jurisdictionName },
+    { label: 'Country', value: identity.jurisdictionName },
     { label: 'Stage', value: stageLabel },
     { label: 'Operating status', value: identity.operatingStatus },
   ];
 
   return (
     <PassportPage
-      title="Identity"
-      subtitle="Who the business is"
+      title="Business setup"
+      subtitle="Name, type and where it operates"
       pageNumber={2}
       totalPages={totalPages}
       reference={reference}

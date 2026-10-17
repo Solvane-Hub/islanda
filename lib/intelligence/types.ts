@@ -127,6 +127,14 @@ export interface IntelligenceRequest {
   context: IntelligenceContext;
   actorId?: string | null;
   correlationId?: string;
+  /**
+   * True when the caller has NO deterministic answerer to fall back on (Nova's
+   * general path). A question the router would mark `deterministic` is then
+   * served by the `mini` tier instead of returning a `deterministic` outcome the
+   * caller cannot act on. Premium routing is unaffected — this never upgrades a
+   * request beyond `mini`.
+   */
+  requiresReasoning?: boolean;
 }
 
 export interface IntelligenceRecommendation {

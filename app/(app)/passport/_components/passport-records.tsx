@@ -85,7 +85,7 @@ export function PassportRecords({
   return (
     <PassportPage
       title="Records"
-      subtitle="Evidence & documents"
+      subtitle="Your files, and the figures they support"
       pageNumber={5}
       totalPages={totalPages}
       reference={reference}

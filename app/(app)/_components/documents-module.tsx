@@ -19,7 +19,7 @@ export function DocumentsModule({ documents }: { documents: readonly BusinessDoc
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <FileText aria-hidden="true" className="text-champagne size-3.5" strokeWidth={2} />
-          <SurfaceLabel as="h2">Documents</SurfaceLabel>
+          <SurfaceLabel as="h2">Recent documents</SurfaceLabel>
         </div>
         <Link
           href="/documents"
@@ -49,8 +49,8 @@ export function DocumentsModule({ documents }: { documents: readonly BusinessDoc
         </ul>
       ) : (
         <p className="text-on-ink-muted max-w-prose text-sm text-pretty">
-          Bring your business records in — statements, licences, registrations. Each is stored
-          privately to your business.
+          You haven&apos;t added any documents yet. Keep files such as receipts, licences and
+          statements here, in private storage for your business.
         </p>
       )}
     </WorkspaceSurface>
