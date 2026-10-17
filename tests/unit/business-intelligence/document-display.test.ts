@@ -6,17 +6,15 @@ import {
 
 /**
  * Document status is honest about analysis that has not happened — a stored file
- * with no extraction reads "analysis not yet available", never "analyzed".
+ * with no extraction says Islanda has not read it, never "analyzed".
  */
 describe('documentStatusLabel', () => {
   it('is honest about a stored-but-not-analyzed document', () => {
-    expect(documentStatusLabel('stored', 'not_started')).toBe(
-      'Stored · analysis not yet available',
-    );
+    expect(documentStatusLabel('stored', 'not_started')).toBe('Uploaded · not read by Islanda');
   });
 
   it('reports pending, processing, analyzed and failed distinctly', () => {
-    expect(documentStatusLabel('pending', 'not_started')).toBe('Pending upload');
+    expect(documentStatusLabel('pending', 'not_started')).toBe('Upload not finished');
     expect(documentStatusLabel('processing', 'not_started')).toBe('Processing');
     expect(documentStatusLabel('stored', 'extracted')).toBe('Analyzed');
     expect(documentStatusLabel('failed', 'not_started')).toBe('Needs attention');

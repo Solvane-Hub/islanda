@@ -48,7 +48,11 @@ export function DocumentList({ items }: { items: readonly DocumentListItem[] }) 
 
   return (
     <div className="flex flex-col gap-3">
-      {error ? <p className="text-danger text-xs">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-danger text-xs">
+          {error}
+        </p>
+      ) : null}
       <ul className="flex flex-col divide-y divide-white/8">
         {items.map((doc) => (
           <li key={doc.id} className="flex flex-wrap items-center gap-x-5 gap-y-2 py-3.5">
@@ -62,11 +66,11 @@ export function DocumentList({ items }: { items: readonly DocumentListItem[] }) 
                 {[doc.typeLabel, doc.periodLabel, doc.documentDate].filter(Boolean).join(' · ')}
               </span>
               {doc.supports ? (
-                <span className="text-champagne-dim text-2xs">Supports: {doc.supports}</span>
+                <span className="text-champagne-dim text-2xs">Linked to: {doc.supports}</span>
               ) : null}
             </div>
 
-            <span className="text-on-ink-muted hidden text-xs sm:inline">{doc.status}</span>
+            <span className="text-on-ink-muted text-xs">{doc.status}</span>
             <ProvenanceBadge kind={doc.provenanceKind} />
 
             {doc.hasFile ? (
@@ -74,7 +78,8 @@ export function DocumentList({ items }: { items: readonly DocumentListItem[] }) 
                 type="button"
                 onClick={() => view(doc.id)}
                 disabled={loadingId === doc.id}
-                className="text-bahama-turquoise hover:text-on-ink inline-flex min-h-9 items-center gap-1.5 rounded-sm text-xs font-medium transition-colors duration-150 disabled:opacity-60"
+                aria-label={`View ${doc.title}`}
+                className="text-bahama-turquoise hover:text-on-ink inline-flex min-h-11 items-center gap-1.5 rounded-sm text-xs font-medium transition-colors duration-150 disabled:opacity-60"
               >
                 {loadingId === doc.id ? (
                   <Loader2 aria-hidden="true" className="size-3.5 animate-spin" />

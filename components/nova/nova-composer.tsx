@@ -41,7 +41,7 @@ const MIN_ROWS_HEIGHT = 56;
 const MAX_HEIGHT = 220;
 
 export function NovaComposer({
-  placeholder = 'Ask about a licence, a registration, or an obligation…',
+  placeholder = 'Type your question here…',
   disabled,
   error,
   onChangeText,
@@ -73,7 +73,7 @@ export function NovaComposer({
   return (
     <div className={cn('flex flex-col gap-2', className)}>
       <label htmlFor={id} className="sr-only">
-        What do you want to understand about your business?
+        Your question
       </label>
 
       <div
@@ -141,7 +141,7 @@ export function NovaComposer({
             )}
           >
             <ArrowUp aria-hidden="true" className="size-4" strokeWidth={2.5} />
-            <span className="sr-only">Investigate this question</span>
+            <span className="sr-only">Ask this question</span>
           </button>
         </div>
       </div>
@@ -152,8 +152,8 @@ export function NovaComposer({
         </p>
       ) : (
         <p id={hintId} className="text-on-glass-subtle px-1 text-xs text-pretty">
-          Press Enter to investigate, Shift + Enter for a new line. Nova quotes published sources
-          and does not give legal advice.
+          Press Enter to ask, or Shift + Enter for a new line. Nova quotes official documents and
+          does not give legal advice.
         </p>
       )}
     </div>

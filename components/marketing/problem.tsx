@@ -1,45 +1,62 @@
-import { FileStack, MessagesSquare, Scale, TrendingUp } from 'lucide-react';
+import { Scissors, Store, UtensilsCrossed } from 'lucide-react';
 
 /**
- * Section 02 — the problem.
+ * Section A — the problem, in the visitor's own situation.
  *
- * Named plainly, before the product is shown: a founder's information about
- * their own business is scattered across sources that don't talk to each
- * other, and a generic AI chatbot answers questions without holding any of
- * it — it has no memory of this specific business between one question and
- * the next.
+ * Three recognisable starting points, each with the questions people actually
+ * ask. They are QUESTIONS only: this section answers none of them, because
+ * answering a regulatory question on a marketing page would be exactly the
+ * unsourced guidance Islanda exists to avoid.
  */
-const SOURCES = [
-  { icon: FileStack, label: 'Documents & records' },
-  { icon: TrendingUp, label: 'Financial records' },
-  { icon: Scale, label: 'Regulations & requirements' },
-  { icon: MessagesSquare, label: 'Conversations & goals' },
+const SITUATIONS = [
+  {
+    icon: UtensilsCrossed,
+    title: 'Selling food from home',
+    questions: ['Do I need a licence?', 'Is there an inspection?', 'Which office do I go to?'],
+  },
+  {
+    icon: Scissors,
+    title: 'Opening a salon',
+    questions: ['Do I need to register first?', 'What about staff?', 'What paperwork comes next?'],
+  },
+  {
+    icon: Store,
+    title: 'Turning a side hustle into a business',
+    questions: [
+      'When should I register?',
+      'Do I need to charge tax?',
+      'Is my information current?',
+    ],
+  },
 ] as const;
 
 export function Problem() {
   return (
-    <div className="flex flex-col gap-12 lg:flex-row lg:items-center lg:gap-16">
-      <div className="max-w-xl">
-        <p className="text-on-ink-muted text-base text-pretty sm:text-lg">
-          What a business owner needs to know about their own business is scattered across
-          documents, financial records, regulations, goals, other software, and conversations that
-          never refer to one another. Generic AI can answer a question — but without persistent
-          context about this specific business, it doesn&apos;t actually understand the business
-          asking it.
-        </p>
-      </div>
+    <div className="flex flex-col gap-10 lg:gap-12">
+      <p className="text-on-ink-muted max-w-2xl text-base text-pretty sm:text-lg">
+        The information exists, but it is spread across government websites, PDFs, offices and
+        advice from friends. It is hard to know which of it applies to you, whether it is still
+        current, and what to do first.
+      </p>
 
-      <div className="grid flex-1 grid-cols-2 gap-3 sm:gap-4">
-        {SOURCES.map(({ icon: Icon, label }) => (
-          <div
-            key={label}
-            className="border-ink-line/70 flex flex-col gap-3 rounded-2xl border bg-white/[0.03] px-5 py-6"
+      <ul className="grid gap-3 sm:gap-4 md:grid-cols-3">
+        {SITUATIONS.map(({ icon: Icon, title, questions }) => (
+          <li
+            key={title}
+            className="border-ink-line/70 flex flex-col gap-4 rounded-2xl border bg-white/[0.03] px-5 py-6"
           >
             <Icon aria-hidden="true" className="text-champagne-dim size-5" strokeWidth={1.75} />
-            <span className="text-on-ink text-sm font-medium text-pretty">{label}</span>
-          </div>
+            <h3 className="text-on-ink text-base font-semibold text-pretty">{title}</h3>
+            <ul className="flex flex-col gap-1.5">
+              {questions.map((q) => (
+                <li key={q} className="text-on-ink-muted text-sm text-pretty">
+                  {q}
+                </li>
+              ))}
+            </ul>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

@@ -1,7 +1,9 @@
 node_modules/
 .next/
 out/
-build/
+# Anchored to the repo root: an unanchored `build/` also ignored the
+# app/(app)/businesses/new/build route, so that page was never committed.
+/build/
 coverage/
 playwright-report/
 test-results/

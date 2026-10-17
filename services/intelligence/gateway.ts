@@ -1,4 +1,4 @@
-import { classifyIntelligence } from '@/lib/intelligence/router';
+import { classifyIntelligence, type RoutingDecision } from '@/lib/intelligence/router';
 import { modelSpecForTier, type ModelSpec } from '@/lib/intelligence/models';
 import { estimateCostUsd } from '@/lib/intelligence/cost';
 import { buildMessages } from '@/lib/intelligence/prompt';
@@ -78,7 +78,17 @@ export async function runIntelligence(
     );
   }
 
-  const decision = classifyIntelligence(request.question, request.category);
+  const classified = classifyIntelligence(request.question, request.category);
+  // A caller with no deterministic answerer gets `mini`, never premium-by-default.
+  const decision: RoutingDecision =
+    request.requiresReasoning && classified.determination === 'deterministic'
+      ? {
+          category: classified.category,
+          determination: 'llm',
+          tier: 'mini',
+          modelReason: 'llm: caller has no deterministic answerer',
+        }
+      : classified;
   const base: BaseMeta = {
     businessId: request.businessId,
     actorId: request.actorId ?? null,

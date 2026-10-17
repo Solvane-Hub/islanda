@@ -7,13 +7,15 @@ import { AppError, fail, newCorrelationId, ok, type Result } from '@/lib/errors'
 import { toFieldErrors } from '@/lib/validation/field-errors';
 import { logger } from '@/lib/logger';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
-import type { NovaAnswerView } from '@/types/nova';
+import type { NovaResponseView } from '@/types/nova';
+import { routeNovaQuestion } from '@/lib/nova/routing';
 import { listBusinesses, resolveCurrentBusiness } from '@/services/business';
 import { getCurrentUser } from '@/services/auth';
 import { getIntakeProfile } from '@/services/intake';
 import { recordAuditEvent } from '@/services/audit';
 import { manifestForJurisdiction } from '@/services/knowledge/manifests/registry';
 import { answerNovaQuestion } from '@/services/nova/answer';
+import { answerGeneralNovaQuestion } from '@/services/nova/general';
 import { buildNovaContext, buildQueryRepresentation } from '@/services/nova/context';
 import { toNovaBusinessFacts } from '@/services/nova/business-awareness';
 import { consumeNovaRateLimit, rateLimitMessage } from '@/services/nova/rate-limit';
@@ -36,14 +38,17 @@ import { toNovaAnswerView } from '@/services/nova/view';
  *   1. validate            → reject malformed input
  *   2. resolve user + business
  *   3. RATE LIMIT          → fails CLOSED; an unreachable limiter denies
- *   4. answer
- *   5. RECORD EXECUTION    → fails CLOSED; an unrecordable answer is withheld
+ *   4. answer — routed by `routeNovaQuestion`, which fails toward 4b:
+ *        4a. general     → Intelligence Gateway (validated LLM, `ai_usage`)
+ *        4b. regulatory  → extractive, cited, no model (unchanged)
+ *   5. RECORD EXECUTION    → 4b only; fails CLOSED; an unrecordable answer is withheld
  *   6. audit               → fails OPEN (ADR-0012), inside the service
  *   7. return the view
  *
- * ⚠ Returns a `NovaAnswerView`, never a `NovaAnswer`. The projection strips the
+ * ⚠ Returns a `NovaResponseView`, never a `NovaAnswer`. The projection strips the
  *   envelope's machine-facing `reasoning`, which ADR-0017 §5 says is "never
- *   rendered to a founder".
+ *   rendered to a founder". A general answer is a separate type
+ *   (`outcome: 'general'`) that cannot carry claims or citations.
  */
 
 const askSchema = z.object({
@@ -63,9 +68,9 @@ async function requestMeta(): Promise<{ ipAddress: string | null; userAgent: str
 }
 
 export async function askNovaAction(
-  _previous: Result<NovaAnswerView> | null,
+  _previous: Result<NovaResponseView> | null,
   formData: FormData,
-): Promise<Result<NovaAnswerView>> {
+): Promise<Result<NovaResponseView>> {
   const correlationId = newCorrelationId();
 
   const parsed = askSchema.safeParse({ question: formData.get('question') });
@@ -155,6 +160,77 @@ export async function askNovaAction(
     );
   }
 
+  // ── 4a. General path — allowlisted general-business questions only ───────
+  //
+  // `routeNovaQuestion` is an allowlist; anything unrecognised takes 4b. See
+  // lib/nova/routing.ts. A general answer is not regulatory guidance and carries
+  // no claims or citations, so it is not an `agent_executions` run: the gateway's
+  // `ai_usage` row (provider, model, tokens, cost, validation) is its record,
+  // exactly as for the finance surface. If the model labels the question
+  // regulatory, or its answer uses legal vocabulary, the answer is discarded
+  // unseen and the question falls through to the cited path below.
+  if (routeNovaQuestion(question) === 'general') {
+    try {
+      const general = await answerGeneralNovaQuestion(db, {
+        question,
+        businessId: business.id,
+        actorId: user.id,
+        correlationId,
+      });
+
+      if (general.kind === 'general') {
+        await recordAuditEvent({
+          event: general.view.status === 'answered' ? 'nova.answered' : 'nova.failed',
+          actorId: user.id,
+          businessId: business.id,
+          correlationId,
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+          // Shape only. No question, no content.
+          metadata: {
+            surface: 'general',
+            category: general.outcome.category,
+            determination: general.outcome.usage.determination,
+            llmCalled: general.outcome.usage.llmCalled,
+            status: general.view.status,
+            ...(general.view.reason ? { reason: general.view.reason } : {}),
+          },
+        });
+        return ok(general.view);
+      }
+
+      // The deferral carries no model output by construction — only the reason.
+      logger.info('nova.general_deferred_to_regulatory', { correlationId, reason: general.reason });
+    } catch (error) {
+      logger.error('nova.general_unexpected', {
+        correlationId,
+        code: error instanceof Error ? error.name : 'unknown',
+      });
+      await recordAuditEvent({
+        event: 'nova.failed',
+        actorId: user.id,
+        businessId: business.id,
+        correlationId,
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
+        metadata: {
+          surface: 'general',
+          code: error instanceof AppError ? error.code : 'UNEXPECTED',
+        },
+      });
+      if (error instanceof AppError) return fail(error);
+      return fail(
+        new AppError({
+          code: 'UNEXPECTED',
+          humanMessage: 'Nova could not answer that. Please try again.',
+          correlationId,
+          cause: error,
+        }),
+      );
+    }
+  }
+
+  // ── 4b. Regulatory path — extractive, cited, no model ────────────────────
   const queryRepresentation = buildQueryRepresentation(question, business, null);
 
   try {

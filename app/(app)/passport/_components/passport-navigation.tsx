@@ -19,11 +19,11 @@ export type PassportPageId = 'cover' | 'overview' | 'identity' | 'business' | 's
  */
 export const PASSPORT_PAGES: readonly { id: PassportPageId; label: string }[] = [
   { id: 'cover', label: 'Cover' },
-  { id: 'overview', label: 'Overview' },
-  { id: 'identity', label: 'Identity' },
-  { id: 'business', label: 'Business' },
-  { id: 'state', label: 'State' },
-  { id: 'records', label: 'Records' },
+  { id: 'overview', label: 'Summary' },
+  { id: 'identity', label: 'Business setup' },
+  { id: 'business', label: 'About my business' },
+  { id: 'state', label: 'Goals and progress' },
+  { id: 'records', label: 'Documents and records' },
 ];
 
 /** Interior pages only — the cover carries no folio. */
@@ -190,10 +190,10 @@ export function PassportPageIndex({
 }
 
 const QUICK_LINKS = [
-  { label: 'Financials', href: '/dashboard#financials', icon: TrendingUp },
-  { label: 'Goals', href: '/dashboard#goals', icon: Target },
+  { label: 'Money and sales', href: '/dashboard#financials', icon: TrendingUp },
+  { label: 'My goals', href: '/dashboard#goals', icon: Target },
   { label: 'Documents', href: '/documents', icon: FileText },
-  { label: 'Nova', href: '/assistant', icon: Sparkles },
+  { label: 'Get help', href: '/assistant', icon: Sparkles },
   { label: 'Settings', href: '/settings', icon: Settings },
 ] as const;
 
@@ -205,7 +205,7 @@ export function PassportQuickLinks({ className }: { className?: string }) {
   return (
     <nav aria-label="Quick links" className={cn('flex w-36 shrink-0 flex-col gap-1.5', className)}>
       <p className="text-3xs text-on-glass-subtle/60 mb-1 font-medium tracking-[0.22em] uppercase">
-        Open in Islanda
+        Go to
       </p>
       {QUICK_LINKS.map((item) => {
         const Icon = item.icon;

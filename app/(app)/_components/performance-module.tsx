@@ -29,7 +29,7 @@ export function PerformanceModule({
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <TrendingUp aria-hidden="true" className="text-champagne size-3.5" strokeWidth={2} />
-          <SurfaceLabel as="h2">Performance</SurfaceLabel>
+          <SurfaceLabel as="h2">Money and sales</SurfaceLabel>
         </div>
         {view.currentPeriodLabel ? (
           <span className="text-on-glass-subtle text-2xs tracking-[0.1em] uppercase">
@@ -40,8 +40,9 @@ export function PerformanceModule({
 
       {!view.hasData ? (
         <p className="text-on-ink-muted max-w-prose text-sm text-pretty">
-          Not enough data yet. Record a figure or link one to a document you&apos;ve added, and your
-          revenue, expenses and profit will appear here — each with where it came from.
+          There isn&apos;t enough information to show this yet. Record a figure — for example, last
+          month&apos;s sales or expenses — and it will appear here with where it came from. Islanda
+          does not connect to your bank; it only shows figures you add.
         </p>
       ) : (
         <div className="flex flex-col gap-7">

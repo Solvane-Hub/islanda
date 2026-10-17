@@ -1,11 +1,20 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { LogoLockup } from '@/components/brand/logo-mark';
+import { ACCESS_COPY, type AccessMode } from '@/lib/product/availability';
+import { cn } from '@/lib/utils/cn';
 
 /**
  * The landing hero — environment, then logo, then statement, then action.
+ *
+ * The first screen answers the five questions a first-time visitor has, in
+ * order: who this is for and what problem it addresses (headline, supporting
+ * line), whether they can use it (the availability line, from the same access
+ * copy the auth pages use) and what to do next (one primary action). A second
+ * action exists only when it works: "Sign in" is offered in open mode and never
+ * while the waitlist gate redirects every sign-in away.
  *
  * A photograph of the Bahama Banks fills the viewport; the brand sits inside
  * it as the supplied lockup image, not an HTML wordmark — this is the one
@@ -35,7 +44,8 @@ const BLUR_DESKTOP =
 const BLUR_MOBILE =
   'data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAABQBACdASoQABQAPt1apkyopSOiMAgBEBuJbACdMoGv/gPC6MG6nWYXrb9gAPffaH/83GIZXt0HcPpYAR4NY9X9kmZ2ob8BEig7tTL+mYoMkXKJNx/twOhrv7GBvDRT6GiRK8mfnC/AoWaBj3z8OviSma5JebK+XpuAAA==';
 
-export function Hero() {
+export function Hero({ mode }: { mode: AccessMode }) {
+  const access = ACCESS_COPY[mode];
   return (
     <section className="relative isolate min-h-[100svh] overflow-hidden">
       {/* ---- Environment ------------------------------------------------- */}
@@ -72,49 +82,61 @@ export function Hero() {
         className="absolute inset-0 -z-0"
         style={{
           background:
-            'linear-gradient(to bottom, transparent 0%, oklch(18% 0.055 245 / 0.28) 34%, oklch(18% 0.055 245 / 0.34) 66%, transparent 88%)',
+            // Deeper than the logo-only hero needed: there is now a paragraph and
+            // an availability line on the photograph, not just a headline.
+            'linear-gradient(to bottom, transparent 0%, oklch(18% 0.055 245 / 0.45) 26%, oklch(18% 0.055 245 / 0.55) 70%, transparent 94%)',
         }}
       />
 
       {/* ---- Composition -------------------------------------------------- */}
-      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[92rem] flex-col items-center justify-center px-6 py-24 text-center sm:px-8 lg:px-12">
-        <div className="hero-text-in flex max-w-xl flex-col items-center">
-          <LogoLockup variant="dark" priority className="w-[clamp(10.5rem,26vw,17rem)]" />
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[92rem] flex-col items-center justify-center px-4 py-24 text-center sm:px-8 lg:px-12">
+        <div className="hero-text-in flex max-w-2xl flex-col items-center">
+          <LogoLockup variant="dark" priority className="w-[clamp(9rem,24vw,14rem)]" />
 
-          <h1 className="font-display mt-8 text-[clamp(1.75rem,5.2vw,3.25rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-balance text-white">
-            Navigate <span className="text-bahama-turquoise">what&apos;s next.</span>
+          <p className="text-2xs mt-8 font-semibold tracking-[0.2em] text-white uppercase drop-shadow-sm">
+            The Bahamas business pilot
+          </p>
+
+          <h1 className="font-display mt-4 text-[clamp(1.875rem,5.4vw,3.5rem)] leading-[1.08] font-semibold tracking-[-0.02em] text-balance text-white drop-shadow-sm">
+            Starting a business in The Bahamas?{' '}
+            <span className="text-bahama-turquoise">Start here.</span>
           </h1>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="#waitlist">
-              <Button
-                size="lg"
-                className="text-ink bg-white shadow-lg transition-transform hover:-translate-y-0.5 hover:bg-white"
-              >
-                Join the waitlist
-                <ArrowRight aria-hidden="true" strokeWidth={2} />
-              </Button>
-            </Link>
-            <Link href="#journey">
-              <Button
-                size="lg"
-                variant="secondary"
-                className="border-white/30 bg-white/10 text-white shadow-none backdrop-blur-md transition-colors hover:border-white/50 hover:bg-white/20"
-              >
-                See how it works
-              </Button>
-            </Link>
-          </div>
-        </div>
+          <p className="mt-5 max-w-xl text-base text-pretty text-white drop-shadow-sm sm:text-lg">
+            Finding the right information and knowing what to do first can be hard. Islanda is being
+            built to help you organize your business idea and take a clearer first step.
+          </p>
 
-        {/* Scroll invitation */}
-        <div className="mt-16 flex items-center gap-3 lg:mt-20">
-          <span className="text-2xs font-medium tracking-[0.18em] text-white/70 uppercase">
-            Scroll to explore
-          </span>
-          <span aria-hidden="true" className="relative h-px w-14 overflow-hidden bg-white/25">
-            <span className="hero-rule absolute inset-y-0 left-0 w-5 bg-white/90" />
-          </span>
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <Link
+              href="#waitlist"
+              className={cn(
+                buttonVariants({ size: 'lg' }),
+                'text-ink bg-white shadow-lg transition-transform hover:-translate-y-0.5 hover:bg-white',
+              )}
+            >
+              Join the early-access waitlist
+              <ArrowRight aria-hidden="true" strokeWidth={2} />
+            </Link>
+
+            {access.signInAvailable ? (
+              <p className="text-sm text-white drop-shadow-sm">
+                Already have access?{' '}
+                <Link
+                  href="/login"
+                  className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
+                >
+                  Sign in
+                </Link>
+              </p>
+            ) : null}
+          </div>
+
+          {/* The availability statement sits on its own plate: it is the one
+              line on the photograph a visitor must be able to read exactly. */}
+          <p className="bg-abyss/70 mt-6 max-w-lg rounded-xl px-4 py-3 text-sm text-pretty text-white backdrop-blur-md">
+            {access.statement}
+          </p>
         </div>
       </div>
     </section>

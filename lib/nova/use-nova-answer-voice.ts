@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { Result } from '@/lib/errors';
-import type { NovaAnswerView } from '@/types/nova';
+import type { NovaResponseView } from '@/types/nova';
 import { speechForAnswer } from '@/lib/nova/speech';
 
 /** The slice of the speech hook this orchestration needs. */
@@ -40,12 +40,12 @@ export function useNovaAnswerVoice({
   enabled,
   controls,
 }: {
-  result: Result<NovaAnswerView> | null;
+  result: Result<NovaResponseView> | null;
   pending: boolean;
   enabled: boolean;
   controls: AnswerVoiceControls;
 }): void {
-  const spokenForRef = useRef<Result<NovaAnswerView> | null>(null);
+  const spokenForRef = useRef<Result<NovaResponseView> | null>(null);
 
   // A new investigation silences any answer Nova is still speaking.
   useEffect(() => {

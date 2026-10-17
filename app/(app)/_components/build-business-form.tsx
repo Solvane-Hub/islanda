@@ -41,9 +41,10 @@ export function BuildBusinessForm({ countries }: { countries: { code: string; na
 
       <Field
         id="concept"
-        label="Tell Islanda what you want to build"
+        label="What is your business idea?"
         size="question"
-        description="For example: “A premium Bahamian skincare company selling natural products to tourists and local customers in Nassau.”"
+        required
+        description="A sentence or two is enough. For example: “Natural skincare products made at home and sold at markets and online.”"
         error={err('concept')}
       >
         {(aria) => (
@@ -62,7 +63,7 @@ export function BuildBusinessForm({ countries }: { countries: { code: string; na
           A few basics
         </p>
 
-        <Field id="name" label="Business name" error={err('name')}>
+        <Field id="name" label="Business name" required error={err('name')}>
           {(aria) => (
             <Input
               {...aria}
@@ -76,8 +77,9 @@ export function BuildBusinessForm({ countries }: { countries: { code: string; na
 
         <Field
           id="countryCode"
-          label="Where will it operate?"
-          description="This determines which government requirements Islanda applies. It cannot be inferred, so we ask directly."
+          label="Which country will it operate in?"
+          required
+          description="Islanda keeps your business with that country, and only searches that country’s official documents when you ask a question."
           error={err('countryCode')}
         >
           {(aria) => (
@@ -95,7 +97,7 @@ export function BuildBusinessForm({ countries }: { countries: { code: string; na
           id="industry"
           label="Industry"
           optional
-          description="In your own words — for example, skincare, restaurant, consulting."
+          description="In your own words — for example, food, beauty, cleaning, tours."
           error={err('industry')}
         >
           {(aria) => <Input {...aria} name="industry" />}
@@ -121,7 +123,7 @@ export function BuildBusinessForm({ countries }: { countries: { code: string; na
       </div>
 
       <Button type="submit" loading={pending} className="w-fit">
-        Start building
+        Create my business
       </Button>
     </form>
   );

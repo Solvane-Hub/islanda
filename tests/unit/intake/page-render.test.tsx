@@ -80,7 +80,7 @@ describe('/intake renders every step', () => {
     1: /What does the business do\?/,
     2: /Where are you today\?/,
     3: /How many people/,
-    4: /How much funding/,
+    4: /How much money/,
     5: /What do you want to achieve\?/,
   };
 
@@ -131,11 +131,11 @@ describe('/intake renders every step', () => {
     const ui = await IntakePage({ searchParams: Promise.resolve({ step: '3' }) });
     render(ui);
     const rail = screen.getByRole('navigation', { name: 'Intake sections' });
-    for (const label of ['Business', 'Stage', 'Team', 'Funding', 'Goals']) {
+    for (const label of ['About', 'Stage', 'Team', 'Money', 'Goals']) {
       expect(within(rail).getByText(label)).toBeTruthy();
     }
     // Established slots are reachable; unknown ones are not offered as links.
-    expect(within(rail).getByRole('link', { name: /Business/ })).toHaveAttribute(
+    expect(within(rail).getByRole('link', { name: /About/ })).toHaveAttribute(
       'href',
       '/intake?step=1',
     );
@@ -152,7 +152,7 @@ describe('/intake/review renders', () => {
     expect(screen.getByText('The Bahamas')).toBeTruthy();
     expect(screen.getByText(/seafood restaurant/)).toBeTruthy();
     expect(screen.getByText('Nassau, New Providence')).toBeTruthy();
-    expect(screen.getByRole('button', { name: /Finish intake/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Finish and go to Home/ })).toBeTruthy();
   });
 
   it('records a decline as an answer rather than an empty field', async () => {
@@ -183,8 +183,8 @@ describe('/intake/review renders', () => {
     profile = { ...profile, last_completed_step: 2, founder_goals: null };
     const ui = await ReviewPage();
     render(ui);
-    expect(screen.getByText(/still unanswered/)).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /Finish intake/ })).toBeNull();
-    expect(screen.getByRole('link', { name: 'Continue intake' })).toBeTruthy();
+    expect(screen.getByText(/still need an answer/)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Finish and go to Home/ })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Continue the questions' })).toBeTruthy();
   });
 });

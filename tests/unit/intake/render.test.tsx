@@ -31,10 +31,10 @@ describe('IntakeProgress', () => {
     expect(bar).toHaveAttribute('aria-valuenow', '3');
     expect(bar).toHaveAttribute('aria-valuemin', '0');
     expect(bar).toHaveAttribute('aria-valuemax', '5');
-    expect(bar).toHaveAttribute('aria-valuetext', '3 of 5 known');
+    expect(bar).toHaveAttribute('aria-valuetext', '3 of 5 answered');
   });
 
-  it('reads out what is known, not which page the founder is on', () => {
+  it('reads out what is answered, not which page the founder is on', () => {
     render(
       <IntakeProgress
         completed={0}
@@ -59,9 +59,9 @@ describe('IntakeProgress', () => {
     for (const label of ['Business', 'Stage', 'Team', 'Funding', 'Goals']) {
       expect(within(rail).getByText(label)).toBeTruthy();
     }
-    expect(within(rail).getAllByText('known')).toHaveLength(3);
-    expect(within(rail).getByText('current, not yet answered')).toBeTruthy();
-    expect(within(rail).getByText('not yet known')).toBeTruthy();
+    expect(within(rail).getAllByText('answered')).toHaveLength(3);
+    expect(within(rail).getByText('current question, not answered yet')).toBeTruthy();
+    expect(within(rail).getByText('not answered yet')).toBeTruthy();
   });
 
   it('links back to established slots and nowhere else', () => {

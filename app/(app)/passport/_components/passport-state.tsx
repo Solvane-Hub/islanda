@@ -28,14 +28,14 @@ export function PassportState({
 
   return (
     <PassportPage
-      title="State"
-      subtitle="Current business state"
+      title="Goals and progress"
+      subtitle="Money, goals and records so far"
       pageNumber={4}
       totalPages={totalPages}
       reference={reference}
     >
       <section>
-        <PassportSectionHead index={1} label="Financials" />
+        <PassportSectionHead index={1} label="Money and sales" />
         {financials.hasData ? (
           <>
             {financials.currentPeriodLabel ? (
@@ -85,7 +85,7 @@ export function PassportState({
       </section>
 
       <section className="mt-5">
-        <PassportSectionHead index={3} label="Record" />
+        <PassportSectionHead index={3} label="Records" />
         <div className="mt-1">
           <PassportEntry
             label="Documents held"
@@ -93,7 +93,7 @@ export function PassportState({
             muted={documents.length === 0}
           />
           <PassportEntry
-            label="Profile completeness"
+            label="Business details"
             value={
               completeness.intake.isComplete
                 ? 'complete'
@@ -105,7 +105,7 @@ export function PassportState({
       </section>
 
       <section className="mt-5">
-        <PassportSectionHead index={4} label="Next action" />
+        <PassportSectionHead index={4} label="What to do next" />
         <Link
           href={next.href}
           className="border-passport-line/80 bg-passport-paper-raised/60 hover:border-passport-accent/50 mt-2.5 flex items-center justify-between gap-3 border px-3.5 py-3 transition-colors duration-150"

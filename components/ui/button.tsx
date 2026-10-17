@@ -37,6 +37,13 @@ const buttonVariants = cva(
   },
 );
 
+/**
+ * For a navigation styled as a button. A `<Link>` wrapping a `<Button>` nests
+ * a button inside a link, which is invalid HTML and announces two controls for
+ * one action; put these classes on the link instead.
+ */
+export { buttonVariants };
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   /** Renders a loading state and blocks interaction. */

@@ -1865,41 +1865,95 @@ export type Database = {
         };
         Relationships: [];
       };
+      staff_members: {
+        Row: {
+          created_at: string;
+          role: Database['public']['Enums']['staff_role'];
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          role: Database['public']['Enums']['staff_role'];
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          role?: Database['public']['Enums']['staff_role'];
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       waitlist_signups: {
         Row: {
+          biggest_challenge: Database['public']['Enums']['waitlist_challenge'] | null;
           business_name: string | null;
+          business_stage: Database['public']['Enums']['waitlist_business_stage'] | null;
+          challenge_other: string | null;
           created_at: string;
           email: string;
           first_name: string | null;
           id: string;
           last_name: string | null;
+          phone: string | null;
+          recruitment_notes: string | null;
+          recruitment_status: Database['public']['Enums']['waitlist_recruitment_status'];
+          recruitment_updated_at: string | null;
           role: string | null;
           source: string | null;
           status: Database['public']['Enums']['waitlist_signup_status'];
+          survey_city_island: string | null;
+          survey_completed_at: string | null;
+          survey_country: string | null;
+          survey_token_hash: string | null;
+          testing_interest: Database['public']['Enums']['waitlist_testing_interest'] | null;
           updated_at: string;
         };
         Insert: {
+          biggest_challenge?: Database['public']['Enums']['waitlist_challenge'] | null;
           business_name?: string | null;
+          business_stage?: Database['public']['Enums']['waitlist_business_stage'] | null;
+          challenge_other?: string | null;
           created_at?: string;
           email: string;
           first_name?: string | null;
           id?: string;
           last_name?: string | null;
+          phone?: string | null;
+          recruitment_notes?: string | null;
+          recruitment_status?: Database['public']['Enums']['waitlist_recruitment_status'];
+          recruitment_updated_at?: string | null;
           role?: string | null;
           source?: string | null;
           status?: Database['public']['Enums']['waitlist_signup_status'];
+          survey_city_island?: string | null;
+          survey_completed_at?: string | null;
+          survey_country?: string | null;
+          survey_token_hash?: string | null;
+          testing_interest?: Database['public']['Enums']['waitlist_testing_interest'] | null;
           updated_at?: string;
         };
         Update: {
+          biggest_challenge?: Database['public']['Enums']['waitlist_challenge'] | null;
           business_name?: string | null;
+          business_stage?: Database['public']['Enums']['waitlist_business_stage'] | null;
+          challenge_other?: string | null;
           created_at?: string;
           email?: string;
           first_name?: string | null;
           id?: string;
           last_name?: string | null;
+          phone?: string | null;
+          recruitment_notes?: string | null;
+          recruitment_status?: Database['public']['Enums']['waitlist_recruitment_status'];
+          recruitment_updated_at?: string | null;
           role?: string | null;
           source?: string | null;
           status?: Database['public']['Enums']['waitlist_signup_status'];
+          survey_city_island?: string | null;
+          survey_completed_at?: string | null;
+          survey_country?: string | null;
+          survey_token_hash?: string | null;
+          testing_interest?: Database['public']['Enums']['waitlist_testing_interest'] | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -1950,6 +2004,18 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      submit_waitlist_survey: {
+        Args: {
+          p_biggest_challenge?: Database['public']['Enums']['waitlist_challenge'] | null;
+          p_business_stage?: Database['public']['Enums']['waitlist_business_stage'] | null;
+          p_challenge_other?: string | null;
+          p_city_island?: string | null;
+          p_country?: string | null;
+          p_testing_interest?: Database['public']['Enums']['waitlist_testing_interest'] | null;
+          p_token: string;
+        };
+        Returns: boolean;
       };
     };
     Enums: {
@@ -2046,7 +2112,19 @@ export type Database = {
         | 'agency_publication';
       validation_outcome: 'validated' | 'partially_validated' | 'unverified' | 'rejected';
       verification_state: 'unverified' | 'verified' | 'verification_unavailable';
+      staff_role: 'waitlist_admin';
+      waitlist_business_stage:
+        'just_exploring' | 'planning_to_start' | 'trying_to_register' | 'already_operating';
+      waitlist_challenge:
+        | 'finding_information'
+        | 'understanding_registration'
+        | 'knowing_next_steps'
+        | 'finding_customers'
+        | 'managing_business'
+        | 'other';
+      waitlist_recruitment_status: 'not_contacted' | 'contacted' | 'confirmed' | 'tested';
       waitlist_signup_status: 'pending' | 'invited' | 'declined';
+      waitlist_testing_interest: 'yes' | 'maybe' | 'not_right_now';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -2280,7 +2358,24 @@ export const Constants = {
       ],
       validation_outcome: ['validated', 'partially_validated', 'unverified', 'rejected'],
       verification_state: ['unverified', 'verified', 'verification_unavailable'],
+      staff_role: ['waitlist_admin'],
+      waitlist_business_stage: [
+        'just_exploring',
+        'planning_to_start',
+        'trying_to_register',
+        'already_operating',
+      ],
+      waitlist_challenge: [
+        'finding_information',
+        'understanding_registration',
+        'knowing_next_steps',
+        'finding_customers',
+        'managing_business',
+        'other',
+      ],
+      waitlist_recruitment_status: ['not_contacted', 'contacted', 'confirmed', 'tested'],
       waitlist_signup_status: ['pending', 'invited', 'declined'],
+      waitlist_testing_interest: ['yes', 'maybe', 'not_right_now'],
     },
   },
 } as const;

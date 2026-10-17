@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getActiveCountries } from '@/services/business';
 import { Alert } from '@/components/ui/alert';
 
-export const metadata: Metadata = { title: 'Bring your business into Islanda' };
+export const metadata: Metadata = { title: 'Add your business' };
 
 /**
  * The two front doors. Both create the same Business Object — this screen only
@@ -20,14 +20,14 @@ const PATHS = [
     icon: Sparkles,
     eyebrow: 'Start from an idea',
     title: 'Build my business',
-    body: 'You have an idea or an early concept. Describe what you want to build, and Islanda starts shaping it into a business with you.',
+    body: 'You have an idea or are just getting started. Give it a name, say where it will operate, and answer a few questions to describe it.',
   },
   {
     href: '/businesses/new/manage',
     icon: Building2,
     eyebrow: 'You already operate',
     title: 'Manage my business',
-    body: 'You already own or run a business. Bring it into Islanda — its identity, registrations and records — and make it your intelligence layer.',
+    body: 'You already own or run a business. Add its details, such as its legal name and registration numbers, so its information is kept in one place.',
   },
 ] as const;
 
@@ -38,9 +38,10 @@ export default async function NewBusinessPage() {
   if (countries.length === 0) {
     return (
       <div className="flex flex-col gap-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Bring your business into Islanda</h1>
-        <Alert tone="info" title="No jurisdictions are available yet">
-          Islanda needs an active country before a business can be created. Please contact support.
+        <h1 className="text-2xl font-semibold tracking-tight">Add your business</h1>
+        <Alert tone="info" title="No countries are available yet">
+          A business needs a country, and none has been switched on yet. Please contact the Islanda
+          team.
         </Alert>
       </div>
     );
@@ -53,11 +54,10 @@ export default async function NewBusinessPage() {
           New business
         </p>
         <h1 className="text-on-ink text-2xl font-semibold tracking-[-0.02em] text-balance sm:text-3xl">
-          Bring your business into Islanda
+          Add your business
         </h1>
-        <p className="text-on-ink-muted max-w-prose text-sm">
-          Whether you are starting from an idea or already operating, Islanda becomes the place your
-          business lives. Choose where you are today — you can change anything later.
+        <p className="text-on-ink-muted max-w-prose text-sm text-pretty">
+          Choose the option that fits you today. You can change any detail later.
         </p>
       </div>
 
@@ -93,7 +93,7 @@ export default async function NewBusinessPage() {
       </div>
 
       <p className="text-on-ink-subtle text-xs">
-        Nothing here is submitted to any government agency. Islanda keeps your business private to
+        Nothing here is sent to any government office. Your business information stays private to
         your account.
       </p>
     </div>

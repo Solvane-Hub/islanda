@@ -21,7 +21,10 @@ import { useVoicePreference } from '@/lib/nova/voice-preference';
 import { useNovaSpeech } from '@/lib/nova/use-nova-speech';
 import { useNovaAnswerVoice } from '@/lib/nova/use-nova-answer-voice';
 import type { Result } from '@/lib/errors';
-import type { NovaAnswerView } from '@/types/nova';
+import type { NovaResponseView } from '@/types/nova';
+import { NovaGeneralAnswer } from '@/components/nova/nova-general-answer';
+import { routeNovaQuestion } from '@/lib/nova/routing';
+import type { PublishedSourceSummary } from '@/lib/knowledge/source-display';
 import { askNovaAction } from '../actions';
 
 /**
@@ -66,15 +69,24 @@ import { askNovaAction } from '../actions';
  * call of its own; everything arrives as a plain value from the server action.
  */
 
+/**
+ * Example questions, chosen by asking them against the published Bahamas pack
+ * (VAT Act and amendments, Data Protection Acts) on 2026-10-16: each returns
+ * quoted passages. The previous set asked about licences, business
+ * registration and annual returns, which that pack does not cover, so every
+ * example a newcomer tapped ended in "nothing found".
+ */
 const STARTING_POINTS = [
-  { topic: 'Licences', question: 'What licence do I need to sell prepared food?' },
-  { topic: 'Registration', question: 'When do I have to register my business?' },
-  { topic: 'Reporting', question: 'When must I submit an annual return?' },
-  { topic: 'Records', question: 'What records am I required to keep?' },
+  'When do I need to register for VAT?',
+  'What records am I required to keep?',
 ] as const;
 
-/** A question the sources deliberately do NOT answer — shows the refusal. */
-const BOUNDARY_EXAMPLE = 'What is the VAT rate in The Bahamas?';
+/**
+ * A question the published sources do NOT answer — shows the refusal. The
+ * previous example (the VAT rate) does retrieve VAT Act passages, so it no
+ * longer demonstrated a refusal.
+ */
+const BOUNDARY_EXAMPLE = 'What licence do I need to sell prepared food?';
 
 export function NovaConsole({
   businessName,
@@ -82,6 +94,7 @@ export function NovaConsole({
   businessContextLine = null,
   initialQuestion,
   knowledgePublished = true,
+  sources = [],
 }: {
   businessName: string;
   knowledgeLine: string | null;
@@ -105,8 +118,10 @@ export function NovaConsole({
    * know cannot be grounded.
    */
   knowledgePublished?: boolean;
+  /** The documents in the published pack, so the landing can show what Nova searches. */
+  sources?: readonly PublishedSourceSummary[];
 }) {
-  const [state, formAction, pending] = useActionState<Result<NovaAnswerView> | null, FormData>(
+  const [state, formAction, pending] = useActionState<Result<NovaResponseView> | null, FormData>(
     askNovaAction,
     null,
   );
@@ -120,7 +135,14 @@ export function NovaConsole({
   const [lastRecorded, setLastRecorded] = useState<string | null>(null);
 
   const answer = state?.ok ? state.data : null;
-  const activity = useNovaActivity({ pending, answer, composing: draft.trim().length > 0 });
+  const activity = useNovaActivity({
+    pending,
+    answer,
+    composing: draft.trim().length > 0,
+    // Same pure router the server runs, so the in-flight copy names the work
+    // actually happening. It selects status copy only — never the answer path.
+    route: routeNovaQuestion(draft),
+  });
 
   // ── Voice ──────────────────────────────────────────────────────────────
   const reducedMotion = usePrefersReducedMotion();
@@ -208,25 +230,23 @@ export function NovaConsole({
       />
 
       {!started && noEvidence ? (
-        <Alert tone="info" title="No published evidence for this jurisdiction yet">
-          Nova answers only from published, cited sources. There is no Knowledge Pack published for{' '}
-          {businessName}&rsquo;s jurisdiction yet, so Nova has nothing to investigate here. Ask once
-          evidence is published and Nova will quote it with the provision it came from.
+        <Alert tone="info" title="No official documents for this country yet">
+          Nova only answers from official documents it can quote. Islanda doesn&rsquo;t hold any for
+          the country {businessName} operates in yet, so Nova has nothing to search here. When
+          documents are added, Nova will quote them with a link to each source.
         </Alert>
       ) : null}
 
       {!started && !noEvidence ? (
         <div className="flex flex-col gap-3 px-1">
           <SurfaceLabel as="p" className="text-on-glass-subtle">
-            Or start here
+            Try an example question
           </SurfaceLabel>
 
           <ul className="flex flex-wrap gap-2">
-            {STARTING_POINTS.map((point) => (
-              <li key={point.question}>
-                <Chip onClick={() => investigate(point.question)} title={point.question}>
-                  {point.topic}
-                </Chip>
+            {STARTING_POINTS.map((question) => (
+              <li key={question}>
+                <Chip onClick={() => investigate(question)}>{question}</Chip>
               </li>
             ))}
             <li>
@@ -235,7 +255,7 @@ export function NovaConsole({
                 onClick={() => investigate(BOUNDARY_EXAMPLE)}
                 title={BOUNDARY_EXAMPLE}
               >
-                Something we don&rsquo;t cover
+                See what happens when Nova can&rsquo;t find an answer
               </Chip>
             </li>
           </ul>
@@ -268,6 +288,7 @@ export function NovaConsole({
           <NovaLanding
             businessName={businessName}
             knowledgeLine={knowledgeLine}
+            sources={sources}
             contextLine={businessContextLine}
             hero={
               <NovaVideo
@@ -334,7 +355,11 @@ export function NovaConsole({
 
               {!pending && answer ? (
                 <div className="flex flex-col gap-5">
-                  <NovaAnswerPanel answer={answer} onContinue={investigate} />
+                  {answer.outcome === 'general' ? (
+                    <NovaGeneralAnswer answer={answer} onContinue={investigate} />
+                  ) : (
+                    <NovaAnswerPanel answer={answer} onContinue={investigate} />
+                  )}
                   <AnswerFeedback />
                 </div>
               ) : null}

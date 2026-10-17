@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { RoadmapRoute } from '../_components/roadmap-route';
 
-export const metadata: Metadata = { title: 'Compliance' };
+export const metadata: Metadata = { title: 'Business requirements' };
 
 /**
  * Compliance is not built yet.
@@ -13,8 +13,8 @@ export const metadata: Metadata = { title: 'Compliance' };
 export default function CompliancePage() {
   return (
     <RoadmapRoute
-      title="Compliance"
-      purpose="The registrations, licences, permits and filings that apply to your business — each one traced back to the Act, regulation or notice it came from."
+      title="Business requirements"
+      purpose="This will show which registrations, licences and permits may apply to your business, each linked to the official law or notice it comes from. It is not available yet."
     />
   );
 }

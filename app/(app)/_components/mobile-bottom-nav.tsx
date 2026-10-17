@@ -5,22 +5,21 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
-import { NAV_ITEMS, NAV_SECTORS } from './nav-items';
+import { isNavItemActive, NAV_ITEMS, NAV_SECTORS } from './nav-items';
 import { NavSectorList } from './sidebar-nav';
 
 /**
  * Mobile primary navigation — a compact tab bar, not the desktop rail copied
  * into a drawer.
  *
- * Four destinations get a permanent, one-tap slot: the two the founder reaches
- * most (Overview, Nova) plus the two remaining Business-sector routes that
- * already exist as their own pages (Business, Documents). Everything else —
- * Financials and Goals (both anchors into Overview), the roadmap stubs, and
- * Settings — lives one tap away in "More", grouped by the exact same sectors
- * as the desktop rail (`NavSectorList`), so the two surfaces present one
- * hierarchy, never two.
+ * Four destinations get a permanent, one-tap slot — the four jobs a person
+ * comes back for: Home, My Business, Documents, Get help. Everything else —
+ * business details, goals and money (anchors into Home), the "coming later"
+ * surfaces, and Settings — lives one tap away in "More", grouped by the exact
+ * same sectors as the desktop rail (`NavSectorList`), so the two surfaces
+ * present one hierarchy, never two.
  */
-const BOTTOM_HREFS = ['/dashboard', '/assistant', '/intake', '/documents'] as const;
+const BOTTOM_HREFS = ['/dashboard', '/passport', '/documents', '/assistant'] as const;
 
 const BOTTOM_ITEMS = BOTTOM_HREFS.map((href) => {
   const item = NAV_ITEMS.find((i) => i.href === href);
@@ -60,14 +59,12 @@ export function MobileBottomNav() {
     return () => document.removeEventListener('keydown', onKey);
   }, [moreOpen]);
 
-  const isRouteActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
-  const moreActive = !BOTTOM_ITEMS.some((item) => isRouteActive(item.href));
+  const moreActive = !BOTTOM_ITEMS.some((item) => isNavItemActive(item, pathname));
 
-  // The Passport is a full-screen document viewer on small screens: the object
-  // is meant to be the entire surface, and its own pager sits where a tab bar
-  // would. Application navigation is a tap away via the header and the back
-  // gesture; a bar under the document would make it a panel again.
-  if (isRouteActive('/passport')) return null;
+  // The tab bar used to hide itself on the Passport so the document could fill
+  // the screen. Now that the Passport is "My Business" — one of the four tabs —
+  // hiding the bar there stranded people on a primary destination with no way
+  // back but the header logo, so it stays; the Passport sizes itself to fit.
 
   return (
     <div className="relative shrink-0 border-t border-white/8 md:hidden">
@@ -93,7 +90,7 @@ export function MobileBottomNav() {
       >
         {BOTTOM_ITEMS.map((item) => {
           const Icon = item.icon;
-          const active = isRouteActive(item.href);
+          const active = isNavItemActive(item, pathname);
           return (
             <Link
               key={item.href}

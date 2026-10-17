@@ -73,9 +73,11 @@ export function PassportCover({
 
       {/* Document title */}
       <div className="relative mt-5">
-        <h1 className="passport-foil text-base leading-tight font-semibold tracking-[0.2em] uppercase sm:text-lg">
+        {/* The page's h1 is "My Business" (passport/page.tsx); the cover
+            title is the document's printed name, not a second page heading. */}
+        <p className="passport-foil text-base leading-tight font-semibold tracking-[0.2em] uppercase sm:text-lg">
           Business Passport
-        </h1>
+        </p>
         <p className="text-passport-foil-dim/70 text-3xs passport-deboss mt-2 font-medium tracking-[0.34em] uppercase">
           Digital Business Record
         </p>

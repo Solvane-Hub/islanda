@@ -16,6 +16,12 @@
  *     presentation layer states no legal conclusion of its own.
  */
 
+import type {
+  EvidenceRef,
+  IntelligenceConfidence,
+  IntelligenceRecommendation,
+} from '@/lib/intelligence/types';
+
 /** What a founder is shown as the outcome of asking. */
 export type NovaViewOutcome =
   'answered' | 'no_published_knowledge' | 'no_matching_evidence' | 'needs_clarification';
@@ -140,3 +146,40 @@ export interface NovaAnswerView {
    */
   business: NovaBusinessContextView | null;
 }
+
+/**
+ * Why a general answer could not be produced. Every case is a calm degraded
+ * state — never a fabricated answer.
+ */
+export type NovaGeneralUnavailableReason =
+  'provider_not_configured' | 'provider_error' | 'validation_failed';
+
+/**
+ * A general (non-regulatory) answer from the Intelligence Gateway.
+ *
+ * ⚠ A DIFFERENT TYPE from `NovaAnswerView`, discriminated by `outcome:
+ *   'general'`, so it can never be rendered as a regulatory finding. It has no
+ *   `claims`, no `citations` and no `knowledgeVersion`: it was produced by a
+ *   model reasoning over the founder's own business context, not by quoting a
+ *   published source, and the type makes that impossible to blur. The only
+ *   evidence it may carry is business context the gateway supplied (validated
+ *   by id — the model cannot invent an evidence reference).
+ */
+export interface NovaGeneralAnswerView {
+  outcome: 'general';
+  status: 'answered' | 'unavailable';
+  question: string;
+  /** Null only when unavailable. */
+  answer: string | null;
+  confidence: IntelligenceConfidence | null;
+  recommendations: readonly IntelligenceRecommendation[];
+  evidence: readonly EvidenceRef[];
+  /** Self-contained next questions. Each re-runs routing from scratch. */
+  followUps: readonly string[];
+  unknowns: readonly string[];
+  /** Present only when status is 'unavailable'. */
+  reason?: NovaGeneralUnavailableReason;
+}
+
+/** Everything `askNovaAction` can return. Discriminate on `outcome`. */
+export type NovaResponseView = NovaAnswerView | NovaGeneralAnswerView;

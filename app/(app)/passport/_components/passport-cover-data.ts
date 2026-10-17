@@ -27,7 +27,7 @@ export function businessStateRows(passport: BusinessPassport): StateRow[] {
   const { financials, goals, documents, completeness } = passport;
   return [
     {
-      label: 'Financials',
+      label: 'Money and sales',
       value: financials.hasData ? 'Available' : 'Not started',
       href: '/dashboard#financials',
     },
@@ -38,11 +38,11 @@ export function businessStateRows(passport: BusinessPassport): StateRow[] {
     },
     {
       label: 'Documents',
-      value: documents.length > 0 ? `${documents.length} records` : 'None yet',
+      value: documents.length > 0 ? `${documents.length} files` : 'None yet',
       href: '/documents',
     },
     {
-      label: 'Profile',
+      label: 'Business details',
       value: completeness.intake.isComplete
         ? 'Complete'
         : `${completeness.intake.percent}% complete`,
@@ -72,5 +72,5 @@ export function nextAction(passport: BusinessPassport): { label: string; href: s
   if (documents.length === 0) {
     return { label: 'Add your first document', href: '/documents' };
   }
-  return { label: 'Explore Nova', href: '/assistant' };
+  return { label: 'Ask a question about your business', href: '/assistant' };
 }

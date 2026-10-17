@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
-import { NAV_SECTORS, type NavSector } from './nav-items';
+import { isNavItemActive, NAV_SECTORS, type NavSector } from './nav-items';
 
 /**
  * Shared sector-grouped nav list — the desktop rail (`SidebarNav`) and the
@@ -51,11 +51,10 @@ export function NavSectorList({
 
           {sector.items.map((item) => {
             const Icon = item.icon;
-            // A hash-anchor href (Goals, Financials) never equals or prefixes
-            // `pathname` — `usePathname()` never includes a hash — so these
-            // naturally never highlight as active. The page they scroll into
-            // (Overview) carries that state instead.
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            // A hash-anchor href (goals, money) never highlights as active —
+            // `usePathname()` never includes a hash. The page it scrolls into
+            // (Home) carries that state instead.
+            const active = isNavItemActive(item, pathname);
 
             return (
               <Link
@@ -86,7 +85,7 @@ export function NavSectorList({
                 <span className="flex-1 truncate">{item.label}</span>
                 {!item.available ? (
                   <span className="text-2xs text-on-glass-subtle font-medium tracking-wide uppercase">
-                    Soon
+                    Soon<span className="sr-only">, not available yet</span>
                   </span>
                 ) : null}
               </Link>

@@ -120,7 +120,7 @@ function refusalNarration(answer: NovaAnswerView): NovaNarration {
       return {
         opener: 'Let me check what I have.',
         continuation: null,
-        lead: 'I have no published sources for your jurisdiction yet, so there was nothing for me to search.',
+        lead: 'I have no published sources for your country yet, so there was nothing for me to search.',
         detail: null,
         caveat:
           'This is a gap in what Islanda holds — not a statement about what the law requires.',
@@ -142,7 +142,7 @@ function refusalNarration(answer: NovaAnswerView): NovaNarration {
       return {
         opener: 'Let me look at that.',
         continuation: null,
-        lead: 'I searched the published sources for your jurisdiction and found nothing that answers this.',
+        lead: 'I searched the published sources for your country and found nothing that answers this.',
         detail: null,
         caveat:
           'Rather than quote something close and let it read as an answer, I am telling you the sources do not cover it.',
@@ -167,8 +167,8 @@ export function narrateAnswer(answer: NovaAnswerView): NovaNarration {
 
   const lead =
     documents.length > 1
-      ? `I searched the published sources for your jurisdiction and found ${count(passages, 'passage')} across ${count(documents.length, 'document')}.`
-      : `I searched the published sources for your jurisdiction and found ${count(passages, 'passage')}.`;
+      ? `I searched the published sources for your country and found ${count(passages, 'passage')} across ${count(documents.length, 'document')}.`
+      : `I searched the published sources for your country and found ${count(passages, 'passage')}.`;
 
   /**
    * Where the closest match sits.

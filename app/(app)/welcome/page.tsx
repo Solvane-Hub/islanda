@@ -15,7 +15,7 @@ import { toNovaBusinessFacts } from '@/services/nova/business-awareness';
 import type { BusinessPassport } from '@/services/passport';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
 import { BUSINESS_STAGE_LABELS, type BusinessStage } from '@/lib/validation/intake';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { WorkspaceSurface, SurfaceLabel } from '@/components/ui/workspace-surface';
 import { BusinessCommandCenter } from '../_components/business-command-center';
 
@@ -76,17 +76,31 @@ export default async function WelcomePage() {
     founderGoals: passportFacts.founderGoals,
   };
 
+  // Built from the availability register's wording: what works now, then what
+  // does not yet. No surface is listed here that the register does not name.
   const nextAreas: { label: string; available: boolean; note: string }[] = [
     {
-      label: 'Regulatory requirements',
+      label: 'Describe your business',
+      available: true,
+      note: 'Five short questions. Your answers are saved as you go.',
+    },
+    {
+      label: 'Ask a question',
       available: novaAvailable,
       note: novaAvailable
-        ? 'Ask Nova — every answer quoted and cited from published law'
-        : 'Available once a knowledge pack is published for your jurisdiction',
+        ? 'Nova quotes the official documents Islanda holds for your country.'
+        : 'Islanda does not hold official documents for this country yet.',
     },
-    { label: 'Formation', available: false, note: 'Coming as your business grows' },
-    { label: 'Brand direction', available: false, note: 'Coming soon' },
-    { label: 'Launch planning', available: false, note: 'Coming soon' },
+    {
+      label: 'Business requirements',
+      available: false,
+      note: 'Which registrations and licences may apply. We are working on this.',
+    },
+    {
+      label: 'Funding',
+      available: false,
+      note: 'Programmes that may suit your business. We are working on this.',
+    },
   ];
 
   return (
@@ -96,17 +110,16 @@ export default async function WelcomePage() {
           {isManage ? 'Business imported' : 'Business started'}
         </p>
         <h1 className="text-on-ink text-2xl font-semibold tracking-[-0.02em] text-balance sm:text-3xl">
-          {isManage ? 'Your business is in Islanda.' : "I've got the beginnings of your business."}
+          {isManage ? 'Your business is in Islanda.' : 'Your business is set up.'}
         </h1>
-        <p className="text-on-ink-muted max-w-prose text-sm">
-          Here is what Islanda understands so far. Everything shows where it came from, and you can
-          refine any of it at any time.
+        <p className="text-on-ink-muted max-w-prose text-sm text-pretty">
+          Here is what you have told Islanda so far. You can change any of it at any time.
         </p>
       </header>
 
       {isManage ? (
         <WorkspaceSurface as="section" tone="shell" className="flex flex-col gap-7 p-6 sm:p-8">
-          <SurfaceLabel>Here&apos;s what I know about your business</SurfaceLabel>
+          <SurfaceLabel>What you told Islanda</SurfaceLabel>
           <BusinessCommandCenter
             identity={commandCenterIdentity}
             definition={commandCenterDefinition}
@@ -136,7 +149,7 @@ export default async function WelcomePage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <span className="text-2xs text-on-glass-subtle font-medium tracking-[0.14em] uppercase">
-                Jurisdiction
+                Country
               </span>
               <span className="text-on-ink text-base font-medium">{countryName}</span>
             </div>
@@ -158,7 +171,7 @@ export default async function WelcomePage() {
       {/* What we can work on next — honest about what is available now. */}
       <section aria-labelledby="next-heading" className="flex flex-col gap-3">
         <SurfaceLabel id="next-heading" className="px-1">
-          What we can work on next
+          What you can do next
         </SurfaceLabel>
         <div className="grid gap-3 sm:grid-cols-2">
           {nextAreas.map((area) => (
@@ -185,23 +198,21 @@ export default async function WelcomePage() {
       </section>
 
       <div className="flex flex-wrap items-center gap-3 px-1">
+        <Link href="/intake" className={buttonVariants()}>
+          Answer five questions
+          <ArrowRight aria-hidden="true" strokeWidth={1.75} />
+        </Link>
         {novaAvailable ? (
-          <Link href="/assistant">
-            <Button>
-              <Sparkles aria-hidden="true" strokeWidth={1.75} />
-              Ask Nova about your business
-            </Button>
+          <Link href="/assistant" className={buttonVariants({ variant: 'secondary' })}>
+            <Sparkles aria-hidden="true" strokeWidth={1.75} />
+            Ask a question
           </Link>
         ) : null}
-        <Link href="/intake">
-          <Button variant="secondary">Add more detail</Button>
-        </Link>
         <Link
           href="/dashboard"
-          className="text-on-ink-muted hover:text-on-ink inline-flex items-center gap-1.5 text-sm"
+          className="text-on-ink-muted hover:text-on-ink inline-flex min-h-11 items-center gap-1.5 text-sm"
         >
-          Go to dashboard
-          <ArrowRight aria-hidden="true" className="size-4" strokeWidth={1.75} />
+          Go to Home
         </Link>
       </div>
     </div>

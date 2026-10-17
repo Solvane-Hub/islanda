@@ -12,7 +12,32 @@ import type { RoutingDecision } from '@/lib/intelligence/router';
  * VERIFIED_FACT, never turn UNKNOWN into FACT); cite evidence only by supplied
  * id; put anything unestablished in `unknowns`.
  */
-export const INTELLIGENCE_PROMPT_VERSION = 'intelligence-gateway@1.0.0';
+export const INTELLIGENCE_PROMPT_VERSION = 'intelligence-gateway@1.1.0';
+
+/**
+ * Rule 9 (added in 1.1.0, when Nova's general path began using the gateway).
+ *
+ * Regulatory knowledge reaches a founder ONLY through Nova's extractive,
+ * cited research over the published Knowledge Pack. A model stating a rate, fee,
+ * deadline or requirement from memory would be exactly the fabrication that path
+ * makes structurally impossible, so the gateway forbids it outright and asks the
+ * model to classify such a question as regulatory/compliance — which the Nova
+ * general path treats as a signal to discard the answer and re-route.
+ *
+ * The rule is SHARED with the finance panel deliberately: 1.0.0 never forbade
+ * that surface from stating a tax rate from memory either. The final sentence
+ * is the carve-out that keeps finance behaviour intact — the founder's own
+ * figures and goals in CONTEXT (which may carry labels like "licence fees") are
+ * facts the model may still report, with their provenance.
+ */
+export const REGULATORY_BOUNDARY_RULE =
+  '9. NEVER state laws, regulations, tax or VAT rates, fees, fines, filing deadlines, licensing, ' +
+  'registration or permit requirements, or any legal obligation, and NEVER cite or name a law, ' +
+  "regulation or official source. Those come only from Islanda's cited regulatory research. If " +
+  'the question depends on them, set "category" to "regulatory" or "compliance", say that Nova\'s ' +
+  'source-cited research answers that part, and add what is unknown to "unknowns". This does not ' +
+  "restrict figures, labels or goals supplied in CONTEXT — the founder's own records may be " +
+  'reported as given, with their provenance.';
 
 export function buildSystemPrompt(): string {
   return [
@@ -32,6 +57,7 @@ export function buildSystemPrompt(): string {
     '6. Cite evidence ONLY by an id that appears in CONTEXT.evidence. Do not invent evidence ids.',
     '7. Recommendations are suggestions, not facts: "basis" is always RECOMMENDATION or INFERENCE.',
     '8. Be calm, precise and honest. Prefer "I cannot determine X" over a confident guess.',
+    REGULATORY_BOUNDARY_RULE,
   ].join('\n');
 }
 

@@ -52,21 +52,21 @@ export async function RoadmapRoute({
 
   return (
     <div className="workspace-env flex max-w-4xl flex-col gap-8 pt-3 sm:pt-6">
-      <PageHeader eyebrow="In development" title={title} />
+      <PageHeader eyebrow="We're working on this" title={title} />
       <RoadmapSurface
         purpose={purpose}
         prerequisites={[businessProfileStatus(intakeComplete), knowledgePackStatus(capability)]}
         today={
           intakeComplete
             ? {
-                text: 'Your intake is complete, so Islanda already holds the profile this surface will be built on. Nothing further is needed from you here.',
+                text: 'You have answered the questions about your business, so there is nothing more you need to do here for now.',
                 href: '/dashboard',
-                label: 'Back to your workspace',
+                label: 'Go to Home',
               }
             : {
-                text: 'Completing your intake is the part of this that depends on you. The rest is ours to build.',
+                text: 'Answering the five questions about your business is the part that depends on you. The rest is ours to build.',
                 href: '/intake',
-                label: 'Continue intake',
+                label: 'Continue the questions',
               }
         }
       />

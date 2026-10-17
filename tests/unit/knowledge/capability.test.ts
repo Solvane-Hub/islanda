@@ -86,7 +86,7 @@ describe('the Knowledge Pack prerequisite, worded from the facts', () => {
     const status = knowledgePackStatus(await getJurisdictionCapability(mockDb(null), 'BS'));
 
     expect(status.met).toBe(false);
-    expect(status.detail).toMatch(/pending a legal review/i);
+    expect(status.detail).toMatch(/waiting on a legal review/i);
     // The old copy claimed a fact about the whole platform. It must not return.
     expect(status.detail).not.toMatch(/no pack has been published/i);
   });

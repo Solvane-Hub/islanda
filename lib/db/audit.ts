@@ -66,7 +66,13 @@ export type AuditEvent =
    */
   | 'nova.answered'
   | 'nova.rate_limited'
-  | 'nova.failed';
+  | 'nova.failed'
+  /**
+   * Waitlist & Pilot Recruitment (team-only). Metadata carries the signup id,
+   * the new status and whether notes are present — never the notes, a name,
+   * an email or a phone number.
+   */
+  | 'waitlist.recruitment_updated';
 
 export interface AuditEntry {
   event: AuditEvent;

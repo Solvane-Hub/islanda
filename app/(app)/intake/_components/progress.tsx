@@ -61,7 +61,7 @@ export function IntakeProgress({
           aria-valuenow={completed}
           aria-valuemin={0}
           aria-valuemax={total}
-          aria-valuetext={`${completed} of ${total} known`}
+          aria-valuetext={`${completed} of ${total} answered`}
           className="flex shrink-0 items-baseline gap-1.5"
         >
           <span data-numeric className="text-on-ink text-sm font-semibold tracking-[-0.01em]">
@@ -71,12 +71,13 @@ export function IntakeProgress({
             / {pad(total)}
           </span>
           <span className="text-champagne text-2xs ml-1.5 font-medium tracking-[0.14em] uppercase">
-            known
+            answered
           </span>
         </p>
 
         <p className="text-on-ink-muted text-xs">
-          Now: <span className="text-on-ink">{title}</span>
+          Question <span data-numeric>{current}</span> of <span data-numeric>{total}</span>:{' '}
+          <span className="text-on-ink">{title}</span>
         </p>
       </div>
 
@@ -95,7 +96,11 @@ export function IntakeProgress({
 
 function Slot({ slot, current }: { slot: RailSlot; current: boolean }) {
   // Words, not just the dot — SC 1.4.1.
-  const condition = slot.known ? 'known' : current ? 'current, not yet answered' : 'not yet known';
+  const condition = slot.known
+    ? 'answered'
+    : current
+      ? 'current question, not answered yet'
+      : 'not answered yet';
 
   const body = (
     <>

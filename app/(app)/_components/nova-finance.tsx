@@ -80,7 +80,7 @@ export function NovaFinance() {
     <WorkspaceSurface as="section" tone="shell" className="flex flex-col gap-6 p-6 sm:p-8">
       <div className="flex items-center gap-2.5">
         <Sparkles aria-hidden="true" className="text-champagne size-3.5" strokeWidth={2} />
-        <SurfaceLabel as="h2">Nova · business intelligence</SurfaceLabel>
+        <SurfaceLabel as="h2">Ask about your figures</SurfaceLabel>
       </div>
 
       <form ref={formRef} action={formAction} className="flex flex-col gap-3">
@@ -89,7 +89,7 @@ export function NovaFinance() {
           name="question"
           rows={2}
           disabled={pending}
-          placeholder="Ask about your performance — “How is my business doing?”"
+          placeholder="For example: how much did I sell last month?"
           aria-label="Ask Nova about your business"
           aria-invalid={Boolean(fieldError)}
         />

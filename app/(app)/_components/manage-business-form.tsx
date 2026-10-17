@@ -72,8 +72,8 @@ export function ManageBusinessForm({ countries }: { countries: { code: string; n
 
         <Field
           id="countryCode"
-          label="Jurisdiction"
-          description="Where the business is registered. This determines which government requirements apply."
+          label="Country"
+          description="Where the business is registered."
           error={err('countryCode')}
         >
           {(aria) => (
@@ -164,9 +164,10 @@ export function ManageBusinessForm({ countries }: { countries: { code: string; n
           <span className="flex items-start gap-2">
             <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
             <span className="text-sm">
-              These identifiers are private to your business and stored securely. Islanda records
-              them as <strong>Founder provided · Not verified</strong> — it does not (and cannot
-              yet) check them against any registry, and will never imply it has.
+              These are optional — you can use Islanda without them. If you add them, they stay
+              private to your business and are marked{' '}
+              <strong>Founder provided · Not verified</strong>: Islanda does not check them against
+              any government registry.
             </span>
           </span>
         </Alert>
@@ -190,7 +191,7 @@ export function ManageBusinessForm({ countries }: { countries: { code: string; n
       </fieldset>
 
       <Button type="submit" loading={pending} className="w-fit">
-        Bring my business in
+        Add my business
       </Button>
     </form>
   );

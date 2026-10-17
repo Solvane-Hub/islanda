@@ -1,5 +1,6 @@
-import type { NovaAnswerView } from '@/types/nova';
+import type { NovaResponseView } from '@/types/nova';
 import { narrateAnswer } from '@/lib/nova/narration';
+import { clampForSpeech, generalSpokenText } from '@/lib/nova/general-answer';
 
 /**
  * What Nova SAYS out loud.
@@ -57,7 +58,14 @@ export function stripUnspeakable(text: string): string {
  * empty result as "do not request audio", so a degenerate answer never triggers
  * a TTS call.
  */
-export function speechForAnswer(answer: NovaAnswerView): string {
+export function speechForAnswer(answer: NovaResponseView): string {
+  // A general answer is not narrated as a search — there was none. Nova speaks
+  // the answer itself (or the calm unavailable line), sanitised, and clamped to
+  // the speak route's limit at a sentence boundary.
+  if (answer.outcome === 'general') {
+    return clampForSpeech(stripUnspeakable(generalSpokenText(answer)));
+  }
+
   const narration = narrateAnswer(answer);
 
   // opener + lead carry "I looked, here is what I found / did not find".

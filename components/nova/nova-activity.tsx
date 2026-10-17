@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { NovaMark, type NovaState } from '@/components/ui/nova-mark';
 import { NovaStatusLine } from '@/components/nova/nova-state';
-import type { NovaAnswerView } from '@/types/nova';
+import type { NovaResponseView } from '@/types/nova';
+import type { NovaRoute } from '@/lib/nova/routing';
 
 /**
  * Nova's activity, while a question is in flight and after it lands.
@@ -69,9 +70,23 @@ const PHASE_SEQUENCE = ['searching', 'connecting', 'composing'] as const;
  * relationship (the constellation only ever links passages from one document).
  */
 const PHASE_COPY: Record<(typeof PHASE_SEQUENCE)[number], string> = {
-  searching: 'Searching the published sources for your jurisdiction…',
+  searching: 'Searching the official documents Islanda holds for your country…',
   connecting: 'Drawing the retrieved passages together…',
   composing: 'Assembling the answer from what was found…',
+};
+
+/**
+ * Status copy for the general path (`routeNovaQuestion` → 'general').
+ *
+ * Same rule as above: each line names work the general path genuinely
+ * performs, in order — context assembly, the gateway's provider call, then the
+ * validator every response must pass before it can be shown. Nothing here
+ * claims the published sources were searched, because on this path they are not.
+ */
+const GENERAL_PHASE_COPY: Record<(typeof PHASE_SEQUENCE)[number], string> = {
+  searching: 'Gathering your business context…',
+  connecting: 'Sending your question to Nova’s reasoning layer…',
+  composing: 'Checking the response before showing it…',
 };
 
 /**
@@ -82,7 +97,13 @@ const PHASE_COPY: Record<(typeof PHASE_SEQUENCE)[number], string> = {
  *   explicitly could not establish, which the service already recorded in
  *   `unresolved[]` or in a claim's `currentApplicabilityEstablished`.
  */
-export function settledNovaState(answer: NovaAnswerView): NovaState {
+export function settledNovaState(answer: NovaResponseView): NovaState {
+  // A general answer has no claims to establish; its open items are `unknowns`.
+  if (answer.outcome === 'general') {
+    if (answer.status !== 'answered') return 'refused';
+    return answer.unknowns.length > 0 ? 'limited' : 'ready';
+  }
+
   if (answer.outcome !== 'answered') return 'refused';
 
   const everythingEstablished = answer.claims.every((c) => c.currentApplicabilityEstablished);
@@ -102,11 +123,17 @@ export function useNovaActivity({
   pending,
   answer,
   composing,
+  route = 'regulatory',
 }: {
   pending: boolean;
-  answer: NovaAnswerView | null;
+  answer: NovaResponseView | null;
   /** True when the founder has typed something but not yet submitted. */
   composing: boolean;
+  /**
+   * The path the in-flight question was routed to, computed client-side by the
+   * same pure `routeNovaQuestion` the server uses. Selects the status copy only.
+   */
+  route?: NovaRoute;
 }): { state: NovaState; status: string | null } {
   const [phase, setPhase] = useState(0);
 
@@ -133,7 +160,8 @@ export function useNovaActivity({
 
   if (pending) {
     const current = PHASE_SEQUENCE[phase] ?? 'searching';
-    return { state: current, status: PHASE_COPY[current] };
+    const copy = route === 'general' ? GENERAL_PHASE_COPY : PHASE_COPY;
+    return { state: current, status: copy[current] };
   }
 
   if (answer) return { state: settledNovaState(answer), status: null };

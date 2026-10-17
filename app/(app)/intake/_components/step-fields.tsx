@@ -73,7 +73,8 @@ export function StepFields({
         id="description"
         size="question"
         label="What does the business do?"
-        description="Plain language is best. Islanda uses this to work out which requirements apply."
+        required
+        description="In a sentence or two, say what you sell or do, and who it is for. For example: “I bake cakes and pastries at home and sell them to people nearby.” This becomes the main description of your business in Islanda."
         error={fieldErrors?.description?.[0]}
       >
         {(aria) => (
@@ -97,6 +98,8 @@ export function StepFields({
           id="businessStage"
           size="question"
           label="Where are you today?"
+          required
+          description="Choose the stage that fits best. Just an idea is a perfectly good place to start."
           error={fieldErrors?.businessStage?.[0]}
         >
           {(aria) => (
@@ -125,7 +128,8 @@ export function StepFields({
           <Field
             id="location"
             label="Where will it operate?"
-            description="An island, city or area is enough."
+            required
+            description="The island, town or area is enough."
             error={fieldErrors?.location?.[0]}
           >
             {(aria) => (
@@ -149,7 +153,8 @@ export function StepFields({
         id="employeeCount"
         size="question"
         label="How many people will work in the business?"
-        description="Include yourself. Enter 0 if you are not sure yet."
+        required
+        description="Count yourself too. If you are not sure yet, enter 0."
         error={fieldErrors?.employeeCount?.[0]}
       >
         {(aria) => <TeamSize {...aria} name="employeeCount" defaultValue={values.employeeCount} />}
@@ -163,8 +168,8 @@ export function StepFields({
         <Field
           id="fundingAmount"
           size="question"
-          label="How much funding do you think you need?"
-          description="A guess you're unsure of is worse than no answer, so if you don't know yet, say so — that is a real answer and Islanda records it as one."
+          label="How much money do you think the business needs?"
+          description="A rough figure is fine. If you don’t know yet, tick “I don’t know yet” below — that is a real answer, and you can change it later. It helps you plan; Islanda does not apply for funding for you."
           error={fieldErrors?.fundingAmount?.[0]}
         >
           {(aria) => (
@@ -213,7 +218,7 @@ export function StepFields({
           <span className="min-w-0">
             <span className="text-on-ink block text-base font-medium">I don’t know yet</span>
             <span className="text-on-ink-muted mt-1 block text-sm text-pretty">
-              Islanda will treat funding as an open question rather than assuming you need nothing.
+              Islanda will record that you don’t know yet, rather than assuming you need nothing.
             </span>
           </span>
         </label>
@@ -226,7 +231,8 @@ export function StepFields({
       id="founderGoals"
       size="question"
       label="What do you want to achieve?"
-      description="What would success look like in the next year?"
+      required
+      description="What would success look like in the next year? For example: “Open a small shop” or “Have 30 regular customers.”"
       error={fieldErrors?.founderGoals?.[0]}
     >
       {(aria) => (

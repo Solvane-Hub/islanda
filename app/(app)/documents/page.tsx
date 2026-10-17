@@ -12,7 +12,7 @@ import {
   documentStatusLabel,
 } from '@/lib/business-intelligence/document-display';
 import { METRIC_KEY_LABELS, formatMetricValue } from '@/lib/business-intelligence/performance';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { WorkspaceSurface, SurfaceLabel } from '@/components/ui/workspace-surface';
 import { DocumentUpload } from '../_components/document-upload';
@@ -25,11 +25,12 @@ import {
 export const metadata: Metadata = { title: 'Documents' };
 
 /**
- * Documents — the secure vault surface.
+ * Documents — one private place for the business's files.
  *
  * Real upload into private per-business storage, and an honest list: a stored
- * file says "analysis not yet available" because no extraction has run. This is
- * a restrained records surface, not a file-management application.
+ * file says Islanda has not read it, because no extraction exists. A file a
+ * founder linked to a figure says so ("Linked to"), which is a different thing
+ * from being read. A restrained records surface, not a file-management app.
  */
 export default async function DocumentsPage() {
   const db = await createClient();
@@ -41,12 +42,12 @@ export default async function DocumentsPage() {
       <div className="workspace-env flex flex-col gap-6">
         <EmptyState
           icon={<Rocket aria-hidden="true" className="size-5" strokeWidth={1.75} />}
-          title="No business yet"
-          explanation="Documents are held against a business. Create one first, then bring your records in."
-          nextStep="Start by telling us what you're building."
+          title="Create your business first"
+          explanation="Documents are kept with a business, so you need to create one before adding files."
+          nextStep="Create your business to begin."
           action={
-            <Link href="/businesses/new">
-              <Button>Create a business</Button>
+            <Link href="/businesses/new" className={buttonVariants()}>
+              Create your business
             </Link>
           }
         />
@@ -96,8 +97,9 @@ export default async function DocumentsPage() {
         <h1 className="text-on-ink text-2xl font-semibold tracking-[-0.02em] text-balance sm:text-3xl">
           Documents
         </h1>
-        <p className="text-on-ink-muted max-w-prose text-sm">
-          The records your business holds — stored privately, each with its own provenance.
+        <p className="text-on-ink-muted max-w-prose text-sm text-pretty">
+          Keep your business files together in one private place. Islanda stores your files; it does
+          not read or check what is in them.
         </p>
       </header>
 
@@ -114,10 +116,12 @@ export default async function DocumentsPage() {
             <span className="bg-champagne/10 text-champagne flex size-10 items-center justify-center rounded-xl">
               <FileText aria-hidden="true" className="size-5" strokeWidth={1.5} />
             </span>
-            <p className="text-on-ink text-sm font-medium">No documents yet</p>
-            <p className="text-on-ink-muted max-w-prose text-sm">
-              Add your first business record above — a financial statement, a licence, a
-              registration. Islanda keeps it private to your business.
+            <p className="text-on-ink text-sm font-medium">
+              You haven&apos;t added any documents yet.
+            </p>
+            <p className="text-on-ink-muted max-w-prose text-sm text-pretty">
+              Use the form above to add your first file, such as a receipt, a licence or a bank
+              statement.
             </p>
           </div>
         )}

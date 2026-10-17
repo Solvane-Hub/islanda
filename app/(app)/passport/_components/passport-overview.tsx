@@ -37,8 +37,8 @@ export function PassportOverview({
 
   return (
     <PassportPage
-      title="Business Overview"
-      subtitle="Live business snapshot"
+      title="Summary"
+      subtitle="Your business at a glance"
       pageNumber={1}
       totalPages={totalPages}
       reference={reference}
@@ -67,7 +67,7 @@ export function PassportOverview({
       <section className="mt-6">
         <div className="flex items-baseline gap-2.5">
           <span className="text-passport-ink text-3xs font-semibold tracking-[0.2em] uppercase">
-            Business State
+            Progress
           </span>
           <span aria-hidden="true" className="bg-passport-line/70 h-px flex-1" />
         </div>
@@ -118,7 +118,7 @@ export function PassportOverview({
       <section className="mt-6">
         <div className="flex items-baseline gap-2.5">
           <span className="text-passport-ink text-3xs font-semibold tracking-[0.2em] uppercase">
-            Next
+            What to do next
           </span>
           <span aria-hidden="true" className="bg-passport-line/70 h-px flex-1" />
         </div>

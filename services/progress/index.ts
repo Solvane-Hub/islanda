@@ -51,42 +51,44 @@ export function buildJourney(
       title: 'Create your business',
       description: hasBusiness
         ? `${business!.name} · ${business!.country_code}`
-        : 'Tell us what you are building and where.',
+        : 'Give it a name and tell us where it operates.',
       state: hasBusiness ? 'complete' : 'current',
-      ...(hasBusiness ? {} : { href: '/businesses/new', actionLabel: 'Create business' }),
+      ...(hasBusiness ? {} : { href: '/businesses/new', actionLabel: 'Create your business' }),
     },
     {
       key: 'intake',
-      title: 'Complete your intake',
+      title: 'Answer five questions about your business',
       description: intakeDone
-        ? 'All questions answered.'
+        ? 'All five questions answered.'
         : intakeStarted
-          ? `${answered} of ${TOTAL_INTAKE_STEPS} questions answered.`
-          : 'Five short questions about your business.',
+          ? `${answered} of ${TOTAL_INTAKE_STEPS} questions answered. Your answers are saved, so you can pick up where you left off.`
+          : 'What it does, where it operates, your team, the money you may need and your goals. Your answers are saved as you go.',
       state: intakeDone ? 'complete' : hasBusiness ? 'current' : 'upcoming',
       ...(hasBusiness && !intakeDone
-        ? { href: '/intake', actionLabel: intakeStarted ? 'Continue intake' : 'Start intake' }
+        ? {
+            href: '/intake',
+            actionLabel: intakeStarted ? 'Continue the questions' : 'Start the questions',
+          }
         : {}),
       ...(intakeDone ? { href: '/intake/review', actionLabel: 'Review answers' } : {}),
     },
     {
       key: 'roadmap',
-      title: 'Generate your launch roadmap',
-      description:
-        'Requires the Knowledge Pack and AI layers, which are not built yet. Nothing is shown here because nothing real exists to show.',
+      title: 'Prepare your next steps',
+      description: "We're working on this. Nothing is shown until it can be based on real sources.",
       state: 'blocked',
     },
     {
       key: 'compliance',
-      title: 'Review your requirements',
+      title: 'See which requirements may apply',
       description:
-        'Registrations, licences and permits, each traceable to the government source it came from.',
+        "We're working on this: registrations, licences and permits, each linked to the official source.",
       state: 'blocked',
     },
     {
       key: 'funding',
       title: 'Explore funding',
-      description: 'Programmes matched to your business, with eligibility evidence.',
+      description: "We're working on this: programmes that may suit a business at your stage.",
       state: 'blocked',
     },
   ];

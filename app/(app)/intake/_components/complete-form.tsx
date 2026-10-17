@@ -22,7 +22,7 @@ export function CompleteIntakeForm() {
         </Alert>
       ) : null}
       <Button type="submit" size="lg" loading={pending} className="w-fit rounded-full pr-4 pl-5">
-        Finish intake
+        Finish and go to Home
         <ArrowRight aria-hidden="true" strokeWidth={2} />
       </Button>
     </form>

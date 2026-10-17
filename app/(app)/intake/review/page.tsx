@@ -20,7 +20,7 @@ import { Alert } from '@/components/ui/alert';
 import { WorkspaceSurface, SurfaceLabel } from '@/components/ui/workspace-surface';
 import { CompleteIntakeForm } from '../_components/complete-form';
 
-export const metadata: Metadata = { title: 'Review your answers' };
+export const metadata: Metadata = { title: 'Business details' };
 
 /**
  * One of the five things Islanda knows.
@@ -55,8 +55,8 @@ function Block({
 }) {
   const established = isKnowledgeEstablished(state);
   const needsConfirmation = state === 'needs_confirmation';
-  const action = established ? 'Edit' : needsConfirmation ? 'Review and confirm' : 'Answer this';
-  const ariaAction = established ? 'Edit' : needsConfirmation ? 'Review and confirm' : 'Answer';
+  const action = established ? 'Edit' : needsConfirmation ? 'Check and confirm' : 'Answer this';
+  const ariaAction = established ? 'Edit' : needsConfirmation ? 'Check and confirm' : 'Answer';
   return (
     <div className={cn('group flex flex-col gap-3', wide && 'sm:col-span-2')}>
       <SurfaceLabel as="dt" className="flex items-baseline justify-between gap-4">
@@ -77,7 +77,7 @@ function Block({
         <Link
           href={`/intake?step=${step}`}
           aria-label={`${ariaAction} ${title.toLowerCase()}`}
-          className="text-on-glass-subtle hover:text-bahama-turquoise inline-flex shrink-0 items-center gap-1.5 rounded-sm text-xs tracking-normal normal-case transition-colors duration-150 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+          className="text-bahama-turquoise hover:text-on-ink inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-sm text-xs tracking-normal normal-case transition-colors duration-150"
         >
           {established ? (
             <>
@@ -165,7 +165,7 @@ export default async function IntakeReviewPage() {
     <div className="workspace-env flex flex-col gap-6 pt-4 sm:gap-8 sm:pt-8 lg:pt-10">
       <header className="flex flex-col gap-3 px-1">
         <p className="text-2xs text-champagne font-medium tracking-[0.18em] uppercase">
-          Business profile
+          Business details
         </p>
         <h1 className="text-on-ink text-3xl font-semibold tracking-[-0.03em] text-balance sm:text-4xl">
           {current.name}
@@ -183,12 +183,12 @@ export default async function IntakeReviewPage() {
 
       <WorkspaceSurface className="flex flex-col">
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-white/8 px-6 py-4 sm:px-9">
-          <SurfaceLabel>What Islanda knows</SurfaceLabel>
+          <SurfaceLabel as="h2">Your answers</SurfaceLabel>
           <p className="text-on-ink-muted text-xs">
             <span data-numeric className="text-on-ink font-medium">
               {knownCount}
             </span>{' '}
-            of <span data-numeric>{TOTAL_INTAKE_STEPS}</span> established
+            of <span data-numeric>{TOTAL_INTAKE_STEPS}</span> answered
           </p>
         </div>
 
@@ -251,8 +251,8 @@ export default async function IntakeReviewPage() {
           className="flex flex-col gap-5 p-6 sm:p-9"
         >
           {progress.isComplete ? (
-            <Alert tone="success" title="Intake complete">
-              You can still edit any answer.
+            <Alert tone="success" title="All questions answered">
+              You can still change any answer.
             </Alert>
           ) : null}
 
@@ -261,11 +261,12 @@ export default async function IntakeReviewPage() {
               id="finish-heading"
               className="text-on-ink text-xl font-semibold tracking-[-0.02em] sm:text-2xl"
             >
-              Ready when you are
+              {progress.isComplete ? 'Your answers are saved' : 'Check your answers, then finish'}
             </h2>
             <p className="text-on-ink-muted max-w-xl text-sm text-pretty">
-              Islanda will use this profile to work out your requirements once the knowledge and AI
-              layers are built. Nothing is submitted to any government agency.
+              Your answers are saved to your business profile, and you can change them at any time.
+              After you finish, your Home page shows your next step. Nothing is sent to any
+              government office.
             </p>
           </div>
 
@@ -273,10 +274,10 @@ export default async function IntakeReviewPage() {
         </WorkspaceSurface>
       ) : (
         <WorkspaceSurface tone="deep" className="p-6 sm:p-9">
-          <Alert tone="info" title="A few things are still unanswered">
-            Islanda needs all five before it can act on the profile.{' '}
+          <Alert tone="info" title="A few questions still need an answer">
+            Answer all five questions to finish.{' '}
             <Link href="/intake" className="text-bahama-turquoise underline underline-offset-4">
-              Continue intake
+              Continue the questions
             </Link>
           </Alert>
         </WorkspaceSurface>

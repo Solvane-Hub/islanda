@@ -29,12 +29,12 @@ export interface SnapshotRow {
 }
 
 const STATE_COPY: Record<KnowledgeState, { label: string; action: string; fallback: string }> = {
-  known: { label: 'Known', action: 'Edit', fallback: 'Recorded' },
-  declined: { label: 'Open question', action: 'Review', fallback: 'No figure yet' },
+  known: { label: 'Answered', action: 'Edit', fallback: 'Answered' },
+  declined: { label: 'You said you don’t know yet', action: 'Update', fallback: 'Not known yet' },
   needs_confirmation: {
-    label: 'Needs confirmation',
-    action: 'Review and confirm',
-    fallback: 'Review this detail',
+    label: 'Please check this',
+    action: 'Check and confirm',
+    fallback: 'Please check this detail',
   },
   unknown: { label: 'Needs your answer', action: 'Answer', fallback: 'Not answered yet' },
 };
@@ -83,16 +83,13 @@ export function BusinessSnapshot({
 
       {unanswered > 0 ? (
         <p className="text-on-ink-muted mt-7 text-sm">
-          <span className="text-on-ink font-medium">Needs your attention:</span>{' '}
           <span data-numeric>{unanswered}</span>{' '}
-          {unanswered === 1
-            ? 'part of your profile needs review.'
-            : 'parts of your profile need review.'}{' '}
+          {unanswered === 1 ? 'question still needs an answer.' : 'questions still need an answer.'}{' '}
           <Link
             href="/intake"
-            className="text-bahama-turquoise hover:text-on-ink underline underline-offset-4 transition-colors duration-150"
+            className="text-bahama-turquoise hover:text-on-ink inline-flex min-h-11 items-center underline underline-offset-4 transition-colors duration-150"
           >
-            Continue intake
+            Continue the questions
           </Link>
         </p>
       ) : null}
