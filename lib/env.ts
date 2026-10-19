@@ -53,6 +53,17 @@ const serverSchema = z.object({
    * still counted as page views but not as distinct visitors.
    */
   ANALYTICS_HASH_SECRET: z.string().min(32).optional(),
+  /**
+   * Analytics writes go to the one shared Supabase project, so they are ON only
+   * for the production deployment (Vercel sets VERCEL_ENV=production). Local
+   * machines, CI and preview deployments record nothing unless this is set to
+   * 'true'; setting 'false' turns analytics off everywhere.
+   */
+  ANALYTICS_ENABLED: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v === 'true')),
+  VERCEL_ENV: z.string().optional(),
 });
 
 /**
@@ -133,6 +144,8 @@ function parseServerEnv(source: EnvSource): z.infer<typeof serverSchema> {
     OPENAI_MODEL_MINI: source.OPENAI_MODEL_MINI,
     OPENAI_MODEL_PREMIUM: source.OPENAI_MODEL_PREMIUM,
     ANALYTICS_HASH_SECRET: source.ANALYTICS_HASH_SECRET,
+    ANALYTICS_ENABLED: source.ANALYTICS_ENABLED,
+    VERCEL_ENV: source.VERCEL_ENV,
   });
   if (!parsed.success) {
     throw new Error(

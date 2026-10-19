@@ -93,6 +93,12 @@ counted with HMAC-SHA256(day, IP, user agent) under `ANALYTICS_HASH_SECRET` (fal
 to the service-role key), which rotates daily and cannot be reversed. Such visitors are
 shown as "not identifiable" rather than new or returning.
 
+**Where it records.** Every environment shares one Supabase project, so analytics
+writes happen **only on the production deployment** (`VERCEL_ENV=production`). Local
+development, CI and preview deployments record nothing unless `ANALYTICS_ENABLED=true`
+is set (`false` switches it off everywhere). Added 2026-10-19 after local test runs
+were found writing into the production table.
+
 **Bots** (crawlers, uptime monitors, link previews, scripts, headless browsers, missing
 user agents) are dropped before storage. A repeated `event_id` is ignored. Each client
 has an ingestion budget (300 events / 10 minutes) through the existing fail-closed

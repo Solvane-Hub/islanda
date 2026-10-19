@@ -14,7 +14,7 @@ import { requireAdminPage } from '../_lib/guard';
  * on an MFA session.
  */
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  const admin = await requireAdminPage('/admin');
+  const admin = await requireAdminPage('/admin', { auditDenied: false });
 
   return (
     <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
