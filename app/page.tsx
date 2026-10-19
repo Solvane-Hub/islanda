@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AnalyticsConsent } from '@/components/analytics/analytics-consent';
 import Link from 'next/link';
 import { Hero } from '@/components/marketing/hero';
 import { SiteHeader } from '@/components/marketing/site-header';
@@ -181,6 +182,7 @@ export default async function HomePage({
       </div>
 
       <SiteFooter mode={mode} />
+      <AnalyticsConsent />
     </>
   );
 }

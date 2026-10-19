@@ -13,7 +13,14 @@ import { expect, test } from '@playwright/test';
  * necessary, not sufficient; a manual keyboard and screen-reader pass is still
  * outstanding.
  */
-const PUBLIC_PAGES = ['/', '/login', '/signup', '/forgot-password', '/admin/login'];
+const PUBLIC_PAGES = [
+  '/',
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/admin/login',
+  '/admin/forgot-password',
+];
 
 for (const path of PUBLIC_PAGES) {
   test(`${path} has no detectable WCAG 2.1 AA violations`, async ({ page }) => {

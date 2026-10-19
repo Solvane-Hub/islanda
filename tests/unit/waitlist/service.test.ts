@@ -92,51 +92,58 @@ describe('joinWaitlist', () => {
 });
 
 describe('submitWaitlistSurvey', () => {
-  it('writes the answers through the token-gated function only', async () => {
-    const { db, rpc } = fakeDb({ rpcResult: true });
-    const result = await submitWaitlistSurvey(db, {
-      token: TOKEN,
-      country: 'The Bahamas',
-      cityIsland: 'Exuma',
-      businessStage: 'trying_to_register',
-      biggestChallenge: 'other',
-      challengeOther: 'Finding a location',
-      testingInterest: 'yes',
-    });
+  const input = (answers: Record<string, unknown>, final = false) =>
+    ({ token: TOKEN, final, answers }) as never;
 
+  it('writes only the answers present, through the token-gated function', async () => {
+    const { db, rpc } = fakeDb({ rpcResult: true });
+    const result = await submitWaitlistSurvey(
+      db,
+      input({
+        country: 'Barbados',
+        industry: 'other',
+        industryOther: 'Boat repair',
+        businessJourney: undefined,
+      }),
+    );
     expect(result).toEqual({ status: 'saved' });
-    expect(rpc).toHaveBeenCalledWith('submit_waitlist_survey', {
+    expect(rpc).toHaveBeenCalledWith('save_waitlist_survey', {
       p_token: TOKEN,
-      p_country: 'The Bahamas',
-      p_city_island: 'Exuma',
-      p_business_stage: 'trying_to_register',
-      p_biggest_challenge: 'other',
-      p_challenge_other: 'Finding a location',
-      p_testing_interest: 'yes',
+      p_answers: { country: 'Barbados', industry: 'other', industryOther: 'Boat repair' },
+      p_final: false,
     });
     // No insert, no direct table write: answers can never create a signup.
     expect((db as unknown as { from: ReturnType<typeof vi.fn> }).from).not.toHaveBeenCalled();
   });
 
-  it('sends nothing at all when nothing was answered (same as skipping)', async () => {
-    const { db, rpc } = fakeDb();
-    expect(await submitWaitlistSurvey(db, { token: TOKEN })).toEqual({ status: 'empty' });
-    expect(rpc).not.toHaveBeenCalled();
+  it('marks the questionnaire complete only on the final submit', async () => {
+    const { db, rpc } = fakeDb({ rpcResult: true });
+    await submitWaitlistSurvey(db, input({ additionalInfo: 'Need a food licence' }, true));
+    expect(rpc.mock.calls[0]![1].p_final).toBe(true);
   });
 
-  it('drops an "Other" explanation when a different challenge is chosen', async () => {
-    const { db, rpc } = fakeDb();
-    await submitWaitlistSurvey(db, {
-      token: TOKEN,
-      biggestChallenge: 'finding_customers',
-      challengeOther: 'stale text',
+  it('an empty save with nothing stored before writes nothing (same as skipping)', async () => {
+    const { db, rpc } = fakeDb({ rpcResult: null });
+    expect(await submitWaitlistSurvey(db, input({}, true))).toEqual({ status: 'empty' });
+    // Only the read-back of stored answers was made; no save.
+    expect(rpc.mock.calls.map((c) => c[0])).toEqual(['get_waitlist_survey']);
+  });
+
+  it('a final submit with nothing new still completes when earlier sections were saved', async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({ data: { country: 'Barbados', completed: false }, error: null })
+      .mockResolvedValueOnce({ data: true, error: null });
+    const db = { from: vi.fn(), rpc } as never;
+    expect(await submitWaitlistSurvey(db, input({ additionalInfo: null }, true))).toEqual({
+      status: 'saved',
     });
-    expect(rpc.mock.calls[0]![1].p_challenge_other).toBeNull();
+    expect(rpc.mock.calls[1]![0]).toBe('save_waitlist_survey');
   });
 
   it('reports an unknown token as not_found', async () => {
     const { db } = fakeDb({ rpcResult: false });
-    expect(await submitWaitlistSurvey(db, { token: TOKEN, testingInterest: 'maybe' })).toEqual({
+    expect(await submitWaitlistSurvey(db, input({ testingInterest: 'maybe' }))).toEqual({
       status: 'not_found',
     });
   });

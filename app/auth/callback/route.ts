@@ -15,8 +15,12 @@ export async function GET(request: NextRequest) {
   const requestedNext = searchParams.get('next') ?? '/dashboard';
   const next = isSafeInternalPath(requestedNext) ? requestedNext : '/dashboard';
 
+  // Administrators recover through their own sign-in page, which stays open
+  // while the founder product is waitlist-only.
+  const loginPath = next.startsWith('/admin/') ? '/admin/login' : '/login';
+
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=missing_code`);
+    return NextResponse.redirect(`${origin}${loginPath}?error=missing_code`);
   }
 
   const supabase = await createClient();
@@ -24,7 +28,7 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     // The link is single-use and time-limited; an expired one is the common case.
-    return NextResponse.redirect(`${origin}/login?error=invalid_link`);
+    return NextResponse.redirect(`${origin}${loginPath}?error=invalid_link`);
   }
 
   return NextResponse.redirect(`${origin}${next}`);

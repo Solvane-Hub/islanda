@@ -1,5 +1,6 @@
 'use server';
 
+import { reportProductFailure } from './_lib/report-failure';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
@@ -48,6 +49,7 @@ async function requestContext(): Promise<RequestContext> {
 }
 
 function flatten(error: unknown, ctx: RequestContext): Result<never> {
+  reportProductFailure('business', error instanceof AppError ? error.code : undefined);
   if (error instanceof AppError) return fail(error);
   logger.error('business.unexpected', {
     correlationId: ctx.correlationId,

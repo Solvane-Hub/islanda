@@ -12,6 +12,7 @@ import { listBusinesses, resolveCurrentBusiness } from '@/services/business';
 import { documentUploadSchema, finalizeUploadSchema } from '@/lib/validation/business-intelligence';
 import * as documentsService from '@/services/documents';
 import type { DocumentUploadTicket } from '@/services/documents';
+import { reportProductFailure } from '../_lib/report-failure';
 
 /**
  * Document intake server actions.
@@ -31,6 +32,7 @@ async function requestContext(): Promise<RequestContext> {
 }
 
 function flatten(error: unknown, ctx: RequestContext): Result<never> {
+  reportProductFailure('documents', error instanceof AppError ? error.code : undefined);
   if (error instanceof AppError) return fail(error);
   logger.error('documents.unexpected', {
     correlationId: ctx.correlationId,

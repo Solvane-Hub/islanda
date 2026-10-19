@@ -6,6 +6,37 @@ This project is pre-release; versions are sprint-scoped until first deployment.
 
 ---
 
+## [Unreleased] — Owner-only admin portal, expanded questionnaire, analytics · 2026-10-18
+
+- **Admin portal** at `/admin` for exactly two administrators (Jamil Nash, Jonathan
+  Cash): Overview, Website Analytics, Waitlist (+ detail), Questionnaire Responses,
+  Users & Business Profiles (+ detail), Product Usage, Pilot Recruitment & Feedback,
+  Reports & Exports, Security & Audit Logs, Admin Settings. Date ranges (today / 7 / 30 /
+  90 days / all / custom) with previous-period comparison; server-rendered SVG charts with
+  accessible tables.
+- **Authorization:** `platform_admins` bound to auth user ids, CHECK-constrained to the two
+  addresses; `app.is_platform_admin()` requires unchanged confirmed email **and an MFA
+  (aal2) session**; every page, action, export and admin SQL function enforces it. The
+  `waitlist_admin` role is retired (it had no members). TOTP MFA enrolment/verification,
+  forced temporary-password change, password change (current password required), admin
+  password reset, sign out everywhere. Provisioning via `npm run admin:provision`
+  (service role; no password in code).
+- **Questionnaire** expanded to sections A–D: country (searchable) and city/island/
+  community, business name, business journey (8), industry (22, "Other" text), primary
+  goal (20, "Other" text), biggest challenge (15; the six original values remain valid),
+  stage (kept), early-access and feedback interest, and an "anything else" note. Each
+  section saves on Continue (partial answers kept); visitors can return on the same
+  browser for 30 days to update answers.
+- **Recruitment:** contacted / confirmed / tested dates, feedback summary and link
+  (admin-only columns, audited without content).
+- **First-party analytics** (`analytics_events`, `POST /api/analytics`): page views,
+  sessions, unique-visitor estimates, sources, UTM campaigns, devices, countries, funnel;
+  consent prompt for a persistent id, daily-rotating hash otherwise; bot filtering;
+  server-verified conversion events; product failure events. Product usage reuses the
+  existing `audit_log`. Admins may now read `audit_log` (still append-only).
+- **Exports:** CSV per report, generated on request, audited, formula-injection safe,
+  contact details only on request. Docs: `docs/product/admin-portal-and-analytics.md`.
+
 ## [Unreleased] — Waitlist survey and pilot recruitment · 2026-10-17
 
 - **Signup** keeps first name, last name and email (required) and adds an **optional

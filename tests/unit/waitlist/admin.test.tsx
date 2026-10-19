@@ -4,18 +4,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppError } from '@/lib/errors';
 
 /**
- * The team-only Waitlist & Pilot Recruitment surface: page access, the
- * actions behind it, and the proxy carve-out that keeps it reachable while
- * WAITLIST_ONLY_MODE closes the founder product.
+ * The owner-only admin portal, from the outside: page access for every
+ * access state, the actions behind it, and the proxy carve-out that keeps it
+ * reachable while WAITLIST_ONLY_MODE closes the founder product.
  */
 
 const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
-  getWaitlistAdminAccess: vi.fn(),
+  getAdminAccess: vi.fn(),
+  recordAdminPageDenied: vi.fn(),
   listWaitlist: vi.fn(),
-  signInWaitlistAdmin: vi.fn(),
+  signInPlatformAdmin: vi.fn(),
+  signOutPlatformAdmin: vi.fn(),
   updateRecruitment: vi.fn(),
-  signOut: vi.fn(),
   redirect: vi.fn((url: string) => {
     throw new Error(`REDIRECT:${url}`);
   }),
@@ -28,44 +29,82 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/lib/env', () => ({ serverEnv: { WAITLIST_ONLY_MODE: true } }));
 vi.mock('next/headers', () => ({ headers: async () => new Headers() }));
-vi.mock('next/navigation', () => ({ redirect: mocks.redirect, notFound: mocks.notFound }));
+vi.mock('next/navigation', () => ({
+  redirect: mocks.redirect,
+  notFound: mocks.notFound,
+  usePathname: () => '/admin/waitlist',
+}));
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock('@/lib/supabase/server', () => ({ createClient: mocks.createClient }));
 vi.mock('@supabase/ssr', () => ({ createServerClient: mocks.createServerClient }));
-vi.mock('@/services/auth', () => ({ signOut: mocks.signOut }));
+vi.mock('@/services/admin/access', () => ({
+  getAdminAccess: mocks.getAdminAccess,
+  recordAdminPageDenied: mocks.recordAdminPageDenied,
+}));
+vi.mock('@/services/admin/auth', () => ({
+  signInPlatformAdmin: mocks.signInPlatformAdmin,
+  signOutPlatformAdmin: mocks.signOutPlatformAdmin,
+  startMfaEnrollment: vi.fn(),
+  verifyMfaCode: vi.fn(),
+  changeAdminPassword: vi.fn(),
+  requestAdminPasswordReset: vi.fn(),
+  completeAdminPasswordReset: vi.fn(),
+}));
 vi.mock('@/services/waitlist/recruitment', () => ({
-  getWaitlistAdminAccess: mocks.getWaitlistAdminAccess,
   listWaitlist: mocks.listWaitlist,
-  signInWaitlistAdmin: mocks.signInWaitlistAdmin,
   updateRecruitment: mocks.updateRecruitment,
 }));
 
-import WaitlistAdminPage from '@/app/admin/waitlist/page';
+import WaitlistAdminPage from '@/app/admin/(portal)/waitlist/page';
 import { staffSignInAction, updateRecruitmentAction } from '@/app/admin/actions';
 import { updateSession } from '@/lib/supabase/proxy-session';
 
 const SIGNUP_ID = '6f1c2f2e-6a59-4c55-9f4b-1d4c5f0c8a11';
+const ADMIN = {
+  kind: 'admin',
+  userId: 'admin-1',
+  email: 'jamilnash@solvanehub.us',
+  displayName: 'Jamil Nash',
+};
 
 function entry(overrides: Record<string, unknown> = {}) {
   return {
     id: SIGNUP_ID,
     name: 'Ada Lovelace',
-    email: 'ada@example.com',
+    email: 'ada@gmail.com',
     phone: '(242) 555-0123',
+    businessName: 'Ada Catering',
+    isTest: false,
     signedUpAt: '2026-10-10T12:00:00Z',
     country: 'The Bahamas',
     cityIsland: 'Exuma',
+    businessJourney: 'preparing_to_register',
+    industry: 'food_restaurants_catering',
+    industryOther: null,
+    primaryGoal: 'licences_permits_approvals',
+    goalOther: null,
     businessStage: 'trying_to_register',
     biggestChallenge: 'other',
     challengeOther: 'Finding a shop',
     testingInterest: 'yes',
+    feedbackInterest: 'maybe',
+    additionalInfo: null,
+    surveyStartedAt: '2026-10-10T12:00:30Z',
     surveyCompletedAt: '2026-10-10T12:01:00Z',
+    surveyUpdatedAt: null,
     recruitmentStatus: 'not_contacted',
     recruitmentNotes: null,
     recruitmentUpdatedAt: null,
+    contactedOn: null,
+    confirmedOn: null,
+    testedOn: null,
+    feedbackSummary: null,
+    feedbackLink: null,
     ...overrides,
   };
 }
+
+const emptyPage = { entries: [], total: 0, page: 1, pageCount: 1, pageSize: 50 };
 
 async function renderPage(params: Record<string, string> = {}) {
   const ui = await WaitlistAdminPage({ searchParams: Promise.resolve(params) });
@@ -78,94 +117,102 @@ beforeEach(() => {
 });
 
 describe('admin page access', () => {
-  it('sends a signed-out visitor to the staff sign-in', async () => {
-    mocks.getWaitlistAdminAccess.mockResolvedValue({ kind: 'signed_out' });
-    await expect(renderPage()).rejects.toThrow('REDIRECT:/admin/login?next=/admin/waitlist');
+  it('sends a signed-out visitor to the admin sign-in', async () => {
+    mocks.getAdminAccess.mockResolvedValue({ kind: 'signed_out' });
+    await expect(renderPage()).rejects.toThrow('REDIRECT:/admin/login?next=%2Fadmin%2Fwaitlist');
     expect(mocks.listWaitlist).not.toHaveBeenCalled();
   });
 
-  it('a signed-in founder without the role gets a 404 and no data is read', async () => {
-    mocks.getWaitlistAdminAccess.mockResolvedValue({ kind: 'not_admin' });
+  it('a signed-in founder gets a 404, the attempt is audited, and no data is read', async () => {
+    mocks.getAdminAccess.mockResolvedValue({ kind: 'denied', userId: 'founder-1' });
     await expect(renderPage()).rejects.toThrow('NOT_FOUND');
+    expect(mocks.recordAdminPageDenied).toHaveBeenCalledWith('founder-1', '/admin/waitlist');
     expect(mocks.listWaitlist).not.toHaveBeenCalled();
+  });
+
+  it('an administrator who has not completed MFA is sent to verify, with no data read', async () => {
+    mocks.getAdminAccess.mockResolvedValue({ ...ADMIN, kind: 'mfa_verify', factorId: 'f-1' });
+    await expect(renderPage()).rejects.toThrow('REDIRECT:/admin/mfa?next=%2Fadmin%2Fwaitlist');
+    expect(mocks.listWaitlist).not.toHaveBeenCalled();
+  });
+
+  it('a temporary password must be changed before anything else', async () => {
+    mocks.getAdminAccess.mockResolvedValue({ ...ADMIN, kind: 'password_change' });
+    await expect(renderPage()).rejects.toThrow('REDIRECT:/admin/account/password');
   });
 });
 
-describe('admin table', () => {
-  beforeEach(() => {
-    mocks.getWaitlistAdminAccess.mockResolvedValue({ kind: 'admin', userId: 'admin-1' });
-  });
+describe('waitlist table', () => {
+  beforeEach(() => mocks.getAdminAccess.mockResolvedValue(ADMIN));
 
-  it('shows every agreed column and the row data', async () => {
-    mocks.listWaitlist.mockResolvedValue({
-      entries: [entry()],
-      total: 1,
-      page: 1,
-      pageCount: 1,
-      pageSize: 50,
-    });
+  it('shows the agreed columns and the row data', async () => {
+    mocks.listWaitlist.mockResolvedValue({ ...emptyPage, entries: [entry()], total: 1 });
     await renderPage();
 
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Waitlist & Pilot Recruitment' }),
-    ).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: 'Waitlist' })).toBeTruthy();
     const headers = screen.getAllByRole('columnheader').map((h) => h.textContent);
     expect(headers).toEqual([
       'Name',
       'Email',
       'Phone',
+      'Business',
       'Country',
       'City / island',
-      'Business stage',
+      'Journey',
+      'Industry',
+      'Primary goal',
       'Biggest challenge',
-      'Early testing?',
-      'Recruitment status',
+      'Early access',
+      'Feedback',
+      'Recruitment',
       'Signed up',
-      'Questions answered?',
-      'Last recruitment update',
+      'Questionnaire',
     ]);
 
     const row = screen.getByRole('row', { name: /Ada Lovelace/ });
-    expect(within(row).getByText('ada@example.com')).toBeTruthy();
-    expect(within(row).getByText('Trying to register')).toBeTruthy();
+    expect(within(row).getByText('ada@gmail.com')).toBeTruthy();
+    expect(within(row).getByText('Food, Restaurants & Catering')).toBeTruthy();
     expect(within(row).getByText(/Finding a shop/)).toBeTruthy();
-    expect(within(row).getByText('Yes')).toBeTruthy();
+    expect(within(row).getByRole('link', { name: 'Ada Lovelace' })).toHaveAttribute(
+      'href',
+      `/admin/waitlist/${SIGNUP_ID}`,
+    );
     expect(within(row).getByLabelText('Recruitment status for Ada Lovelace')).toHaveValue(
       'not_contacted',
     );
   });
 
-  it('passes URL filters to the service (server-side filtering)', async () => {
+  it('labels automated test records', async () => {
     mocks.listWaitlist.mockResolvedValue({
-      entries: [],
-      total: 0,
-      page: 1,
-      pageCount: 1,
-      pageSize: 50,
+      ...emptyPage,
+      entries: [entry({ email: 'rlstest@example.dev', isTest: true })],
+      total: 1,
     });
-    await renderPage({ country: 'Bahamas', testingInterest: 'yes', recruitmentStatus: 'bogus' });
+    await renderPage({ tests: 'show' });
+    expect(screen.getByText('Test')).toBeTruthy();
+  });
+
+  it('passes URL filters to the service (server-side filtering)', async () => {
+    mocks.listWaitlist.mockResolvedValue(emptyPage);
+    await renderPage({
+      country: 'Bahamas',
+      industry: 'technology_software',
+      testingInterest: 'yes',
+      recruitmentStatus: 'bogus',
+    });
 
     expect(mocks.listWaitlist.mock.calls[0]![1]).toMatchObject({
       country: 'Bahamas',
+      industry: 'technology_software',
       testingInterest: 'yes',
       recruitmentStatus: undefined,
       page: 1,
     });
     expect(screen.getByText('No signups match these filters')).toBeTruthy();
-    expect(screen.getAllByRole('link', { name: 'Reset filters' })[0]).toHaveAttribute(
-      'href',
-      '/admin/waitlist',
-    );
   });
 
   it('explains an empty waitlist differently from an empty filter', async () => {
-    mocks.listWaitlist.mockResolvedValue({
-      entries: [],
-      total: 0,
-      page: 1,
-      pageCount: 1,
-      pageSize: 50,
-    });
+    mocks.listWaitlist.mockResolvedValue(emptyPage);
     await renderPage();
     expect(screen.getByText('No one has joined yet')).toBeTruthy();
   });
@@ -184,7 +231,7 @@ describe('admin actions', () => {
     return updateRecruitmentAction(null, fd);
   }
 
-  it('updates recruitment through the service and refreshes the table', async () => {
+  it('updates recruitment through the service and refreshes the views', async () => {
     mocks.updateRecruitment.mockResolvedValue({
       recruitmentStatus: 'confirmed',
       recruitmentUpdatedAt: '2026-10-17T10:00:00Z',
@@ -192,6 +239,16 @@ describe('admin actions', () => {
     const result = await update({ signupId: SIGNUP_ID, recruitmentStatus: 'confirmed' });
     expect(result).toMatchObject({ ok: true, data: { recruitmentStatus: 'confirmed' } });
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/admin/waitlist');
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/admin/recruitment');
+  });
+
+  it('the quick editor never sends recruitment dates (absent ≠ cleared)', async () => {
+    mocks.updateRecruitment.mockResolvedValue({
+      recruitmentStatus: 'contacted',
+      recruitmentUpdatedAt: null,
+    });
+    await update({ signupId: SIGNUP_ID, recruitmentStatus: 'contacted' });
+    expect(mocks.updateRecruitment.mock.calls[0]![1].testedOn).toBeUndefined();
   });
 
   it('rejects an unknown status before reaching the service', async () => {
@@ -209,33 +266,37 @@ describe('admin actions', () => {
     expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 
-  it('staff sign-in only ever redirects inside the team area', async () => {
-    mocks.signInWaitlistAdmin.mockResolvedValue(undefined);
+  it('admin sign-in only ever redirects inside the admin area, through MFA', async () => {
+    mocks.signInPlatformAdmin.mockResolvedValue({ ...ADMIN, kind: 'mfa_verify', factorId: 'f' });
     const fd = new FormData();
-    fd.set('email', 'coo@example.com');
+    fd.set('email', 'jamilnash@solvanehub.us');
     fd.set('password', 'secret');
 
     fd.set('next', 'https://evil.example/admin');
-    await expect(staffSignInAction(null, fd)).rejects.toThrow('REDIRECT:/admin/waitlist');
+    await expect(staffSignInAction(null, fd)).rejects.toThrow('REDIRECT:/admin/mfa?next=%2Fadmin');
 
     fd.set('next', '/dashboard');
-    await expect(staffSignInAction(null, fd)).rejects.toThrow('REDIRECT:/admin/waitlist');
+    await expect(staffSignInAction(null, fd)).rejects.toThrow('REDIRECT:/admin/mfa?next=%2Fadmin');
 
+    mocks.signInPlatformAdmin.mockResolvedValue(ADMIN);
     fd.set('next', '/admin/waitlist?testingInterest=yes');
     await expect(staffSignInAction(null, fd)).rejects.toThrow(
       'REDIRECT:/admin/waitlist?testingInterest=yes',
     );
+
+    mocks.signInPlatformAdmin.mockResolvedValue({ ...ADMIN, kind: 'password_change' });
+    await expect(staffSignInAction(null, fd)).rejects.toThrow('REDIRECT:/admin/account/password');
   });
 
-  it('staff sign-in works in WAITLIST_ONLY_MODE but returns the service refusal', async () => {
-    mocks.signInWaitlistAdmin.mockRejectedValue(
+  it('admin sign-in works in WAITLIST_ONLY_MODE but returns the service refusal', async () => {
+    mocks.signInPlatformAdmin.mockRejectedValue(
       new AppError({ code: 'FORBIDDEN', humanMessage: 'Not here.' }),
     );
     const fd = new FormData();
     fd.set('email', 'founder@example.com');
     fd.set('password', 'secret');
     expect(await staffSignInAction(null, fd)).toMatchObject({ ok: false, code: 'FORBIDDEN' });
-    expect(mocks.signInWaitlistAdmin).toHaveBeenCalledOnce();
+    expect(mocks.signInPlatformAdmin).toHaveBeenCalledOnce();
   });
 });
 
@@ -246,7 +307,7 @@ describe('proxy in WAITLIST_ONLY_MODE', () => {
     });
   });
 
-  it.each(['/admin', '/admin/login', '/admin/waitlist'])(
+  it.each(['/admin', '/admin/login', '/admin/waitlist', '/admin/mfa', '/admin/exports/waitlist'])(
     'lets %s through and refreshes its session',
     async (path) => {
       const response = await updateSession(new NextRequest(`https://islanda.test${path}`));
@@ -262,7 +323,7 @@ describe('proxy in WAITLIST_ONLY_MODE', () => {
     }
   });
 
-  it('does not treat look-alike paths as the team area', async () => {
+  it('does not treat look-alike paths as the admin area', async () => {
     const response = await updateSession(new NextRequest('https://islanda.test/administrator'));
     expect(response.status).toBe(200);
     expect(mocks.createServerClient).not.toHaveBeenCalled();

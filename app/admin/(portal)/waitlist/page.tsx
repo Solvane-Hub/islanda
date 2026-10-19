@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
@@ -8,84 +7,60 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { Logo } from '@/components/brand/logo-mark';
 import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 import { cn } from '@/lib/utils/cn';
-import { waitlistFiltersSchema, type WaitlistFilters } from '@/lib/validation/waitlist';
+import type { WaitlistFilters } from '@/lib/validation/waitlist';
 import {
+  ALL_CHALLENGE_OPTIONS,
+  BUSINESS_JOURNEY_OPTIONS,
   BUSINESS_STAGE_OPTIONS,
-  CHALLENGE_OPTIONS,
+  INDUSTRY_OPTIONS,
+  PRIMARY_GOAL_OPTIONS,
   RECRUITMENT_STATUS_OPTIONS,
   TESTING_INTEREST_OPTIONS,
-  businessStageLabel,
+  businessJourneyLabel,
   challengeLabel,
-  recruitmentStatusLabel,
+  industryLabel,
+  primaryGoalLabel,
   testingInterestLabel,
   type TestingInterest,
 } from '@/lib/waitlist/options';
 import {
-  getWaitlistAdminAccess,
   listWaitlist,
   type WaitlistEntry,
   type WaitlistPage,
 } from '@/services/waitlist/recruitment';
-import { staffSignOutAction } from '../actions';
-import { RecruitmentEditor } from '../_components/recruitment-editor';
+import { RecruitmentEditor } from '../../_components/recruitment-editor';
+import { PageHeading } from '../../_components/page-heading';
+import { requireAdminPage } from '../../_lib/guard';
+import {
+  FILTER_KEYS,
+  filterQuery,
+  hrefWith,
+  parseWaitlistFilters,
+} from '../../_lib/waitlist-filters';
 
-export const metadata: Metadata = { title: 'Waitlist & Pilot Recruitment' };
+export const metadata: Metadata = { title: 'Waitlist' };
 
 /**
- * Waitlist & Pilot Recruitment — team only.
- *
- * Signed out → staff sign-in. Signed in without the waitlist_admin role →
- * 404, so the page does not confirm its own existence to a founder account.
- * Filtering and paging run in Postgres (services → lib/db); the browser only
- * ever receives one page of matching rows.
+ * Waitlist management. Filtering, sorting and paging run in Postgres
+ * (services → lib/db); the browser receives one page of matching rows.
+ * Contact details and internal notes are visible to administrators only —
+ * RLS refuses them to everyone else.
  */
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-const FILTER_KEYS = [
-  'q',
-  'country',
-  'cityIsland',
-  'businessStage',
-  'biggestChallenge',
-  'testingInterest',
-  'recruitmentStatus',
-  'completed',
-  'from',
-  'to',
-] as const;
-
-function first(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function hrefWith(filters: WaitlistFilters, overrides: Partial<Record<string, string>>): string {
-  const params = new URLSearchParams();
-  for (const key of FILTER_KEYS) {
-    const value = filters[key];
-    if (value) params.set(key, String(value));
-  }
-  for (const [key, value] of Object.entries(overrides)) {
-    if (value) params.set(key, value);
-    else params.delete(key);
-  }
-  const query = params.toString();
-  return query ? `/admin/waitlist?${query}` : '/admin/waitlist';
-}
-
-/** Common starting points for pilot recruitment. Plain links — no hidden state. */
 const QUICK_VIEWS: { label: string; params: Record<string, string> }[] = [
-  { label: 'Said yes to early testing', params: { testingInterest: 'yes' } },
+  { label: 'Early access: yes or maybe', params: { pool: 'early_access' } },
+  { label: 'Feedback: yes or maybe', params: { pool: 'feedback' } },
   {
-    label: 'Bahamas · said yes · not contacted',
+    label: 'Bahamas · yes · not contacted',
     params: { country: 'Bahamas', testingInterest: 'yes', recruitmentStatus: 'not_contacted' },
   },
   { label: 'Confirmed for testing', params: { recruitmentStatus: 'confirmed' } },
-  { label: 'Questions not answered', params: { completed: 'no' } },
+  { label: 'Questionnaire not completed', params: { completed: 'no' } },
 ];
 
 export default async function WaitlistAdminPage({
@@ -93,48 +68,46 @@ export default async function WaitlistAdminPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const db = await createClient();
-  const access = await getWaitlistAdminAccess(db);
-  if (access.kind === 'signed_out') redirect('/admin/login?next=/admin/waitlist');
-  if (access.kind === 'not_admin') notFound();
-
-  const raw = await searchParams;
-  const filters = waitlistFiltersSchema.parse(
-    Object.fromEntries([...FILTER_KEYS, 'page'].map((key) => [key, first(raw[key])])),
+  await requireAdminPage('/admin/waitlist');
+  const filters = parseWaitlistFilters(await searchParams);
+  const filtered = FILTER_KEYS.some(
+    (key) => key !== 'sort' && key !== 'tests' && Boolean(filters[key]),
   );
-  const filtered = FILTER_KEYS.some((key) => Boolean(filters[key]));
 
   let page: WaitlistPage | null = null;
   try {
-    page = await listWaitlist(db, filters);
+    page = await listWaitlist(await createClient(), filters);
   } catch (error) {
     logger.error('admin.waitlist_list_failed', {
       code: error instanceof Error ? error.name : 'unknown',
     });
   }
 
+  const exportQuery = filterQuery(filters);
+
   return (
-    <div className="flex flex-col gap-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col gap-3">
-          <span className="text-on-ink inline-flex w-fit">
-            <Logo height={20} />
-          </span>
-          <h1 className="text-on-ink text-2xl font-semibold tracking-[-0.02em] sm:text-[1.75rem]">
-            Waitlist &amp; Pilot Recruitment
-          </h1>
-          <p className="text-foreground-muted max-w-2xl text-sm text-pretty">
-            Everyone who joined the Islanda waitlist, with their optional answers. &ldquo;Early
-            testing&rdquo; is what the person told us; &ldquo;Recruitment&rdquo; is what the team
-            has done. Changing one never changes the other.
-          </p>
+    <>
+      <PageHeading
+        title="Waitlist"
+        description="Everyone who joined the Islanda waitlist, with their optional questionnaire answers. “Early access” is what the person told us; “Recruitment” is what the team has done. Changing one never changes the other."
+      >
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/admin/exports/waitlist?${exportQuery}`}
+            prefetch={false}
+            className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+          >
+            Export CSV (no contact details)
+          </Link>
+          <Link
+            href={`/admin/exports/waitlist?${exportQuery}${exportQuery ? '&' : ''}contact=1`}
+            prefetch={false}
+            className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+          >
+            Export CSV with contact details
+          </Link>
         </div>
-        <form action={staffSignOutAction}>
-          <button type="submit" className={buttonVariants({ variant: 'secondary', size: 'sm' })}>
-            Sign out
-          </button>
-        </form>
-      </header>
+      </PageHeading>
 
       <section aria-labelledby="quick-views" className="flex flex-col gap-2">
         <h2 id="quick-views" className="text-foreground-muted text-xs font-medium">
@@ -144,7 +117,7 @@ export default async function WaitlistAdminPage({
           {QUICK_VIEWS.map((view) => (
             <li key={view.label}>
               <Link
-                href={hrefWith({ page: 1 }, view.params)}
+                href={hrefWith('/admin/waitlist', { page: 1 }, view.params)}
                 className="text-foreground inline-flex min-h-9 items-center rounded-full border border-white/20 px-3 text-xs hover:bg-white/[0.06]"
               >
                 {view.label}
@@ -184,7 +157,7 @@ export default async function WaitlistAdminPage({
       ) : (
         <Results page={page} filters={filters} />
       )}
-    </div>
+    </>
   );
 }
 
@@ -196,7 +169,7 @@ function FilterForm({ filters, filtered }: { filters: WaitlistFilters; filtered:
       aria-label="Filter the waitlist"
       className="grid grid-cols-1 gap-4 rounded-2xl border border-white/12 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4"
     >
-      <Field id="filter-q" label="Search name or email" className="sm:col-span-2">
+      <Field id="filter-q" label="Search name, email, phone or business" className="sm:col-span-2">
         {(aria) => <Input {...aria} name="q" type="search" defaultValue={filters.q ?? ''} />}
       </Field>
       <Field id="filter-country" label="Country contains">
@@ -209,10 +182,38 @@ function FilterForm({ filters, filtered }: { filters: WaitlistFilters; filtered:
           />
         )}
       </Field>
-      <Field id="filter-city" label="City or island contains">
+      <Field id="filter-city" label="City, island or community contains">
         {(aria) => <Input {...aria} name="cityIsland" defaultValue={filters.cityIsland ?? ''} />}
       </Field>
 
+      <SelectFilter
+        id="filter-journey"
+        label="Business journey"
+        name="businessJourney"
+        value={filters.businessJourney}
+        options={BUSINESS_JOURNEY_OPTIONS}
+      />
+      <SelectFilter
+        id="filter-industry"
+        label="Industry"
+        name="industry"
+        value={filters.industry}
+        options={INDUSTRY_OPTIONS}
+      />
+      <SelectFilter
+        id="filter-goal"
+        label="Primary goal"
+        name="primaryGoal"
+        value={filters.primaryGoal}
+        options={PRIMARY_GOAL_OPTIONS}
+      />
+      <SelectFilter
+        id="filter-challenge"
+        label="Biggest challenge"
+        name="biggestChallenge"
+        value={filters.biggestChallenge}
+        options={ALL_CHALLENGE_OPTIONS}
+      />
       <SelectFilter
         id="filter-stage"
         label="Business stage"
@@ -221,17 +222,17 @@ function FilterForm({ filters, filtered }: { filters: WaitlistFilters; filtered:
         options={BUSINESS_STAGE_OPTIONS}
       />
       <SelectFilter
-        id="filter-challenge"
-        label="Biggest challenge"
-        name="biggestChallenge"
-        value={filters.biggestChallenge}
-        options={CHALLENGE_OPTIONS}
-      />
-      <SelectFilter
         id="filter-interest"
-        label="Early testing interest"
+        label="Early access interest"
         name="testingInterest"
         value={filters.testingInterest}
+        options={TESTING_INTEREST_OPTIONS}
+      />
+      <SelectFilter
+        id="filter-feedback"
+        label="Feedback willingness"
+        name="feedbackInterest"
+        value={filters.feedbackInterest}
         options={TESTING_INTEREST_OPTIONS}
       />
       <SelectFilter
@@ -243,12 +244,12 @@ function FilterForm({ filters, filtered }: { filters: WaitlistFilters; filtered:
       />
       <SelectFilter
         id="filter-completed"
-        label="Questions answered?"
+        label="Questionnaire"
         name="completed"
         value={filters.completed}
         options={[
-          { value: 'yes', label: 'Answered' },
-          { value: 'no', label: 'Not answered' },
+          { value: 'yes', label: 'Completed' },
+          { value: 'no', label: 'Not completed' },
         ]}
       />
       <Field id="filter-from" label="Signed up from (UTC)">
@@ -257,8 +258,32 @@ function FilterForm({ filters, filtered }: { filters: WaitlistFilters; filtered:
       <Field id="filter-to" label="Signed up to (UTC)">
         {(aria) => <Input {...aria} name="to" type="date" defaultValue={filters.to ?? ''} />}
       </Field>
+      <SelectFilter
+        id="filter-sort"
+        label="Sort by"
+        name="sort"
+        value={filters.sort}
+        anyLabel="Newest signup first"
+        options={[
+          { value: 'oldest', label: 'Oldest signup first' },
+          { value: 'name', label: 'Name (A–Z)' },
+          { value: 'survey', label: 'Questionnaire completed (latest)' },
+          { value: 'recruitment', label: 'Recruitment updated (latest)' },
+        ]}
+      />
+      <label className="text-foreground inline-flex min-h-10 items-center gap-2 self-end text-sm">
+        <input
+          type="checkbox"
+          name="tests"
+          value="show"
+          defaultChecked={filters.tests === 'show'}
+          className="size-4"
+        />
+        Show automated test records
+      </label>
+      {filters.pool ? <input type="hidden" name="pool" value={filters.pool} /> : null}
 
-      <div className="flex items-end gap-3">
+      <div className="flex items-end gap-3 sm:col-span-2 lg:col-span-4">
         <button type="submit" className={buttonVariants({ size: 'md' })}>
           Apply filters
         </button>
@@ -266,6 +291,11 @@ function FilterForm({ filters, filtered }: { filters: WaitlistFilters; filtered:
           <Link href="/admin/waitlist" className={buttonVariants({ variant: 'ghost' })}>
             Reset filters
           </Link>
+        ) : null}
+        {filters.pool ? (
+          <p className="text-foreground-muted text-xs">
+            Showing {filters.pool === 'early_access' ? 'early-access' : 'feedback'} yes/maybe only.
+          </p>
         ) : null}
       </div>
     </form>
@@ -278,18 +308,20 @@ function SelectFilter({
   name,
   value,
   options,
+  anyLabel = 'Any',
 }: {
   id: string;
   label: string;
   name: string;
   value: string | undefined;
   options: readonly { value: string; label: string }[];
+  anyLabel?: string;
 }) {
   return (
     <Field id={id} label={label}>
       {(aria) => (
         <Select {...aria} name={name} defaultValue={value ?? ''}>
-          <option value="">Any</option>
+          <option value="">{anyLabel}</option>
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -315,15 +347,18 @@ const HEADERS = [
   'Name',
   'Email',
   'Phone',
+  'Business',
   'Country',
   'City / island',
-  'Business stage',
+  'Journey',
+  'Industry',
+  'Primary goal',
   'Biggest challenge',
-  'Early testing?',
-  'Recruitment status',
+  'Early access',
+  'Feedback',
+  'Recruitment',
   'Signed up',
-  'Questions answered?',
-  'Last recruitment update',
+  'Questionnaire',
 ];
 
 function Results({ page, filters }: { page: WaitlistPage; filters: WaitlistFilters }) {
@@ -337,18 +372,18 @@ function Results({ page, filters }: { page: WaitlistPage; filters: WaitlistFilte
           {page.total} {page.total === 1 ? 'signup' : 'signups'}
         </h2>
         <p className="text-foreground-muted text-xs">
-          Showing {firstRow}–{lastRow}. Newest first. Dates are in UTC.
+          Showing {firstRow}–{lastRow}. Dates are in UTC.
+          {filters.tests === 'show' ? '' : ' Automated test records hidden.'}
         </p>
       </div>
 
-      {/* Focusable so keyboard users can scroll the wide table horizontally. */}
       <div
         role="region"
         aria-labelledby="results-heading"
         tabIndex={0}
         className="overflow-x-auto rounded-2xl border border-white/12 focus-visible:ring-[3px] focus-visible:ring-white/30 focus-visible:outline-none"
       >
-        <table className="w-full min-w-[80rem] border-collapse text-left text-sm">
+        <table className="w-full min-w-[110rem] border-collapse text-left text-sm">
           <thead className="text-foreground-muted text-xs">
             <tr className="border-b border-white/12">
               {HEADERS.map((header) => (
@@ -370,7 +405,7 @@ function Results({ page, filters }: { page: WaitlistPage; filters: WaitlistFilte
         <nav aria-label="Pages" className="flex items-center justify-between gap-3">
           {page.page > 1 ? (
             <Link
-              href={hrefWith(filters, { page: String(page.page - 1) })}
+              href={hrefWith('/admin/waitlist', filters, { page: String(page.page - 1) })}
               className={buttonVariants({ variant: 'secondary', size: 'sm' })}
             >
               Previous
@@ -383,7 +418,7 @@ function Results({ page, filters }: { page: WaitlistPage; filters: WaitlistFilte
           </p>
           {page.page < page.pageCount ? (
             <Link
-              href={hrefWith(filters, { page: String(page.page + 1) })}
+              href={hrefWith('/admin/waitlist', filters, { page: String(page.page + 1) })}
               className={buttonVariants({ variant: 'secondary', size: 'sm' })}
             >
               Next
@@ -404,7 +439,14 @@ function Row({ entry }: { entry: WaitlistEntry }) {
   return (
     <tr className="border-b border-white/8 last:border-b-0">
       <th scope="row" className={cn(cell, 'text-on-ink font-medium whitespace-nowrap')}>
-        {entry.name || muted}
+        <Link href={`/admin/waitlist/${entry.id}`} className="underline underline-offset-2">
+          {entry.name || 'Unnamed signup'}
+        </Link>
+        {entry.isTest ? (
+          <Badge tone="neutral" className="ml-2">
+            Test
+          </Badge>
+        ) : null}
       </th>
       <td className={cell}>
         <a href={`mailto:${entry.email}`} className="break-all underline underline-offset-2">
@@ -423,15 +465,32 @@ function Row({ entry }: { entry: WaitlistEntry }) {
           muted
         )}
       </td>
+      <td className={cell}>{entry.businessName ?? muted}</td>
       <td className={cell}>{entry.country ?? muted}</td>
       <td className={cell}>{entry.cityIsland ?? muted}</td>
-      <td className={cell}>
-        {entry.businessStage ? businessStageLabel(entry.businessStage) : muted}
+      <td className={cn(cell, 'max-w-[14rem]')}>
+        {entry.businessJourney ? businessJourneyLabel(entry.businessJourney) : muted}
+      </td>
+      <td className={cn(cell, 'max-w-[14rem]')}>
+        {entry.industry ? industryLabel(entry.industry) : muted}
+        {entry.industryOther ? (
+          <span className="text-foreground-muted mt-1 block text-xs">
+            &ldquo;{entry.industryOther}&rdquo;
+          </span>
+        ) : null}
+      </td>
+      <td className={cn(cell, 'max-w-[16rem]')}>
+        {entry.primaryGoal ? primaryGoalLabel(entry.primaryGoal) : muted}
+        {entry.goalOther ? (
+          <span className="text-foreground-muted mt-1 block text-xs">
+            &ldquo;{entry.goalOther}&rdquo;
+          </span>
+        ) : null}
       </td>
       <td className={cn(cell, 'max-w-[16rem]')}>
         {entry.biggestChallenge ? challengeLabel(entry.biggestChallenge) : muted}
         {entry.challengeOther ? (
-          <span className="text-foreground-muted mt-1 block text-xs text-pretty">
+          <span className="text-foreground-muted mt-1 block text-xs">
             &ldquo;{entry.challengeOther}&rdquo;
           </span>
         ) : null}
@@ -446,9 +505,15 @@ function Row({ entry }: { entry: WaitlistEntry }) {
         )}
       </td>
       <td className={cell}>
-        <span className="sr-only">
-          Currently {recruitmentStatusLabel(entry.recruitmentStatus)}.
-        </span>
+        {entry.feedbackInterest ? (
+          <Badge tone={interestTone(entry.feedbackInterest)}>
+            {testingInterestLabel(entry.feedbackInterest)}
+          </Badge>
+        ) : (
+          muted
+        )}
+      </td>
+      <td className={cell}>
         <RecruitmentEditor
           signupId={entry.id}
           personName={entry.name}
@@ -458,9 +523,12 @@ function Row({ entry }: { entry: WaitlistEntry }) {
       </td>
       <td className={cn(cell, 'whitespace-nowrap')}>{day(entry.signedUpAt)}</td>
       <td className={cn(cell, 'whitespace-nowrap')}>
-        {entry.surveyCompletedAt ? `Yes · ${day(entry.surveyCompletedAt)}` : 'No'}
+        {entry.surveyCompletedAt
+          ? `Completed · ${day(entry.surveyCompletedAt)}`
+          : entry.surveyStartedAt
+            ? `Started · ${day(entry.surveyStartedAt)}`
+            : 'Not answered'}
       </td>
-      <td className={cn(cell, 'whitespace-nowrap')}>{day(entry.recruitmentUpdatedAt)}</td>
     </tr>
   );
 }

@@ -2,14 +2,21 @@ import { describe, expect, it } from 'vitest';
 import {
   joinWaitlistSchema,
   recruitmentUpdateSchema,
+  surveyAnswersFromForm,
   waitlistFiltersSchema,
   waitlistSurveySchema,
 } from '@/lib/validation/waitlist';
 import {
+  BUSINESS_JOURNEY_OPTIONS,
   BUSINESS_STAGE_OPTIONS,
   CHALLENGE_OPTIONS,
+  EARLY_ACCESS_QUESTION_OPTIONS,
+  FEEDBACK_INTEREST_OPTIONS,
+  INDUSTRY_OPTIONS,
+  PRIMARY_GOAL_OPTIONS,
   RECRUITMENT_STATUS_OPTIONS,
   TESTING_INTEREST_OPTIONS,
+  challengeLabel,
 } from '@/lib/waitlist/options';
 
 const TOKEN = 'a'.repeat(43);
@@ -45,82 +52,91 @@ describe('joinWaitlistSchema', () => {
 });
 
 describe('waitlistSurveySchema', () => {
-  it('treats every question as optional', () => {
-    const parsed = waitlistSurveySchema.parse({
-      token: TOKEN,
+  const parse = (answers: Record<string, unknown>, final = false) =>
+    waitlistSurveySchema.parse({ token: TOKEN, final, answers });
+
+  it('treats every question as optional, and blank as "cleared" rather than "untouched"', () => {
+    expect(parse({}).answers).toEqual({});
+    expect(parse({ country: '', businessJourney: null }).answers).toEqual({
       country: null,
-      cityIsland: '',
-      businessStage: null,
-      biggestChallenge: '',
-      challengeOther: null,
-      testingInterest: null,
-    });
-    expect(parsed).toEqual({
-      token: TOKEN,
-      country: undefined,
-      cityIsland: undefined,
-      businessStage: undefined,
-      biggestChallenge: undefined,
-      challengeOther: undefined,
-      testingInterest: undefined,
+      businessJourney: null,
     });
   });
 
-  it('requires a well-formed token', () => {
-    expect(waitlistSurveySchema.safeParse({ token: 'short' }).success).toBe(false);
-    expect(waitlistSurveySchema.safeParse({}).success).toBe(false);
-  });
-
-  it.each(BUSINESS_STAGE_OPTIONS.map((o) => o.value))('accepts business stage %s', (value) => {
-    expect(waitlistSurveySchema.parse({ token: TOKEN, businessStage: value }).businessStage).toBe(
-      value,
-    );
-  });
-
-  it.each(CHALLENGE_OPTIONS.map((o) => o.value))('accepts challenge %s', (value) => {
+  it('requires a well-formed token and a final flag', () => {
     expect(
-      waitlistSurveySchema.parse({ token: TOKEN, biggestChallenge: value }).biggestChallenge,
-    ).toBe(value);
+      waitlistSurveySchema.safeParse({ token: 'short', final: false, answers: {} }).success,
+    ).toBe(false);
+    expect(waitlistSurveySchema.safeParse({ token: TOKEN, answers: {} }).success).toBe(false);
   });
 
-  it.each(TESTING_INTEREST_OPTIONS.map((o) => o.value))('accepts interest %s', (value) => {
+  it.each([
+    ['businessJourney', BUSINESS_JOURNEY_OPTIONS],
+    ['industry', INDUSTRY_OPTIONS],
+    ['primaryGoal', PRIMARY_GOAL_OPTIONS],
+    ['biggestChallenge', CHALLENGE_OPTIONS],
+    ['businessStage', BUSINESS_STAGE_OPTIONS],
+    ['testingInterest', TESTING_INTEREST_OPTIONS],
+    ['feedbackInterest', FEEDBACK_INTEREST_OPTIONS],
+  ] as const)('accepts every offered %s', (field, options) => {
+    for (const option of options) {
+      expect(parse({ [field]: option.value }).answers).toMatchObject({ [field]: option.value });
+    }
+  });
+
+  it('rejects values outside the agreed options, including the retired challenge', () => {
     expect(
-      waitlistSurveySchema.parse({ token: TOKEN, testingInterest: value }).testingInterest,
-    ).toBe(value);
-  });
-
-  it('rejects a value outside the agreed options', () => {
-    const result = waitlistSurveySchema.safeParse({ token: TOKEN, businessStage: 'unicorn' });
-    expect(result.success).toBe(false);
-  });
-
-  it('keeps the explanation only when "Other" is chosen', () => {
-    expect(
-      waitlistSurveySchema.parse({
+      waitlistSurveySchema.safeParse({
         token: TOKEN,
-        biggestChallenge: 'other',
-        challengeOther: 'Getting a loan',
-      }).challengeOther,
-    ).toBe('Getting a loan');
+        final: false,
+        answers: { industry: 'unicorns' },
+      }).success,
+    ).toBe(false);
     expect(
-      waitlistSurveySchema.parse({
+      waitlistSurveySchema.safeParse({
         token: TOKEN,
-        biggestChallenge: 'finding_customers',
-        challengeOther: 'Getting a loan',
-      }).challengeOther,
-    ).toBeUndefined();
+        final: false,
+        answers: { biggestChallenge: 'managing_business' },
+      }).success,
+    ).toBe(false);
   });
 
-  it('limits the explanation to 300 characters', () => {
-    const result = waitlistSurveySchema.safeParse({
-      token: TOKEN,
-      biggestChallenge: 'other',
-      challengeOther: 'x'.repeat(301),
+  it('keeps an "Other" explanation only with "Other", and clears it otherwise', () => {
+    expect(parse({ industry: 'other', industryOther: 'Boat repair' }).answers).toEqual({
+      industry: 'other',
+      industryOther: 'Boat repair',
     });
-    expect(result.success).toBe(false);
+    expect(parse({ industry: 'technology_software', industryOther: 'stale' }).answers).toEqual({
+      industry: 'technology_software',
+      industryOther: null,
+    });
+    expect(parse({ primaryGoal: 'clear_plan', goalOther: 'x' }).answers.goalOther).toBeNull();
+    expect(
+      parse({ biggestChallenge: 'marketing', challengeOther: 'x' }).answers.challengeOther,
+    ).toBeNull();
+  });
+
+  it('caps free text at the database limits', () => {
+    const tooLong = (field: string, n: number) =>
+      waitlistSurveySchema.safeParse({
+        token: TOKEN,
+        final: false,
+        answers: { [field]: 'x'.repeat(n) },
+      }).success;
+    expect(tooLong('additionalInfo', 1000)).toBe(true);
+    expect(tooLong('additionalInfo', 1001)).toBe(false);
+    expect(tooLong('businessName', 201)).toBe(false);
+    expect(tooLong('goalOther', 301)).toBe(false);
+  });
+
+  it('reads only the fields a section declared', () => {
+    const fd = new FormData();
+    fd.set('fields', 'country,businessJourney,notAField');
+    fd.set('country', 'Barbados');
+    fd.set('industry', 'technology_software'); // present but not declared — ignored
+    expect(surveyAnswersFromForm(fd)).toEqual({ country: 'Barbados', businessJourney: null });
   });
 });
-
 describe('waitlistFiltersSchema', () => {
   it('ignores malformed values instead of failing the page', () => {
     const parsed = waitlistFiltersSchema.parse({
@@ -135,6 +151,25 @@ describe('waitlistFiltersSchema', () => {
     expect(parsed.from).toBeUndefined();
     expect(parsed.to).toBe('2026-10-17');
     expect(parsed.page).toBe(1);
+  });
+
+  it('accepts the expanded filters and ignores unknown values', () => {
+    const parsed = waitlistFiltersSchema.parse({
+      industry: 'technology_software',
+      primaryGoal: 'nope',
+      pool: 'early_access',
+      tests: 'show',
+      sort: 'oldest',
+      feedbackInterest: 'maybe',
+    });
+    expect(parsed).toMatchObject({
+      industry: 'technology_software',
+      primaryGoal: undefined,
+      pool: 'early_access',
+      tests: 'show',
+      sort: 'oldest',
+      feedbackInterest: 'maybe',
+    });
   });
 });
 
@@ -164,6 +199,29 @@ describe('recruitmentUpdateSchema', () => {
     ).toBe(false);
   });
 
+  it('validates the detail editor dates and https feedback link', () => {
+    const base = { signupId: id, recruitmentStatus: 'tested' };
+    expect(
+      recruitmentUpdateSchema.parse({ ...base, testedOn: '2026-11-02', feedbackLink: '' }),
+    ).toMatchObject({
+      testedOn: '2026-11-02',
+      feedbackLink: null,
+    });
+    expect(recruitmentUpdateSchema.safeParse({ ...base, testedOn: '02/11/2026' }).success).toBe(
+      false,
+    );
+    expect(
+      recruitmentUpdateSchema.safeParse({ ...base, feedbackLink: 'http://x.example' }).success,
+    ).toBe(false);
+    expect(
+      recruitmentUpdateSchema.safeParse({ ...base, feedbackLink: 'javascript:alert(1)' }).success,
+    ).toBe(false);
+    expect(
+      recruitmentUpdateSchema.parse({ ...base, feedbackLink: 'https://drive.google.com/x' })
+        .feedbackLink,
+    ).toBe('https://drive.google.com/x');
+  });
+
   it('rejects a non-uuid id', () => {
     expect(
       recruitmentUpdateSchema.safeParse({ signupId: '1', recruitmentStatus: 'tested' }).success,
@@ -172,27 +230,66 @@ describe('recruitmentUpdateSchema', () => {
 });
 
 describe('option wording', () => {
-  it('matches the agreed questionnaire and recruitment labels exactly', () => {
+  it('matches the agreed questionnaire wording exactly', () => {
+    expect(BUSINESS_JOURNEY_OPTIONS.map((o) => o.label)).toEqual([
+      "I have an idea but haven't started yet",
+      "I'm planning to start a new business",
+      "I'm preparing to register my business",
+      "I've started operating but am not fully established yet",
+      'I already run an established business',
+      "I'm starting another business",
+      "I'm exploring business ownership and haven't decided yet",
+      'Other',
+    ]);
+    expect(INDUSTRY_OPTIONS).toHaveLength(22);
+    expect(INDUSTRY_OPTIONS.at(-2)!.label).toBe('Other');
+    expect(INDUSTRY_OPTIONS.at(-1)!.label).toBe('Not Sure Yet');
+    expect(PRIMARY_GOAL_OPTIONS).toHaveLength(20);
+    expect(PRIMARY_GOAL_OPTIONS[2]!.label).toBe(
+      'Figure out what licences, permits, or approvals I may need',
+    );
+    expect(CHALLENGE_OPTIONS.map((o) => o.label)).toEqual([
+      'Finding reliable information',
+      'Understanding registration and legal requirements',
+      'Knowing what to do next',
+      'Getting my business started',
+      'Organizing documents and information',
+      'Managing money and expenses',
+      'Finding customers',
+      'Marketing my business',
+      'Managing day-to-day operations',
+      'Understanding industry-specific requirements',
+      'Finding funding or financial support',
+      'Keeping up with deadlines and requirements',
+      'Turning my business idea into a workable plan',
+      "I have several challenges and don't know where to start",
+      'Other',
+    ]);
     expect(BUSINESS_STAGE_OPTIONS.map((o) => o.label)).toEqual([
       'Just exploring',
       'Planning to start',
       'Trying to register',
       'Already operating',
     ]);
-    expect(CHALLENGE_OPTIONS.map((o) => o.label)).toEqual([
-      'Finding reliable information',
-      'Understanding registration',
-      'Knowing the next steps',
-      'Finding customers',
-      'Managing my business',
-      'Other',
+    expect(EARLY_ACCESS_QUESTION_OPTIONS.map((o) => o.label)).toEqual([
+      "Yes, I'd love to try it",
+      "Maybe — I'd like to learn more first",
+      'Not right now',
     ]);
-    expect(TESTING_INTEREST_OPTIONS.map((o) => o.label)).toEqual(['Yes', 'Maybe', 'Not right now']);
+    expect(FEEDBACK_INTEREST_OPTIONS.map((o) => o.label)).toEqual([
+      'Yes',
+      'Maybe',
+      'Not right now',
+    ]);
     expect(RECRUITMENT_STATUS_OPTIONS.map((o) => o.label)).toEqual([
       'Not Contacted',
       'Contacted',
       'Confirmed',
       'Tested',
     ]);
+  });
+
+  it('still labels the retired challenge stored by the first questionnaire', () => {
+    expect(challengeLabel('managing_business')).toMatch(/Managing my business/);
   });
 });

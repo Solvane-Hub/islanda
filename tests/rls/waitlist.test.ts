@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { adminClient, adminConfigured, anonClient, rlsConfigured, RUN, signIn } from './client';
 
 /**
@@ -123,8 +123,8 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist_signups', () =>
  * Proves, live: the public can still only INSERT the contact columns; survey
  * answers reach a row only through the token-gated function; recruitment is
  * invisible and immutable to visitors and founders; and only a
- * `waitlist_admin` can read the list or change recruitment — and even then
- * never the token hash or the contact columns.
+ * platform administrator can read the list or change recruitment (see
+ * tests/rls/admin.test.ts) — and even then never the token hash.
  */
 describe.skipIf(!rlsConfigured)('Row Level Security — waitlist survey and recruitment', () => {
   const token = randomBytes(32).toString('base64url');
@@ -237,81 +237,97 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist survey and recr
     expect(tokenRead.error).not.toBeNull(); // no column grant, for anyone
   });
 
-  describe.skipIf(!adminConfigured)('as a waitlist_admin', () => {
-    let staffUserId = '';
-
-    beforeAll(async () => {
-      const { userId } = await signIn('B');
-      staffUserId = userId;
-      const { error } = await adminClient()
-        .from('staff_members')
-        .insert({ user_id: staffUserId, role: 'waitlist_admin' });
-      if (error && error.code !== '23505') throw error;
+  it('the expanded questionnaire saves partially by token, merging sections', async () => {
+    const anon = anonClient();
+    const wrong = await anon.rpc('save_waitlist_survey', {
+      p_token: randomBytes(32).toString('base64url'),
+      p_answers: { country: 'Barbados' },
+      p_final: false,
     });
+    expect(wrong.error).toBeNull();
+    expect(wrong.data).toBe(false);
 
-    afterAll(async () => {
-      if (staffUserId) {
-        await adminClient()
-          .from('staff_members')
-          .delete()
-          .eq('user_id', staffUserId)
-          .eq('role', 'waitlist_admin');
-      }
+    const sectionA = await anon.rpc('save_waitlist_survey', {
+      p_token: token,
+      p_answers: {
+        industry: 'other',
+        industryOther: 'Boat repair',
+        businessJourney: 'established_business',
+      },
+      p_final: false,
     });
+    expect(sectionA.data).toBe(true);
 
-    it('can read the signup with its answers; answering did not touch recruitment', async () => {
-      const { db } = await signIn('B');
-      const { data, error } = await db
+    // A later section never erases an earlier one; unknown keys (an attempt to
+    // set recruitment through the public door) are ignored.
+    const sectionD = await anon.rpc('save_waitlist_survey', {
+      p_token: token,
+      p_answers: {
+        additionalInfo: 'Need a licence',
+        recruitmentStatus: 'tested',
+        recruitment_status: 'tested',
+      },
+      p_final: true,
+    });
+    expect(sectionD.data).toBe(true);
+
+    const own = await anon.rpc('get_waitlist_survey', { p_token: token });
+    expect(own.error).toBeNull();
+    expect(own.data).toMatchObject({
+      industry: 'other',
+      industryOther: 'Boat repair',
+      businessJourney: 'established_business',
+      additionalInfo: 'Need a licence',
+      completed: true,
+    });
+    // The answers read back carry no contact or recruitment data.
+    expect(JSON.stringify(own.data)).not.toContain(email);
+    expect(own.data).not.toHaveProperty('recruitmentStatus');
+
+    const nobody = await anon.rpc('get_waitlist_survey', {
+      p_token: randomBytes(32).toString('base64url'),
+    });
+    expect(nobody.data).toBeNull();
+  });
+
+  it('the database rejects an invalid answer and an orphaned "Other" explanation', async () => {
+    const anon = anonClient();
+    const bad = await anon.rpc('save_waitlist_survey', {
+      p_token: token,
+      p_answers: { industry: 'unicorns' },
+      p_final: false,
+    });
+    expect(bad.error).not.toBeNull();
+
+    // Switching away from "Other" clears its explanation rather than violating the check.
+    const switched = await anon.rpc('save_waitlist_survey', {
+      p_token: token,
+      p_answers: { industry: 'technology_software' },
+      p_final: false,
+    });
+    expect(switched.error).toBeNull();
+    const own = await anon.rpc('get_waitlist_survey', { p_token: token });
+    expect(own.data).toMatchObject({ industry: 'technology_software', industryOther: null });
+  });
+
+  describe.skipIf(!adminConfigured)('stored state, checked with the service role', () => {
+    it('answering never touched recruitment, and completion is stamped once', async () => {
+      const { data, error } = await adminClient()
         .from('waitlist_signups')
         .select(
-          'phone, survey_country, business_stage, challenge_other, testing_interest, survey_completed_at, recruitment_status, recruitment_updated_at',
+          'phone, survey_completed_at, survey_started_at, recruitment_status, recruitment_updated_at, recruitment_tested_on',
         )
         .eq('email', email)
         .single();
       expect(error).toBeNull();
       expect(data).toMatchObject({
         phone: '(242) 555-0123',
-        survey_country: 'The Bahamas',
-        business_stage: 'already_operating',
-        challenge_other: 'Finding a shop',
-        testing_interest: 'yes',
         recruitment_status: 'not_contacted',
         recruitment_updated_at: null,
+        recruitment_tested_on: null,
       });
       expect(data?.survey_completed_at).not.toBeNull();
-    });
-
-    it('can update recruitment status and notes, which stamps the update time', async () => {
-      const { db } = await signIn('B');
-      const { data, error } = await db
-        .from('waitlist_signups')
-        .update({ recruitment_status: 'contacted', recruitment_notes: 'Called; prefers WhatsApp.' })
-        .eq('email', email)
-        .select('recruitment_status, recruitment_updated_at')
-        .single();
-      expect(error).toBeNull();
-      expect(data?.recruitment_status).toBe('contacted');
-      expect(data?.recruitment_updated_at).not.toBeNull();
-    });
-
-    it('cannot change contact details or survey answers', async () => {
-      const { db } = await signIn('B');
-      for (const change of [{ email: `${RUN}-x@example.dev` }, { testing_interest: 'maybe' }]) {
-        const { error } = await db
-          .from('waitlist_signups')
-          .update(change as never)
-          .eq('email', email);
-        expect(error).not.toBeNull(); // column-level UPDATE grant covers recruitment only
-      }
-    });
-
-    it('still cannot read the token hash', async () => {
-      const { db } = await signIn('B');
-      const { error } = await db
-        .from('waitlist_signups')
-        .select('survey_token_hash')
-        .eq('email', email);
-      expect(error).not.toBeNull();
+      expect(data?.survey_started_at).not.toBeNull();
     });
   });
 });

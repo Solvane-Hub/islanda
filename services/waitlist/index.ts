@@ -2,7 +2,12 @@ import { createHash, randomBytes } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { consumeRateLimit, type RateLimitDecision } from '@/lib/db/rate-limit';
-import { submitSurveyAnswers } from '@/lib/db/waitlist';
+import {
+  readSurveyAnswers,
+  saveSurveyAnswers,
+  type StoredSurveyAnswers,
+  type SurveyAnswerPatch,
+} from '@/lib/db/waitlist';
 import type { WaitlistSurveyInput } from '@/lib/validation/waitlist';
 
 /**
@@ -10,7 +15,7 @@ import type { WaitlistSurveyInput } from '@/lib/validation/waitlist';
  *
  * The public surface is this function's INSERT plus the token-gated survey
  * write below; a visitor can never SELECT, UPDATE or DELETE a row. Reading and
- * recruitment updates belong to `waitlist_admin` staff only — see
+ * recruitment updates belong to platform administrators only — see
  * `services/waitlist/recruitment.ts`. A duplicate
  * email is not an error to the caller — it is the same outcome as a first-time
  * signup, so a visitor who submits twice (or from two devices) is never shown
@@ -110,7 +115,7 @@ export async function consumeWaitlistSurveyRateLimit(
 
 export interface SubmitWaitlistSurveyResult {
   /**
-   * `saved`      — answers written to the visitor's existing signup.
+   * `saved`      — answers written to the visitor’s existing signup.
    * `empty`      — nothing was answered; treated exactly like skipping.
    * `not_found`  — the token matched no signup (expired page, tampering).
    */
@@ -118,28 +123,46 @@ export interface SubmitWaitlistSurveyResult {
 }
 
 /**
- * Writes the visitor's answers onto their EXISTING waitlist row via the
- * token-gated `submit_waitlist_survey` function. There is no insert path here,
- * so no answer can ever create a second signup; submitting again overwrites
- * the same row. Recruitment status and contact details are never touched.
+ * Writes the visitor’s answers onto their EXISTING waitlist row via the
+ * token-gated `save_waitlist_survey` function. Only the answers present in
+ * the input are written, so each questionnaire section can be saved on its
+ * own and a later section never erases an earlier one. There is no insert
+ * path here, so no answer can ever create a second signup. Recruitment status
+ * and contact details are never touched.
  */
 export async function submitWaitlistSurvey(
   db: SupabaseClient<Database>,
   input: WaitlistSurveyInput,
 ): Promise<SubmitWaitlistSurveyResult> {
-  const answers = {
-    country: input.country ?? null,
-    cityIsland: input.cityIsland ?? null,
-    businessStage: input.businessStage ?? null,
-    biggestChallenge: input.biggestChallenge ?? null,
-    challengeOther: input.biggestChallenge === 'other' ? (input.challengeOther ?? null) : null,
-    testingInterest: input.testingInterest ?? null,
-  };
+  const answers: SurveyAnswerPatch = Object.fromEntries(
+    Object.entries(input.answers).filter(([, value]) => value !== undefined),
+  );
+  const hasAnswer = Object.values(answers).some((value) => value !== null);
 
-  if (Object.values(answers).every((value) => value === null)) {
+  // Nothing answered in this save. It still matters when earlier sections
+  // stored answers (a cleared answer, or the final submit that completes the
+  // questionnaire); otherwise it is exactly the same as skipping and nothing
+  // is written.
+  if (!hasAnswer && !(await hasAnyStoredAnswer(db, input.token))) {
     return { status: 'empty' };
   }
 
-  const matched = await submitSurveyAnswers(db, input.token, answers);
+  const matched = await saveSurveyAnswers(db, input.token, answers, input.final);
   return { status: matched ? 'saved' : 'not_found' };
 }
+
+async function hasAnyStoredAnswer(db: SupabaseClient<Database>, token: string): Promise<boolean> {
+  const stored = await readSurveyAnswers(db, token);
+  if (!stored) return false;
+  return Object.entries(stored).some(([key, value]) => key !== 'completed' && value !== null);
+}
+
+/** The visitor’s own stored answers (by token), so they can return and update them. */
+export async function getWaitlistSurvey(
+  db: SupabaseClient<Database>,
+  token: string,
+): Promise<StoredSurveyAnswers | null> {
+  return readSurveyAnswers(db, token);
+}
+
+export type { StoredSurveyAnswers } from '@/lib/db/waitlist';
