@@ -1,5 +1,6 @@
 'use server';
 
+import { reportProductFailure } from '../_lib/report-failure';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
@@ -31,6 +32,7 @@ async function ctxOf(): Promise<RequestContext> {
 }
 
 function flatten(error: unknown, ctx: RequestContext): Result<never> {
+  reportProductFailure('intake', error instanceof AppError ? error.code : undefined);
   if (error instanceof AppError) return fail(error);
   logger.error('intake.unexpected', {
     correlationId: ctx.correlationId,

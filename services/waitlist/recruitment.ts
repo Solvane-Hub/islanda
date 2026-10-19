@@ -2,105 +2,36 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { AppError, newCorrelationId } from '@/lib/errors';
 import {
-  hasWaitlistAdminRole,
+  getWaitlistEntry,
+  isTestEmail,
   listWaitlistEntries,
   updateRecruitmentFields,
   type WaitlistEntryRow,
+  type WaitlistSort,
 } from '@/lib/db/waitlist';
-import type { SignInInput } from '@/lib/validation/auth';
 import type { RecruitmentUpdateInput, WaitlistFilters } from '@/lib/validation/waitlist';
 import type { RecruitmentStatus } from '@/lib/waitlist/options';
 import { recordAuditEvent } from '@/services/audit';
-import * as authService from '@/services/auth';
+import { requireAdmin } from '@/services/admin/access';
 import type { RequestContext } from '@/services/auth';
 
 /**
- * Waitlist & Pilot Recruitment — the team-only side of the waitlist.
+ * Waitlist & Pilot Recruitment — the administrators' side of the waitlist.
  *
  * Authorization is layered, and every layer must agree:
  *   1. a real Supabase session (`getUser()`, never `getSession()`);
- *   2. a `waitlist_admin` row in `staff_members` for that user;
- *   3. RLS on `waitlist_signups`, which admits only `app.is_waitlist_admin()`.
+ *   2. an owner-only platform administrator on an MFA session
+ *      (services/admin/access);
+ *   3. RLS on `waitlist_signups`, which admits only `app.is_platform_admin()`.
  * Layers 1–2 decide what the page renders; layer 3 is what actually protects
- * the data, so a bug in 1–2 still returns nothing to a non-admin.
- *
- * ⚠ Deliberately does NOT use `getCurrentUser()` from services/auth: that
- *   returns null whenever WAITLIST_ONLY_MODE is on (the production default),
- *   which is exactly when the team needs this page. Founder sign-in stays
- *   closed; only staff with the role get past `signInWaitlistAdmin`.
+ * the data, so a bug in 1–2 still returns nothing to anyone else.
  */
 
 type Db = SupabaseClient<Database>;
 
-export type WaitlistAdminAccess =
-  { kind: 'signed_out' } | { kind: 'not_admin' } | { kind: 'admin'; userId: string };
-
-/** Fails closed: any error while checking the role is treated as "not an admin". */
-export async function getWaitlistAdminAccess(db: Db): Promise<WaitlistAdminAccess> {
-  const {
-    data: { user },
-  } = await db.auth.getUser();
-  if (!user) return { kind: 'signed_out' };
-
-  try {
-    return (await hasWaitlistAdminRole(db, user.id))
-      ? { kind: 'admin', userId: user.id }
-      : { kind: 'not_admin' };
-  } catch {
-    return { kind: 'not_admin' };
-  }
-}
-
-const NOT_STAFF_MESSAGE = 'We could not sign you in to the team area with those details.';
-
-/**
- * Staff sign-in. Uses the normal password sign-in, then immediately signs the
- * session out again unless the user holds the waitlist_admin role — so this
- * entrance can never be used as a back door into the founder product while it
- * is waitlist-only. The message is the same either way.
- */
-export async function signInWaitlistAdmin(
-  db: Db,
-  input: SignInInput,
-  ctx: RequestContext = {},
-): Promise<void> {
-  const correlationId = ctx.correlationId ?? newCorrelationId();
-
-  try {
-    await authService.signIn(db, input, { ...ctx, correlationId });
-  } catch (error) {
-    if (error instanceof AppError && error.code === 'AUTH_RATE_LIMITED') throw error;
-    throw new AppError({ code: 'FORBIDDEN', humanMessage: NOT_STAFF_MESSAGE, correlationId });
-  }
-
-  const access = await getWaitlistAdminAccess(db);
-  if (access.kind !== 'admin') {
-    await authService.signOut(db, { ...ctx, correlationId });
-    throw new AppError({ code: 'FORBIDDEN', humanMessage: NOT_STAFF_MESSAGE, correlationId });
-  }
-}
-
-/* ── Listing ──────────────────────────────────────────────────────────── */
-
 export const WAITLIST_PAGE_SIZE = 50;
 
-export interface WaitlistEntry {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  signedUpAt: string;
-  country: string | null;
-  cityIsland: string | null;
-  businessStage: WaitlistEntryRow['business_stage'];
-  biggestChallenge: WaitlistEntryRow['biggest_challenge'];
-  challengeOther: string | null;
-  testingInterest: WaitlistEntryRow['testing_interest'];
-  surveyCompletedAt: string | null;
-  recruitmentStatus: RecruitmentStatus;
-  recruitmentNotes: string | null;
-  recruitmentUpdatedAt: string | null;
-}
+export type WaitlistEntry = ReturnType<typeof toEntry>;
 
 export interface WaitlistPage {
   entries: WaitlistEntry[];
@@ -112,7 +43,7 @@ export interface WaitlistPage {
 
 /**
  * Strips everything but letters, digits and the characters that occur in
- * names and email addresses. This is what makes it safe to place a term
+ * names, emails and phone numbers. This is what makes it safe to place a term
  * inside a PostgREST `or=(…)` filter: commas, parentheses, quotes and
  * wildcards are all removed, so a search can only ever be a search.
  */
@@ -133,27 +64,47 @@ function startOfNextUtcDay(isoDate: string): string | undefined {
   return next.toISOString();
 }
 
-function toEntry(row: WaitlistEntryRow): WaitlistEntry {
+function toEntry(row: WaitlistEntryRow) {
   return {
     id: row.id,
     name: [row.first_name, row.last_name].filter(Boolean).join(' '),
     email: row.email,
     phone: row.phone,
+    businessName: row.business_name,
+    isTest: isTestEmail(row.email),
     signedUpAt: row.created_at,
     country: row.survey_country,
     cityIsland: row.survey_city_island,
+    businessJourney: row.business_journey,
+    industry: row.industry,
+    industryOther: row.industry_other,
+    primaryGoal: row.primary_goal,
+    goalOther: row.goal_other,
     businessStage: row.business_stage,
     biggestChallenge: row.biggest_challenge,
     challengeOther: row.challenge_other,
     testingInterest: row.testing_interest,
+    feedbackInterest: row.feedback_interest,
+    additionalInfo: row.additional_info,
+    surveyStartedAt: row.survey_started_at,
     surveyCompletedAt: row.survey_completed_at,
+    surveyUpdatedAt: row.survey_updated_at,
     recruitmentStatus: row.recruitment_status,
     recruitmentNotes: row.recruitment_notes,
     recruitmentUpdatedAt: row.recruitment_updated_at,
+    contactedOn: row.recruitment_contacted_on,
+    confirmedOn: row.recruitment_confirmed_on,
+    testedOn: row.recruitment_tested_on,
+    feedbackSummary: row.feedback_summary,
+    feedbackLink: row.feedback_link,
   };
 }
 
-export async function listWaitlist(db: Db, filters: WaitlistFilters): Promise<WaitlistPage> {
+export async function listWaitlist(
+  db: Db,
+  filters: WaitlistFilters,
+  pageSize: number = WAITLIST_PAGE_SIZE,
+): Promise<WaitlistPage> {
   const searchTerms = (filters.q ?? '')
     .split(/\s+/)
     .map(sanitiseSearchTerm)
@@ -164,7 +115,6 @@ export async function listWaitlist(db: Db, filters: WaitlistFilters): Promise<Wa
     ? filters.cityIsland.split(/\s+/).map(sanitiseSearchTerm).filter(Boolean).join(' ')
     : '';
   const page = filters.page;
-
   const createdFrom = filters.from ? startOfUtcDay(filters.from) : undefined;
   const createdBefore = filters.to ? startOfNextUtcDay(filters.to) : undefined;
 
@@ -173,23 +123,35 @@ export async function listWaitlist(db: Db, filters: WaitlistFilters): Promise<Wa
     ...(country ? { country } : {}),
     ...(cityIsland ? { cityIsland } : {}),
     ...(filters.businessStage ? { businessStage: filters.businessStage } : {}),
+    ...(filters.businessJourney ? { businessJourney: filters.businessJourney } : {}),
+    ...(filters.industry ? { industry: filters.industry } : {}),
+    ...(filters.primaryGoal ? { primaryGoal: filters.primaryGoal } : {}),
     ...(filters.biggestChallenge ? { biggestChallenge: filters.biggestChallenge } : {}),
     ...(filters.testingInterest ? { testingInterest: filters.testingInterest } : {}),
+    ...(filters.feedbackInterest ? { feedbackInterest: filters.feedbackInterest } : {}),
     ...(filters.recruitmentStatus ? { recruitmentStatus: filters.recruitmentStatus } : {}),
     ...(filters.completed ? { completed: filters.completed === 'yes' } : {}),
+    ...(filters.pool ? { pool: filters.pool } : {}),
+    includeTests: filters.tests === 'show',
     ...(createdFrom ? { createdFrom } : {}),
     ...(createdBefore ? { createdBefore } : {}),
-    offset: (page - 1) * WAITLIST_PAGE_SIZE,
-    limit: WAITLIST_PAGE_SIZE,
+    sort: (filters.sort ?? 'newest') as WaitlistSort,
+    offset: (page - 1) * pageSize,
+    limit: pageSize,
   });
 
   return {
     entries: rows.map(toEntry),
     total,
     page,
-    pageCount: Math.max(1, Math.ceil(total / WAITLIST_PAGE_SIZE)),
-    pageSize: WAITLIST_PAGE_SIZE,
+    pageCount: Math.max(1, Math.ceil(total / pageSize)),
+    pageSize,
   };
+}
+
+export async function getWaitlistDetail(db: Db, id: string): Promise<WaitlistEntry | null> {
+  const row = await getWaitlistEntry(db, id);
+  return row ? toEntry(row) : null;
 }
 
 /* ── Recruitment updates ──────────────────────────────────────────────── */
@@ -200,10 +162,11 @@ export interface RecruitmentUpdateResult {
 }
 
 /**
- * Changes a signup's recruitment status and/or internal notes. RLS is what
- * enforces the admin requirement; the explicit check first only makes a
- * non-admin's failure a clear FORBIDDEN rather than a puzzling NOT_FOUND.
- * Audit metadata carries shape only — never the notes, name or email.
+ * Changes a signup's recruitment status, notes, dates and feedback summary.
+ * RLS is what enforces the administrator requirement; the explicit check
+ * first only makes anyone else's failure a clear FORBIDDEN rather than a
+ * puzzling NOT_FOUND. Audit metadata carries shape only — never the notes,
+ * feedback text, name, email or phone.
  */
 export async function updateRecruitment(
   db: Db,
@@ -211,19 +174,16 @@ export async function updateRecruitment(
   ctx: RequestContext = {},
 ): Promise<RecruitmentUpdateResult> {
   const correlationId = ctx.correlationId ?? newCorrelationId();
-
-  const access = await getWaitlistAdminAccess(db);
-  if (access.kind !== 'admin') {
-    throw new AppError({
-      code: 'FORBIDDEN',
-      humanMessage: 'You do not have permission to change recruitment details.',
-      correlationId,
-    });
-  }
+  const admin = await requireAdmin(db, { ...ctx, correlationId });
 
   const updated = await updateRecruitmentFields(db, input.signupId, {
     recruitmentStatus: input.recruitmentStatus,
     recruitmentNotes: input.recruitmentNotes ?? null,
+    ...(input.contactedOn !== undefined ? { contactedOn: input.contactedOn } : {}),
+    ...(input.confirmedOn !== undefined ? { confirmedOn: input.confirmedOn } : {}),
+    ...(input.testedOn !== undefined ? { testedOn: input.testedOn } : {}),
+    ...(input.feedbackSummary !== undefined ? { feedbackSummary: input.feedbackSummary } : {}),
+    ...(input.feedbackLink !== undefined ? { feedbackLink: input.feedbackLink } : {}),
   });
   if (!updated) {
     throw new AppError({
@@ -235,7 +195,7 @@ export async function updateRecruitment(
 
   await recordAuditEvent({
     event: 'waitlist.recruitment_updated',
-    actorId: access.userId,
+    actorId: admin.userId,
     correlationId,
     ipAddress: ctx.ipAddress ?? null,
     userAgent: ctx.userAgent ?? null,
@@ -243,6 +203,10 @@ export async function updateRecruitment(
       signupId: input.signupId,
       recruitmentStatus: updated.recruitment_status,
       hasNotes: Boolean(input.recruitmentNotes),
+      datesChanged: ['contactedOn', 'confirmedOn', 'testedOn'].filter(
+        (k) => input[k as 'contactedOn'] !== undefined,
+      ),
+      hasFeedback: Boolean(input.feedbackSummary || input.feedbackLink),
     },
   });
 

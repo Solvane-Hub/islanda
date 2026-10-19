@@ -45,6 +45,14 @@ const serverSchema = z.object({
   OPENAI_MODEL_NANO: z.string().min(1).optional(),
   OPENAI_MODEL_MINI: z.string().min(1).optional(),
   OPENAI_MODEL_PREMIUM: z.string().min(1).optional(),
+  /**
+   * Key for the daily-rotating visitor hash used by first-party analytics when
+   * a visitor has not consented to a persistent identifier. Server-only. When
+   * absent, the service-role key is used as the HMAC key instead (it never
+   * leaves the server either); when both are absent, unconsented visits are
+   * still counted as page views but not as distinct visitors.
+   */
+  ANALYTICS_HASH_SECRET: z.string().min(32).optional(),
 });
 
 /**
@@ -124,6 +132,7 @@ function parseServerEnv(source: EnvSource): z.infer<typeof serverSchema> {
     OPENAI_MODEL_NANO: source.OPENAI_MODEL_NANO,
     OPENAI_MODEL_MINI: source.OPENAI_MODEL_MINI,
     OPENAI_MODEL_PREMIUM: source.OPENAI_MODEL_PREMIUM,
+    ANALYTICS_HASH_SECRET: source.ANALYTICS_HASH_SECRET,
   });
   if (!parsed.success) {
     throw new Error(

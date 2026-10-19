@@ -5,7 +5,8 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { joinWaitlistAction, type JoinWaitlistResult } from '@/app/waitlist-actions';
 import type { Result } from '@/lib/errors';
 import { WaitlistSurvey } from './waitlist-survey';
-import { storeSurveyToken, useStoredSurveyToken } from './waitlist-survey-token';
+import { storeSurvey, useStoredSurvey } from './waitlist-survey-token';
+import { track } from '@/lib/analytics/client';
 
 /**
  * Public Islanda waitlist form.
@@ -20,27 +21,35 @@ import { storeSurveyToken, useStoredSurveyToken } from './waitlist-survey-token'
  * The form writes to the real waitlist database through the server action.
  * Only after the signup has actually succeeded does a second, optional step
  * appear (`WaitlistSurvey`). Skipping it, failing it or closing the tab never
- * undoes the signup. The survey token survives a refresh in sessionStorage.
+ * undoes the signup. The questionnaire token is kept on this device for 30
+ * days (waitlist-survey-token.ts), so the visitor can come back to finish or
+ * update their answers.
  */
 export function WaitlistForm() {
   const [state, formAction, pending] = useActionState<Result<JoinWaitlistResult> | null, FormData>(
     joinWaitlistAction,
     null,
   );
-  const storedToken = useStoredSurveyToken();
+  const stored = useStoredSurvey();
   const [surveyOutcome, setSurveyOutcome] = useState<'answered' | 'skipped' | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [formStarted, setFormStarted] = useState(false);
 
   const joined = state?.ok;
   const joinedNow = state?.ok === true && state.data.status === 'joined';
   const issuedToken = state?.ok && state.data.status === 'joined' ? state.data.surveyToken : null;
-  const surveyToken = issuedToken ?? storedToken;
+  // An unfinished questionnaire from earlier (refresh, or a return visit) resumes.
+  const pendingToken = !stored?.finished ? (stored?.token ?? null) : null;
+  const surveyToken = issuedToken ?? pendingToken ?? (updating ? (stored?.token ?? null) : null);
+  const resuming = !issuedToken;
 
   useEffect(() => {
-    if (issuedToken) storeSurveyToken(issuedToken);
+    if (issuedToken) storeSurvey({ token: issuedToken, finished: false });
   }, [issuedToken]);
 
   function finishSurvey(outcome: 'answered' | 'skipped') {
-    storeSurveyToken(null);
+    if (surveyToken) storeSurvey({ token: surveyToken, finished: true });
+    setUpdating(false);
     setSurveyOutcome(outcome);
   }
 
@@ -59,10 +68,20 @@ export function WaitlistForm() {
       <div className="flex w-full max-w-xl flex-col gap-5">
         {joinedNow ? <JoinedConfirmation /> : <ReturningConfirmation />}
 
-        {surveyOutcome ? (
-          <SurveyFinished outcome={surveyOutcome} />
+        {surveyOutcome && !updating ? (
+          <SurveyFinished
+            outcome={surveyOutcome}
+            onUpdate={
+              stored?.token
+                ? () => {
+                    setSurveyOutcome(null);
+                    setUpdating(true);
+                  }
+                : undefined
+            }
+          />
         ) : surveyToken ? (
-          <WaitlistSurvey token={surveyToken} onFinished={finishSurvey} />
+          <WaitlistSurvey token={surveyToken} resuming={resuming} onFinished={finishSurvey} />
         ) : null}
       </div>
     );
@@ -89,7 +108,15 @@ export function WaitlistForm() {
   }
 
   return (
-    <form action={formAction} className="flex w-full max-w-md flex-col gap-3 text-left">
+    <form
+      action={formAction}
+      onFocus={() => {
+        if (formStarted) return;
+        setFormStarted(true);
+        track('waitlist_form_started');
+      }}
+      className="flex w-full max-w-md flex-col gap-3 text-left"
+    >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="waitlist-first-name" className="text-on-ink-muted text-xs font-medium">
@@ -217,6 +244,16 @@ export function WaitlistForm() {
       ) : null}
 
       <p className="text-on-ink-subtle text-xs">We only email you about Islanda early access.</p>
+
+      {stored?.finished ? (
+        <button
+          type="button"
+          onClick={() => setUpdating(true)}
+          className="text-on-ink-muted hover:text-on-ink w-fit text-xs underline underline-offset-2"
+        >
+          Already joined? Update your questionnaire answers
+        </button>
+      ) : null}
     </form>
   );
 }
@@ -272,15 +309,29 @@ function ReturningConfirmation() {
   );
 }
 
-function SurveyFinished({ outcome }: { outcome: 'answered' | 'skipped' }) {
+function SurveyFinished({
+  outcome,
+  onUpdate,
+}: {
+  outcome: 'answered' | 'skipped';
+  onUpdate?: (() => void) | undefined;
+}) {
   return (
-    <p
-      role="status"
-      className="text-on-ink-muted rounded-2xl border border-white/12 bg-white/[0.03] px-5 py-5 text-left text-sm text-pretty sm:px-6"
-    >
-      {outcome === 'answered'
-        ? 'Thanks for your interest in Islanda! Your answers will help us understand what entrepreneurs need and shape our first testing group.'
-        : 'No problem. You are still on the waitlist, and we will email you when early access opens.'}
-    </p>
+    <div className="text-on-ink-muted flex flex-col gap-3 rounded-2xl border border-white/12 bg-white/[0.03] px-5 py-5 text-left text-sm sm:px-6">
+      <p role="status" className="text-pretty">
+        {outcome === 'answered'
+          ? 'Thank you — your answers are saved. They help us understand what entrepreneurs need and shape our first testing group.'
+          : 'No problem. You are still on the waitlist, and we will email you when early access opens.'}
+      </p>
+      {onUpdate ? (
+        <button
+          type="button"
+          onClick={onUpdate}
+          className="text-on-ink w-fit text-xs font-medium underline underline-offset-2"
+        >
+          {outcome === 'answered' ? 'Update my answers' : 'Answer the questions now'}
+        </button>
+      ) : null}
+    </div>
   );
 }

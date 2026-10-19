@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Bricolage_Grotesque, Inter, JetBrains_Mono } from 'next/font/google';
 import { PRODUCT_NAME, TAGLINE } from '@/lib/brand';
 import './globals.css';
+import { AnalyticsTracker } from '@/components/analytics/analytics-tracker';
 
 /**
  * Application typography.
@@ -71,7 +72,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${inter.variable} ${jetbrainsMono.variable} ${bricolageGrotesque.variable}`}
     >
-      <body className="min-h-dvh antialiased">{children}</body>
+      <body className="min-h-dvh antialiased">
+        {children}
+        <AnalyticsTracker />
+      </body>
     </html>
   );
 }

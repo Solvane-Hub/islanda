@@ -1,5 +1,6 @@
 'use server';
 
+import { reportProductFailure } from '../_lib/report-failure';
 import { cookies, headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
@@ -37,6 +38,7 @@ async function requestContext(): Promise<RequestContext> {
 }
 
 function flatten(error: unknown, ctx: RequestContext): Result<never> {
+  reportProductFailure('passport', error instanceof AppError ? error.code : undefined);
   if (error instanceof AppError) return fail(error);
   logger.error('passport.logo.unexpected', {
     correlationId: ctx.correlationId,

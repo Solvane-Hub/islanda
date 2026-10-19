@@ -7,6 +7,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
+    "admin:provision": "tsx --env-file=.env.local scripts/provision-admin.ts",
     "build": "next build",
     "db:seed": "supabase db execute --file supabase/seed.sql",
     "db:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > types/database.ts && prettier --write types/database.ts",

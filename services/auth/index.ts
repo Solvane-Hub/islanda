@@ -167,11 +167,13 @@ export async function requestPasswordReset(
   db: SupabaseClient<Database>,
   input: RequestPasswordResetInput,
   ctx: RequestContext = {},
+  /** Where the recovery link lands after the code exchange. Internal paths only. */
+  nextPath: '/reset-password' | '/admin/reset-password' = '/reset-password',
 ): Promise<void> {
   const correlationId = ctx.correlationId ?? newCorrelationId();
 
   const { error } = await db.auth.resetPasswordForEmail(input.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/auth/callback?next=/reset-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/auth/callback?next=${nextPath}`,
   });
 
   // Rate limiting is surfaced; everything else is swallowed so this endpoint

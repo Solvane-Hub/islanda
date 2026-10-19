@@ -163,6 +163,56 @@ export type Database = {
           },
         ];
       };
+      analytics_events: {
+        Row: {
+          browser: string | null;
+          business_id: string | null;
+          country_code: string | null;
+          device: string | null;
+          duration_ms: number | null;
+          error_category: string | null;
+          event_id: string;
+          event_name: string;
+          id: number;
+          kind: string;
+          occurred_at: string;
+          path: string | null;
+          properties: Json;
+          referrer_host: string | null;
+          status: string | null;
+          user_id: string | null;
+          utm_campaign: string | null;
+          utm_medium: string | null;
+          utm_source: string | null;
+          visitor_key: string | null;
+        };
+        Insert: {
+          browser?: string | null;
+          business_id?: string | null;
+          country_code?: string | null;
+          device?: string | null;
+          duration_ms?: number | null;
+          error_category?: string | null;
+          event_id: string;
+          event_name: string;
+          id?: never;
+          kind: string;
+          occurred_at?: string;
+          path?: string | null;
+          properties?: Json;
+          referrer_host?: string | null;
+          status?: string | null;
+          user_id?: string | null;
+          utm_campaign?: string | null;
+          utm_medium?: string | null;
+          utm_source?: string | null;
+          visitor_key?: string | null;
+        };
+        Update: {
+          [_ in never]: never;
+        };
+        Relationships: [];
+      };
       audit_log: {
         Row: {
           actor_id: string | null;
@@ -1865,6 +1915,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      platform_admins: {
+        Row: {
+          display_name: string;
+          email: string;
+          provisioned_at: string;
+          provisioned_by: string;
+          user_id: string;
+        };
+        Insert: {
+          display_name: string;
+          email: string;
+          provisioned_at?: string;
+          provisioned_by: string;
+          user_id: string;
+        };
+        Update: {
+          display_name?: string;
+          email?: string;
+          provisioned_at?: string;
+          provisioned_by?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       staff_members: {
         Row: {
           created_at: string;
@@ -1886,6 +1960,20 @@ export type Database = {
       waitlist_signups: {
         Row: {
           biggest_challenge: Database['public']['Enums']['waitlist_challenge'] | null;
+          additional_info: string | null;
+          business_journey: Database['public']['Enums']['waitlist_business_journey'] | null;
+          feedback_interest: Database['public']['Enums']['waitlist_testing_interest'] | null;
+          feedback_link: string | null;
+          feedback_summary: string | null;
+          goal_other: string | null;
+          industry: Database['public']['Enums']['waitlist_industry'] | null;
+          industry_other: string | null;
+          primary_goal: Database['public']['Enums']['waitlist_primary_goal'] | null;
+          recruitment_confirmed_on: string | null;
+          recruitment_contacted_on: string | null;
+          recruitment_tested_on: string | null;
+          survey_started_at: string | null;
+          survey_updated_at: string | null;
           business_name: string | null;
           business_stage: Database['public']['Enums']['waitlist_business_stage'] | null;
           challenge_other: string | null;
@@ -1910,6 +1998,20 @@ export type Database = {
         };
         Insert: {
           biggest_challenge?: Database['public']['Enums']['waitlist_challenge'] | null;
+          additional_info?: string | null;
+          business_journey?: Database['public']['Enums']['waitlist_business_journey'] | null;
+          feedback_interest?: Database['public']['Enums']['waitlist_testing_interest'] | null;
+          feedback_link?: string | null;
+          feedback_summary?: string | null;
+          goal_other?: string | null;
+          industry?: Database['public']['Enums']['waitlist_industry'] | null;
+          industry_other?: string | null;
+          primary_goal?: Database['public']['Enums']['waitlist_primary_goal'] | null;
+          recruitment_confirmed_on?: string | null;
+          recruitment_contacted_on?: string | null;
+          recruitment_tested_on?: string | null;
+          survey_started_at?: string | null;
+          survey_updated_at?: string | null;
           business_name?: string | null;
           business_stage?: Database['public']['Enums']['waitlist_business_stage'] | null;
           challenge_other?: string | null;
@@ -1934,6 +2036,20 @@ export type Database = {
         };
         Update: {
           biggest_challenge?: Database['public']['Enums']['waitlist_challenge'] | null;
+          additional_info?: string | null;
+          business_journey?: Database['public']['Enums']['waitlist_business_journey'] | null;
+          feedback_interest?: Database['public']['Enums']['waitlist_testing_interest'] | null;
+          feedback_link?: string | null;
+          feedback_summary?: string | null;
+          goal_other?: string | null;
+          industry?: Database['public']['Enums']['waitlist_industry'] | null;
+          industry_other?: string | null;
+          primary_goal?: Database['public']['Enums']['waitlist_primary_goal'] | null;
+          recruitment_confirmed_on?: string | null;
+          recruitment_contacted_on?: string | null;
+          recruitment_tested_on?: string | null;
+          survey_started_at?: string | null;
+          survey_updated_at?: string | null;
           business_name?: string | null;
           business_stage?: Database['public']['Enums']['waitlist_business_stage'] | null;
           challenge_other?: string | null;
@@ -1963,6 +2079,35 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      admin_list_users: {
+        Args: {
+          p_include_test: boolean;
+          p_limit: number;
+          p_offset: number;
+          p_search: string | null;
+        };
+        Returns: Json;
+      };
+      admin_product_usage: {
+        Args: { p_from: string; p_to: string };
+        Returns: Json;
+      };
+      admin_user_detail: {
+        Args: { p_user_id: string };
+        Returns: Json;
+      };
+      admin_user_overview: {
+        Args: { p_from: string; p_to: string };
+        Returns: Json;
+      };
+      admin_waitlist_insights: {
+        Args: { p_from: string; p_to: string };
+        Returns: Json;
+      };
+      admin_web_analytics: {
+        Args: { p_from: string; p_to: string };
+        Returns: Json;
+      };
       consume_rate_limit: {
         Args: {
           p_limit: number;
@@ -1976,6 +2121,14 @@ export type Database = {
           retry_after_seconds: number;
           window_started_at: string;
         }[];
+      };
+      get_admin_access: {
+        Args: never;
+        Returns: Json;
+      };
+      get_waitlist_survey: {
+        Args: { p_token: string };
+        Returns: Json;
       };
       publish_knowledge_pack: {
         Args: {
@@ -2004,6 +2157,10 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      save_waitlist_survey: {
+        Args: { p_answers: Json; p_final: boolean; p_token: string };
+        Returns: boolean;
       };
       submit_waitlist_survey: {
         Args: {
@@ -2121,7 +2278,70 @@ export type Database = {
         | 'knowing_next_steps'
         | 'finding_customers'
         | 'managing_business'
+        | 'other'
+        | 'getting_started'
+        | 'organizing_documents'
+        | 'managing_money'
+        | 'marketing'
+        | 'day_to_day_operations'
+        | 'industry_requirements'
+        | 'finding_funding'
+        | 'deadlines_requirements'
+        | 'idea_to_plan'
+        | 'several_challenges';
+      waitlist_business_journey:
+        | 'idea_not_started'
+        | 'planning_new_business'
+        | 'preparing_to_register'
+        | 'operating_not_established'
+        | 'established_business'
+        | 'starting_another_business'
+        | 'exploring_ownership'
         | 'other';
+      waitlist_industry:
+        | 'food_restaurants_catering'
+        | 'tourism_travel_hospitality'
+        | 'retail_online_shopping'
+        | 'beauty_hair_personal_care'
+        | 'fashion_clothing'
+        | 'construction_home_improvement'
+        | 'real_estate_property'
+        | 'professional_services_consulting'
+        | 'technology_software'
+        | 'media_marketing_creative'
+        | 'transportation_logistics'
+        | 'agriculture_fishing_food_production'
+        | 'healthcare_wellness'
+        | 'education_training'
+        | 'financial_accounting'
+        | 'manufacturing_product_development'
+        | 'entertainment_events_recreation'
+        | 'cleaning_maintenance'
+        | 'automotive_services'
+        | 'nonprofit_community'
+        | 'other'
+        | 'not_sure_yet';
+      waitlist_primary_goal:
+        | 'start_a_business'
+        | 'register_my_business'
+        | 'licences_permits_approvals'
+        | 'government_requirements'
+        | 'reliable_information'
+        | 'clear_plan'
+        | 'next_steps'
+        | 'organize_documents'
+        | 'finances_budgeting'
+        | 'goals_progress'
+        | 'find_customers'
+        | 'marketing_social_media'
+        | 'daily_operations'
+        | 'funding_investment'
+        | 'prepare_to_launch'
+        | 'requirements_deadlines'
+        | 'evaluate_idea'
+        | 'industry_questions'
+        | 'other'
+        | 'not_sure_yet';
       waitlist_recruitment_status: 'not_contacted' | 'contacted' | 'confirmed' | 'tested';
       waitlist_signup_status: 'pending' | 'invited' | 'declined';
       waitlist_testing_interest: 'yes' | 'maybe' | 'not_right_now';
@@ -2372,6 +2592,72 @@ export const Constants = {
         'finding_customers',
         'managing_business',
         'other',
+        'getting_started',
+        'organizing_documents',
+        'managing_money',
+        'marketing',
+        'day_to_day_operations',
+        'industry_requirements',
+        'finding_funding',
+        'deadlines_requirements',
+        'idea_to_plan',
+        'several_challenges',
+      ],
+      waitlist_business_journey: [
+        'idea_not_started',
+        'planning_new_business',
+        'preparing_to_register',
+        'operating_not_established',
+        'established_business',
+        'starting_another_business',
+        'exploring_ownership',
+        'other',
+      ],
+      waitlist_industry: [
+        'food_restaurants_catering',
+        'tourism_travel_hospitality',
+        'retail_online_shopping',
+        'beauty_hair_personal_care',
+        'fashion_clothing',
+        'construction_home_improvement',
+        'real_estate_property',
+        'professional_services_consulting',
+        'technology_software',
+        'media_marketing_creative',
+        'transportation_logistics',
+        'agriculture_fishing_food_production',
+        'healthcare_wellness',
+        'education_training',
+        'financial_accounting',
+        'manufacturing_product_development',
+        'entertainment_events_recreation',
+        'cleaning_maintenance',
+        'automotive_services',
+        'nonprofit_community',
+        'other',
+        'not_sure_yet',
+      ],
+      waitlist_primary_goal: [
+        'start_a_business',
+        'register_my_business',
+        'licences_permits_approvals',
+        'government_requirements',
+        'reliable_information',
+        'clear_plan',
+        'next_steps',
+        'organize_documents',
+        'finances_budgeting',
+        'goals_progress',
+        'find_customers',
+        'marketing_social_media',
+        'daily_operations',
+        'funding_investment',
+        'prepare_to_launch',
+        'requirements_deadlines',
+        'evaluate_idea',
+        'industry_questions',
+        'other',
+        'not_sure_yet',
       ],
       waitlist_recruitment_status: ['not_contacted', 'contacted', 'confirmed', 'tested'],
       waitlist_signup_status: ['pending', 'invited', 'declined'],

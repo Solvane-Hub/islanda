@@ -72,7 +72,23 @@ export type AuditEvent =
    * the new status and whether notes are present — never the notes, a name,
    * an email or a phone number.
    */
-  | 'waitlist.recruitment_updated';
+  | 'waitlist.recruitment_updated'
+  /**
+   * Owner-only admin portal. Metadata carries SHAPE only — a report name, a
+   * row count, a filter summary, a path — never a password, token, secret,
+   * or any waitlist answer or contact detail.
+   */
+  | 'admin.signed_in'
+  | 'admin.signed_out'
+  | 'admin.sign_in_denied'
+  | 'admin.access_denied'
+  | 'admin.mfa_enrolled'
+  | 'admin.mfa_verified'
+  | 'admin.mfa_failed'
+  | 'admin.password_changed'
+  | 'admin.password_reset_requested'
+  | 'admin.export'
+  | 'admin.provisioned';
 
 export interface AuditEntry {
   event: AuditEvent;

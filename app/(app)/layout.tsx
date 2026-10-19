@@ -12,6 +12,7 @@ import { MobileBottomNav } from './_components/mobile-bottom-nav';
 import { BusinessSelector } from './_components/business-selector';
 import { UserMenu } from './_components/user-menu';
 import { serverEnv } from '@/lib/env';
+import { isAllowlistedEmail } from '@/lib/admin/allowlist';
 
 /**
  * Authenticated application shell.
@@ -122,7 +123,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             ) : null}
 
             <div className="ml-auto">
-              <UserMenu email={user.email ?? null} fullName={profile?.full_name ?? null} />
+              <UserMenu
+                email={user.email ?? null}
+                fullName={profile?.full_name ?? null}
+                showAdminLink={isAllowlistedEmail(user.email)}
+              />
             </div>
           </header>
 

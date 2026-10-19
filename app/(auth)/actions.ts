@@ -11,6 +11,7 @@ import {
   signUpSchema,
 } from '@/lib/validation/auth';
 import * as authService from '@/services/auth';
+import { getAdminAccess } from '@/services/admin/access';
 import type { RequestContext } from '@/services/auth';
 import { isSafeInternalPath } from '@/lib/utils/safe-path';
 import { toFieldErrors } from '@/lib/validation/field-errors';
@@ -119,12 +120,18 @@ export async function signInAction(
     );
   }
 
+  let isAdmin = false;
   try {
     const db = await createClient();
     await authService.signIn(db, parsed.data, ctx);
+    // Administrators land in the admin portal (which then asks for their
+    // authenticator code). Decided on the server from the verified session.
+    const access = await getAdminAccess(db);
+    isAdmin = access.kind !== 'signed_out' && access.kind !== 'denied';
   } catch (error) {
     return flatten(error, ctx);
   }
+  if (isAdmin) redirect('/admin');
 
   // Only follow same-origin relative paths — an open redirect here would be a
   // credential-phishing vector immediately after sign-in.
