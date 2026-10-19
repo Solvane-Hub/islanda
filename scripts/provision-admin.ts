@@ -69,8 +69,8 @@ async function main() {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL;
   const appUrl = (
     arg('app-url') ??
-    (envUrl && !/localhost|127.0.0.1/.test(envUrl) ? envUrl : 'https://www.islanda.app')
-  ).replace(//+$/, '');
+    (envUrl && !/localhost|127\.0\.0\.1/.test(envUrl) ? envUrl : 'https://www.islanda.app')
+  ).replace(/\/+$/, '');
   if (!url || !key)
     throw new Error('NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.');
   const admin = createClient<Database>(url, key, {
