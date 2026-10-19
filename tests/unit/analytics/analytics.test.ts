@@ -1,9 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ insert: vi.fn(), admin: { ok: true } as unknown }));
+const mocks = vi.hoisted(() => ({
+  insert: vi.fn(),
+  admin: { ok: true } as unknown,
+  env: {
+    ANALYTICS_HASH_SECRET: 's'.repeat(40),
+    ANALYTICS_ENABLED: undefined as boolean | undefined,
+    VERCEL_ENV: 'production' as string | undefined,
+  },
+}));
 
 vi.mock('@/lib/env', () => ({
-  serverEnv: { ANALYTICS_HASH_SECRET: 's'.repeat(40) },
+  serverEnv: mocks.env,
   clientEnv: { NEXT_PUBLIC_APP_URL: 'https://www.islanda.app' },
 }));
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => mocks.admin }));
@@ -21,6 +29,7 @@ import {
   templatePath,
 } from '@/lib/analytics/classify';
 import {
+  analyticsEnabled,
   errorCategoryFor,
   ingestClientEvent,
   recordServerEvent,
@@ -57,6 +66,34 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.insert.mockResolvedValue({ error: null });
   mocks.admin = { ok: true };
+  mocks.env.ANALYTICS_ENABLED = undefined;
+  mocks.env.VERCEL_ENV = 'production';
+});
+
+describe('environment gate (one shared database)', () => {
+  it('records on the production deployment', async () => {
+    expect(analyticsEnabled()).toBe(true);
+    expect(await ingestClientEvent(EVENT, ctx(), null)).toBe('stored');
+  });
+
+  it('records nothing locally, in CI or on preview deployments', async () => {
+    for (const env of [undefined, 'preview', 'development']) {
+      mocks.env.VERCEL_ENV = env;
+      expect(analyticsEnabled()).toBe(false);
+      expect(await ingestClientEvent(EVENT, ctx(), null)).toBe('disabled');
+      await recordServerEvent({ name: 'waitlist_signup_succeeded', path: '/' }, ctx());
+    }
+    expect(mocks.insert).not.toHaveBeenCalled();
+  });
+
+  it('an explicit ANALYTICS_ENABLED overrides the default both ways', () => {
+    mocks.env.VERCEL_ENV = 'preview';
+    mocks.env.ANALYTICS_ENABLED = true;
+    expect(analyticsEnabled()).toBe(true);
+    mocks.env.VERCEL_ENV = 'production';
+    mocks.env.ANALYTICS_ENABLED = false;
+    expect(analyticsEnabled()).toBe(false);
+  });
 });
 
 describe('classification', () => {

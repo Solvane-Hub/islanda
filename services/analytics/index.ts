@@ -113,7 +113,7 @@ export const clientEventSchema = z.object({
 export type ClientEventInput = z.infer<typeof clientEventSchema>;
 
 export type IngestOutcome =
-  'stored' | 'ignored_bot' | 'ignored_invalid' | 'ignored_path' | 'unavailable';
+  'stored' | 'ignored_bot' | 'ignored_invalid' | 'ignored_path' | 'unavailable' | 'disabled';
 
 /**
  * Validates and stores one browser event. `userId` is the verified session
@@ -208,7 +208,18 @@ export async function recordServerEvent(
   ]);
 }
 
+/**
+ * Whether this deployment may write analytics. Every environment shares one
+ * database, so only the production deployment records by default — local
+ * development, CI and preview deployments would otherwise mix test traffic
+ * into the real figures.
+ */
+export function analyticsEnabled(): boolean {
+  return serverEnv.ANALYTICS_ENABLED ?? serverEnv.VERCEL_ENV === 'production';
+}
+
 async function store(rows: AnalyticsEventRow[]): Promise<IngestOutcome> {
+  if (!analyticsEnabled()) return 'disabled';
   try {
     const admin = createAdminClient();
     if (!admin) return 'unavailable';

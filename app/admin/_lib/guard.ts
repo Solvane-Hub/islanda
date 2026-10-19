@@ -18,7 +18,10 @@ import type { RequestContext } from '@/services/auth';
  *   MFA not yet done    → /admin/mfa
  *   anyone else         → 404 (the page does not confirm it exists), audited
  */
-export async function requireAdminPage(currentPath: string): Promise<AdminIdentity> {
+export async function requireAdminPage(
+  currentPath: string,
+  options: { auditDenied?: boolean } = {},
+): Promise<AdminIdentity> {
   const db = await createClient();
   const access = await getAdminAccess(db);
   switch (access.kind) {
@@ -32,7 +35,9 @@ export async function requireAdminPage(currentPath: string): Promise<AdminIdenti
     case 'mfa_verify':
       redirect(`/admin/mfa?next=${encodeURIComponent(currentPath)}`);
     case 'denied':
-      await recordAdminPageDenied(access.userId, currentPath);
+      // The portal layout and the page both run this guard for one request;
+      // only the page records the denial, so each attempt is audited once.
+      if (options.auditDenied !== false) await recordAdminPageDenied(access.userId, currentPath);
       notFound();
   }
 }
