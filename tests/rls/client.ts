@@ -43,6 +43,8 @@ export const rlsRequired = process.env.RLS_TESTS_REQUIRED === '1';
  *
  * Rows these suites do write carry `source: 'rls_test'` and an @example.dev
  * address, which the admin portal, reports and team notifications exclude.
+ * CI does not set the flag: the same assertions run at the database layer in
+ * tests/db (isolated PGlite) until a dedicated test project exists.
  */
 export const PRODUCTION_PROJECT_REF = 'obenrkmcqrsyeuylgfzd';
 export const targetsProduction = Boolean(url?.includes(`${PRODUCTION_PROJECT_REF}.supabase.co`));

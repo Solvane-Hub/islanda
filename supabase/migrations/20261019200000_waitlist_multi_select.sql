@@ -51,8 +51,13 @@ $$;
 comment on function app.is_test_signup is
   'True for automated-test and non-production signups (reserved domains or an explicit source marker). Excluded from admin aggregates.';
 
-revoke all on function app.array_has_no_duplicates(anyarray) from public, anon;
-grant execute on function app.array_has_no_duplicates(anyarray) to authenticated;
+-- array_has_no_duplicates runs inside the CHECK constraints below, and Postgres
+-- checks EXECUTE for whichever role writes the row. The public waitlist INSERT
+-- runs as `anon`, so anon must be able to execute it or every signup fails.
+-- It is pure and immutable, and the app schema is not exposed by the API, so
+-- this grant makes nothing callable from outside.
+revoke all on function app.array_has_no_duplicates(anyarray) from public;
+grant execute on function app.array_has_no_duplicates(anyarray) to anon, authenticated, service_role;
 revoke all on function app.is_test_signup(text, text) from public, anon;
 grant execute on function app.is_test_signup(text, text) to authenticated;
 

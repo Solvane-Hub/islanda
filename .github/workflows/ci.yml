@@ -35,6 +35,8 @@ jobs:
         run: npm run format:check
       - name: Unit and integration tests
         run: npm run test
+      - name: Database migrations (isolated PGlite, no network database)
+        run: npm run test:db
       - name: Build
         run: npm run build
 
@@ -74,12 +76,11 @@ jobs:
     # configuration into a failure rather than a silent skip.
     env:
       RLS_TESTS_REQUIRED: '1'
-      # TEMPORARY, until a separate Supabase test project exists: the only project
-      # is production, and the waitlist suites must write a signup to prove the
-      # public door. Rows are tagged source='rls_test' with @example.dev
-      # addresses, which reports, the admin list and team emails all exclude.
-      # Without this flag those suites skip against production (tests/rls/client.ts).
-      RLS_ALLOW_PRODUCTION_WRITES: '1'
+      # The suites that write waitlist signups skip against the production
+      # project (tests/rls/client.ts); CI never enables production writes. Their
+      # database-level assertions run on every push in `npm run test:db`
+      # (isolated PGlite). Point SUPABASE_URL at a dedicated test project to run
+      # them end to end through Auth and PostgREST.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -29,7 +29,12 @@ This project is pre-release; versions are sprint-scoped until first deployment.
   reports (respondents vs selections) and CSV exports updated.
 - **Test data:** non-production signups are tagged by `source` and excluded from reports;
   no team notification for test or non-production signups; RLS write suites refuse to
-  run against production without `RLS_ALLOW_PRODUCTION_WRITES=1` (set temporarily in CI).
+  run against production without `RLS_ALLOW_PRODUCTION_WRITES=1` (never set in CI). New
+  `npm run test:db` replays every migration into an isolated PGlite and runs the
+  waitlist write tests and the multi-select migration tests there (also in CI).
+- **Migration fix found by test:db:** `app.array_has_no_duplicates` (used by the new CHECK
+  constraints) is executable by `anon` — without it every public signup would have been
+  refused. Reviewed rollback: `supabase/rollbacks/20261019200000_waitlist_multi_select.down.sql`.
 - **Analytics privacy:** the server honours `Sec-GPC` / `DNT`; retention and legal-review
   items documented in `docs/product/admin-portal-and-analytics.md`.
 - **Migrations:** eleven files renamed to the versions production recorded (no SQL

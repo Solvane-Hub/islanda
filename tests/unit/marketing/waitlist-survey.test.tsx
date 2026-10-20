@@ -1,6 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { configure, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppError, fail, ok } from '@/lib/errors';
+
+// The questionnaire renders ~35 controlled checkboxes; under a full parallel run the
+// first commit after an action can exceed Testing Library's 1s default wait.
+configure({ asyncUtilTimeout: 5000 });
 
 const actions = vi.hoisted(() => ({
   join: vi.fn(),

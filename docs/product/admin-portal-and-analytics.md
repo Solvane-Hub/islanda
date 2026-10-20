@@ -162,9 +162,11 @@ Supabase project. Safeguards (2026-10-20):
 - The team notification email is never sent for a test address or a non-production
   signup.
 - RLS suites that write signups refuse to run against production unless
-  `RLS_ALLOW_PRODUCTION_WRITES=1` is set; rows they write carry `source = 'rls_test'`
-  and `@example.dev` addresses. CI sets the flag **temporarily** so the public
-  waitlist door stays proven; remove it once a test project exists.
+  `RLS_ALLOW_PRODUCTION_WRITES=1` is set; **CI never sets it**. Rows they write carry
+  `source = 'rls_test'` and `@example.dev` addresses. Their database-level assertions run
+  on every push in `npm run test:db` — every migration replayed into an isolated PGlite
+  with production's default privileges — which is how a missing grant that would have
+  refused all public signups was caught before 20261019200000 was applied.
 - Analytics never records outside production (above).
 
 **Recommended:** a dedicated Supabase test project (or Supabase branching) for CI, RLS

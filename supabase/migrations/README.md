@@ -21,6 +21,10 @@ the next push tries to run it again.
    and `git mv` the file to that version in the same pull request, or in a
    follow-up straight after.
 
+Before applying, run `npm run test:db`: it replays every migration into an isolated
+PGlite with production's default privileges. A rollback, when one is prepared, lives in
+`supabase/rollbacks/` (not a migration; run only with approval).
+
 Never edit a migration that has been applied — write a new one. Never re-run an
 applied migration to "fix" a filename; rename the file instead.
 
