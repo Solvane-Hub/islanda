@@ -51,8 +51,15 @@ statements (normalised md5 / spot checks) before renaming; no SQL changed.
 Older documents (and comments inside applied migrations, which are never edited)
 may still cite the previous versions; this table resolves them.
 
-**Open item:** `20260928000000_add_waitlist_last_name.sql` is not in production's
-recorded history, although its column exists (it was applied by hand). The file
-is idempotent (`add column if not exists`). Recording it — an insert into
-`supabase_migrations.schema_migrations` — is a production history change and
-needs explicit approval; until then `migration list` will show it as pending.
+`waitlist_multi_select` followed the same procedure on 2026-10-20: written as
+`20261019200000`, applied through the Supabase MCP and recorded as
+**`20261020185611`** (the recorded statement's md5 matched the reviewed SQL), then
+renamed. Its rollback is `supabase/rollbacks/20261020185611_waitlist_multi_select.down.sql`.
+
+**Resolved 2026-10-20:** `20260928000000_add_waitlist_last_name.sql` had been applied
+by hand and was missing from the recorded history. After verifying all three of its
+effects in production (the nullable `last_name` column, `waitlist_signups_last_name_check`
+and the column comment) and that no row with that version or name existed, its history
+row was inserted — guarded so the insert could only happen while all three held — with
+the file's exact text as its statement (md5 matched). No SQL was re-run. Production's
+recorded history now matches this folder one-to-one (23 versions).

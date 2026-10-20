@@ -1,4 +1,4 @@
--- ROLLBACK for 20261019200000_waitlist_multi_select — NOT a migration; run only if approved.
+-- ROLLBACK for 20261020185611_waitlist_multi_select — NOT a migration; run only if approved.
 -- Restores the four functions to the definitions production ran before the migration
 -- (md5 of each pg_get_functiondef verified identical to production on 2026-10-20),
 -- removes the multi-select constraints and helpers, and KEEPS the primary_goals /

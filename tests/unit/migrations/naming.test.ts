@@ -41,6 +41,8 @@ describe('migration files', () => {
       '20260917020157_waitlist_signups.sql',
       '20261017160038_waitlist_survey_and_recruitment.sql',
       '20261019171608_admin_portal_and_analytics.sql',
+      '20260928000000_add_waitlist_last_name.sql',
+      '20261020185611_waitlist_multi_select.sql',
     ]) {
       expect(files, recorded).toContain(recorded);
     }

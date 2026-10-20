@@ -235,7 +235,7 @@ export async function listWaitlistEntries(
   if (query.businessJourney) q = q.eq('business_journey', query.businessJourney);
   if (query.industry) q = q.eq('industry', query.industry);
   // Rows from before multi-select were backfilled into the arrays by the
-  // 20261019200000 migration, so "contains" also finds historical answers.
+  // 20261020185611 migration, so "contains" also finds historical answers.
   if (query.primaryGoal) q = q.contains('primary_goals', [query.primaryGoal]);
   if (query.biggestChallenge) q = q.contains('challenges', [query.biggestChallenge]);
   if (query.testingInterest) q = q.eq('testing_interest', query.testingInterest);

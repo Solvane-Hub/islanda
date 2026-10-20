@@ -23,7 +23,7 @@ This project is pre-release; versions are sprint-scoped until first deployment.
 - **Questionnaire:** "What would you most like Islanda to help you with?" and "What
   challenges are you facing…?" are select-all-that-apply (checkboxes; "I'm not sure yet" /
   "I have several challenges…" are exclusive; "Other" text kept while hidden). Migration
-  `20261019200000_waitlist_multi_select` (additive: `primary_goals[]`, `challenges[]`,
+  `20261020185611_waitlist_multi_select` (additive: `primary_goals[]`, `challenges[]`,
   backfilled from the single columns, which keep mirroring the first selection) —
   **applied separately, with approval**. Admin list/detail/filters ("any selected"),
   reports (respondents vs selections) and CSV exports updated.
@@ -34,12 +34,15 @@ This project is pre-release; versions are sprint-scoped until first deployment.
   waitlist write tests and the multi-select migration tests there (also in CI).
 - **Migration fix found by test:db:** `app.array_has_no_duplicates` (used by the new CHECK
   constraints) is executable by `anon` — without it every public signup would have been
-  refused. Reviewed rollback: `supabase/rollbacks/20261019200000_waitlist_multi_select.down.sql`.
+  refused. Reviewed rollback: `supabase/rollbacks/20261020185611_waitlist_multi_select.down.sql`.
 - **Analytics privacy:** the server honours `Sec-GPC` / `DNT`; retention and legal-review
   items documented in `docs/product/admin-portal-and-analytics.md`.
 - **Migrations:** eleven files renamed to the versions production recorded (no SQL
   changed); procedure in `supabase/migrations/README.md`, enforced by
-  `tests/unit/migrations/naming.test.ts`.
+  `tests/unit/migrations/naming.test.ts`. The multi-select migration was applied to
+  production on 2026-10-20 and recorded as `20261020185611`; the hand-applied
+  `20260928000000_add_waitlist_last_name` now has its history row. Production history
+  matches the folder one-to-one.
 
 ## [Unreleased] — Owner-only admin portal, expanded questionnaire, analytics · 2026-10-18
 

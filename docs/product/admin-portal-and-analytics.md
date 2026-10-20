@@ -166,7 +166,7 @@ Supabase project. Safeguards (2026-10-20):
   `source = 'rls_test'` and `@example.dev` addresses. Their database-level assertions run
   on every push in `npm run test:db` — every migration replayed into an isolated PGlite
   with production's default privileges — which is how a missing grant that would have
-  refused all public signups was caught before 20261019200000 was applied.
+  refused all public signups was caught before 20261020185611 was applied.
 - Analytics never records outside production (above).
 
 **Recommended:** a dedicated Supabase test project (or Supabase branching) for CI, RLS

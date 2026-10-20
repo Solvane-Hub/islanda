@@ -6,7 +6,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { as, databaseAt, MIGRATIONS_DIR, readSql } from './harness';
 
 /**
- * 20261019200000_waitlist_multi_select against an isolated database built from
+ * 20261020185611_waitlist_multi_select against an isolated database built from
  * every earlier migration, seeded with rows shaped like production's.
  *
  * The four functions the migration replaces were compared with production on
@@ -19,14 +19,14 @@ const PRODUCTION_BEFORE_MD5: Record<string, string> = {
   get_waitlist_survey: '55d0958e07cdf473eac55f4b6a33f9b0',
   save_waitlist_survey: '94ccf483a7ed65dbdd74ba16ad3400a5',
 };
-const MIGRATION = readSql(path.join(MIGRATIONS_DIR, '20261019200000_waitlist_multi_select.sql'));
+const MIGRATION = readSql(path.join(MIGRATIONS_DIR, '20261020185611_waitlist_multi_select.sql'));
 const LAST_NAME = readSql(path.join(MIGRATIONS_DIR, '20260928000000_add_waitlist_last_name.sql'));
 const ROLLBACK = readSql(
   path.join(
     process.cwd(),
     'supabase',
     'rollbacks',
-    '20261019200000_waitlist_multi_select.down.sql',
+    '20261020185611_waitlist_multi_select.down.sql',
   ),
 );
 
@@ -107,7 +107,7 @@ beforeAll(async () => {
   await db.exec(MIGRATION);
 }, 180_000);
 
-describe('20261019200000 — data and schema', () => {
+describe('20261020185611 — data and schema', () => {
   it('leaves every existing answer, updated_at and recruitment_updated_at unchanged', async () => {
     expect(await fingerprint()).toBe(before);
   });
@@ -189,7 +189,7 @@ describe('20261019200000 — data and schema', () => {
   });
 });
 
-describe('20261019200000 — token-gated questionnaire', () => {
+describe('20261020185611 — token-gated questionnaire', () => {
   it('reads a legacy single answer as a list, with the legacy keys too', async () => {
     expect(await read(token(1))).toMatchObject({
       primaryGoals: ['clear_plan'],
@@ -274,7 +274,7 @@ describe('20261019200000 — token-gated questionnaire', () => {
   });
 });
 
-describe('20261019200000 — admin reporting', () => {
+describe('20261020185611 — admin reporting', () => {
   const range = [
     new Date(Date.now() - 7 * 864e5).toISOString(),
     new Date(Date.now() + 864e5).toISOString(),
@@ -361,7 +361,7 @@ describe('20261019200000 — admin reporting', () => {
   });
 });
 
-describe('20261019200000 — re-run and rollback', () => {
+describe('20261020185611 — re-run and rollback', () => {
   it('a blind re-run fails and changes nothing', async () => {
     const fp = await fingerprint();
     await expect(db.exec(MIGRATION)).rejects.toThrow(/already exists/);

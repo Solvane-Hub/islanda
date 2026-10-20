@@ -10,7 +10,7 @@ import { PGlite, type Transaction } from '@electric-sql/pglite';
  * `auth` and `storage` schemas, and the default privileges read from
  * production's `pg_default_acl`. That last part matters: a CHECK constraint
  * calling a function the inserting role cannot execute fails only when the
- * privileges are real (20261019200000 shipped exactly that bug, caught here).
+ * privileges are real (20261020185611 shipped exactly that bug, caught here).
  *
  * What this cannot test: Supabase Auth and PostgREST. The RLS suite
  * (tests/rls) covers those against a real project.
