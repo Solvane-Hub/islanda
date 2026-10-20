@@ -2,7 +2,7 @@ import { ChevronDown } from 'lucide-react';
 import { ACCESS_COPY, type AccessMode } from '@/lib/product/availability';
 
 /**
- * Section E — straight answers.
+ * Section D — straight answers.
  *
  * Native `<details>`: keyboard- and screen-reader-operable with no client
  * JavaScript, and every answer is in the server HTML. Answers that depend on
@@ -24,13 +24,13 @@ export function Faq({ mode }: { mode: AccessMode }) {
     {
       q: 'Can I use it today?',
       a: open
-        ? 'Yes. During early access you can create an account and use the features listed under “What you can do in Islanda today”. The features under “What we’re building next” are not ready yet.'
+        ? 'Yes. During early access you can create an account and use the features listed under “What you can do in Islanda today”.'
         : 'Not yet. Islanda is in early access and is not open to the public. Join the waitlist and we will email you when access opens.',
     },
     {
       q: 'Is access open to everyone?',
       a: open
-        ? 'During early access, anyone can create an account. Some features are still being built, and each one says so.'
+        ? 'During early access, anyone can create an account.'
         : 'Not yet. Sign-in is closed while we prepare early access. The waitlist is how you get in line.',
     },
     {

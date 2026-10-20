@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { requireReleased } from '@/lib/product/release';
 import { RoadmapRoute } from '../_components/roadmap-route';
 
 export const metadata: Metadata = { title: 'Important dates' };
@@ -11,6 +12,8 @@ export const metadata: Metadata = { title: 'Important dates' };
  * the database rather than asserted here. See `RoadmapRoute`.
  */
 export default function TimelinePage() {
+  // Not built: reachable only in internal environments, a 404 in production.
+  requireReleased('important_dates');
   return (
     <RoadmapRoute
       title="Important dates"

@@ -1,6 +1,11 @@
 import { createHash } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { hashSurveyToken, joinWaitlist, submitWaitlistSurvey } from '@/services/waitlist';
+import {
+  getWaitlistSurvey,
+  hashSurveyToken,
+  joinWaitlist,
+  submitWaitlistSurvey,
+} from '@/services/waitlist';
 
 /**
  * The public waitlist service against a fake Supabase client. The real
@@ -145,6 +150,67 @@ describe('submitWaitlistSurvey', () => {
     const { db } = fakeDb({ rpcResult: false });
     expect(await submitWaitlistSurvey(db, input({ testingInterest: 'maybe' }))).toEqual({
       status: 'not_found',
+    });
+  });
+
+  it('sends every selected goal and challenge as a list, with its Other text', async () => {
+    const { db, rpc } = fakeDb({ rpcResult: true });
+    await submitWaitlistSurvey(
+      db,
+      input({
+        primaryGoals: ['clear_plan', 'other'],
+        goalOther: 'Import duties',
+        challenges: ['finding_customers', 'marketing'],
+        challengeOther: null,
+      }),
+    );
+    expect(rpc.mock.calls[0]![1].p_answers).toEqual({
+      primaryGoals: ['clear_plan', 'other'],
+      goalOther: 'Import duties',
+      challenges: ['finding_customers', 'marketing'],
+      challengeOther: null,
+    });
+  });
+
+  it('a section saved with every box unticked clears the answer but is not "something new"', async () => {
+    const { db, rpc } = fakeDb({ rpcResult: null });
+    // Nothing stored before and only empty selections now: same as skipping.
+    expect(
+      await submitWaitlistSurvey(db, input({ primaryGoals: null, challenges: null }, true)),
+    ).toEqual({ status: 'empty' });
+    expect(rpc.mock.calls.map((c) => c[0])).toEqual(['get_waitlist_survey']);
+  });
+
+  it('a section with no goals/challenges leaves earlier selections alone (partial save)', async () => {
+    const { db, rpc } = fakeDb({ rpcResult: true });
+    await submitWaitlistSurvey(db, input({ testingInterest: 'yes' }));
+    expect(rpc.mock.calls[0]![1].p_answers).toEqual({ testingInterest: 'yes' });
+    expect(rpc.mock.calls[0]![1].p_answers).not.toHaveProperty('primaryGoals');
+  });
+
+  it('reads answers saved before multi-select as one-item lists', async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: { country: 'Barbados', primaryGoal: 'clear_plan', biggestChallenge: null },
+      error: null,
+    });
+    const answers = await getWaitlistSurvey({ rpc } as never, TOKEN);
+    expect(answers).toMatchObject({ primaryGoals: ['clear_plan'], challenges: [] });
+    expect(answers).not.toHaveProperty('primaryGoal');
+  });
+
+  it('reads multi-select answers as they were saved', async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: {
+        primaryGoals: ['clear_plan', 'other'],
+        primaryGoal: 'clear_plan',
+        challenges: ['marketing', 'finding_customers'],
+        biggestChallenge: 'marketing',
+      },
+      error: null,
+    });
+    expect(await getWaitlistSurvey({ rpc } as never, TOKEN)).toMatchObject({
+      primaryGoals: ['clear_plan', 'other'],
+      challenges: ['marketing', 'finding_customers'],
     });
   });
 

@@ -21,6 +21,8 @@ import {
   BUSINESS_STAGE_OPTIONS,
   CHALLENGE_OPTIONS,
   EARLY_ACCESS_QUESTION_OPTIONS,
+  EXCLUSIVE_CHALLENGE,
+  EXCLUSIVE_GOAL,
   FEEDBACK_INTEREST_OPTIONS,
   INDUSTRY_OPTIONS,
   PRIMARY_GOAL_OPTIONS,
@@ -42,6 +44,11 @@ import {
  *
  * All sections stay mounted (inactive ones are `hidden`) so moving back and
  * forth never loses an answer; each save sends only its own section's fields.
+ *
+ * Goals and challenges are select-all-that-apply checkbox groups. Each has one
+ * exclusive answer ("I'm not sure yet", "I have several challenges…") that
+ * clears the others when ticked and is cleared when anything else is — the
+ * server enforces the same rule, this only keeps the form honest about it.
  */
 
 type Answers = Awaited<ReturnType<typeof getWaitlistSurveyAction>>;
@@ -60,7 +67,7 @@ const SECTIONS = [
   },
   {
     title: 'What do you want Islanda to help you do?',
-    fields: ['primaryGoal', 'goalOther', 'biggestChallenge', 'challengeOther', 'businessStage'],
+    fields: ['primaryGoals', 'goalOther', 'challenges', 'challengeOther', 'businessStage'],
   },
   { title: 'Early testing', fields: ['testingInterest', 'feedbackInterest'] },
   { title: 'Anything else?', fields: ['additionalInfo'] },
@@ -113,8 +120,8 @@ function SurveyForm({
   const [section, setSection] = useState(0);
   const [savedAny, setSavedAny] = useState(Boolean(initial));
   const [industry, setIndustry] = useState<string>(initial?.industry ?? '');
-  const [goal, setGoal] = useState<string>(initial?.primaryGoal ?? '');
-  const [challenge, setChallenge] = useState<string>(initial?.biggestChallenge ?? '');
+  const [goals, setGoals] = useState<readonly string[]>(initial?.primaryGoals ?? []);
+  const [challenges, setChallenges] = useState<readonly string[]>(initial?.challenges ?? []);
   const started = useRef(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const id = useId();
@@ -332,22 +339,18 @@ function SurveyForm({
         {/* ── B — What do you want Islanda to help you do? ── */}
         <div hidden={section !== 1} className="flex flex-col gap-7">
           <div className="flex flex-col gap-3">
-            <Question
+            <MultiChoice
               legend="What would you most like Islanda to help you with?"
-              error={fieldError('primaryGoal')}
-              onChange={setGoal}
-            >
-              {PRIMARY_GOAL_OPTIONS.map((option) => (
-                <ChoiceCard
-                  key={option.value}
-                  name="primaryGoal"
-                  value={option.value}
-                  label={option.label}
-                  defaultChecked={initial?.primaryGoal === option.value}
-                />
-              ))}
-            </Question>
-            {goal === 'other' ? (
+              name="primaryGoals"
+              options={PRIMARY_GOAL_OPTIONS}
+              exclusive={EXCLUSIVE_GOAL}
+              selected={goals}
+              onSelectedChange={setGoals}
+              error={fieldError('primaryGoals')}
+            />
+            {/* Stays mounted while hidden so unticking "Other" by mistake loses nothing;
+                the server discards it if "Other" is not selected when saved. */}
+            <div hidden={!goals.includes('other')}>
               <Field
                 id={`${id}-goal-other`}
                 label="What would you like help with?"
@@ -364,26 +367,20 @@ function SurveyForm({
                   />
                 )}
               </Field>
-            ) : null}
+            </div>
           </div>
 
           <div className="flex flex-col gap-3">
-            <Question
-              legend="What is the biggest challenge you're facing with your business right now?"
-              error={fieldError('biggestChallenge')}
-              onChange={setChallenge}
-            >
-              {CHALLENGE_OPTIONS.map((option) => (
-                <ChoiceCard
-                  key={option.value}
-                  name="biggestChallenge"
-                  value={option.value}
-                  label={option.label}
-                  defaultChecked={initial?.biggestChallenge === option.value}
-                />
-              ))}
-            </Question>
-            {challenge === 'other' ? (
+            <MultiChoice
+              legend="What challenges are you facing with your business right now?"
+              name="challenges"
+              options={CHALLENGE_OPTIONS}
+              exclusive={EXCLUSIVE_CHALLENGE}
+              selected={challenges}
+              onSelectedChange={setChallenges}
+              error={fieldError('challenges')}
+            />
+            <div hidden={!challenges.includes('other')}>
               <Field
                 id={`${id}-challenge-other`}
                 label="Tell us about your challenge"
@@ -400,7 +397,7 @@ function SurveyForm({
                   />
                 )}
               </Field>
-            ) : null}
+            </div>
           </div>
 
           <Question
@@ -530,28 +527,35 @@ function SurveyForm({
 function Question({
   legend,
   columns = 2,
+  hint,
   error,
-  onChange,
   children,
 }: {
   legend: string;
+  hint?: string;
   columns?: 2 | 3;
   error?: string | undefined;
-  onChange?: (value: string) => void;
   children: React.ReactNode;
 }) {
   const errorId = useId();
+  const hintId = useId();
+  const describedBy = [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(' ');
   return (
-    <fieldset
-      className="flex min-w-0 flex-col"
-      aria-describedby={error ? errorId : undefined}
-      onChange={
-        onChange
-          ? (event) => onChange((event.target as unknown as HTMLInputElement).value)
-          : undefined
-      }
-    >
-      <legend className="text-on-ink mb-3 text-base font-medium text-pretty">{legend}</legend>
+    <fieldset className="flex min-w-0 flex-col" aria-describedby={describedBy || undefined}>
+      <legend
+        className={
+          hint
+            ? 'text-on-ink text-base font-medium text-pretty'
+            : 'text-on-ink mb-3 text-base font-medium text-pretty'
+        }
+      >
+        {legend}
+      </legend>
+      {hint ? (
+        <p id={hintId} className="text-on-ink-muted mt-1 mb-3 text-sm">
+          {hint}
+        </p>
+      ) : null}
       <div
         className={
           columns === 3
@@ -567,5 +571,51 @@ function Question({
         </p>
       ) : null}
     </fieldset>
+  );
+}
+
+/**
+ * A select-all-that-apply group. Native checkboxes sharing one `name`, so the
+ * form posts every ticked value; `exclusive` is the one answer that cannot be
+ * combined with the others.
+ */
+function MultiChoice({
+  legend,
+  name,
+  options,
+  exclusive,
+  selected,
+  onSelectedChange,
+  error,
+}: {
+  legend: string;
+  name: string;
+  options: readonly { value: string; label: string }[];
+  exclusive: string;
+  selected: readonly string[];
+  onSelectedChange: (next: readonly string[]) => void;
+  error?: string | undefined;
+}) {
+  function toggle(value: string, checked: boolean) {
+    if (!checked) return onSelectedChange(selected.filter((v) => v !== value));
+    if (value === exclusive) return onSelectedChange([exclusive]);
+    // Ticking anything else clears the exclusive answer; order follows the options, not the clicks.
+    const next = new Set([...selected.filter((v) => v !== exclusive), value]);
+    onSelectedChange(options.map((o) => o.value).filter((v) => next.has(v)));
+  }
+  return (
+    <Question legend={legend} hint="Select all that apply." error={error}>
+      {options.map((option) => (
+        <ChoiceCard
+          key={option.value}
+          type="checkbox"
+          name={name}
+          value={option.value}
+          label={option.label}
+          checked={selected.includes(option.value)}
+          onCheckedChange={(checked) => toggle(option.value, checked)}
+        />
+      ))}
+    </Question>
   );
 }

@@ -39,25 +39,27 @@ const bricolageGrotesque = Bricolage_Grotesque({
   weight: ['600', '700'],
 });
 
+// Describes released capabilities only (lib/product/availability.ts) — the same
+// words as the homepage's 'What you can do in Islanda today' lede.
+const SITE_DESCRIPTION =
+  'Islanda gives your business idea a home: one private place for what your business is, what you want, and the files that go with it.';
+
 export const metadata: Metadata = {
   title: {
     default: `${PRODUCT_NAME} — ${TAGLINE}`,
     template: `%s · ${PRODUCT_NAME}`,
   },
-  description:
-    'Islanda helps businesses understand their context, turn fragmented information into intelligence, and navigate what comes next.',
+  description: SITE_DESCRIPTION,
   openGraph: {
     title: `${PRODUCT_NAME} — ${TAGLINE}`,
-    description:
-      'Islanda helps businesses understand their context, turn fragmented information into intelligence, and navigate what comes next.',
+    description: SITE_DESCRIPTION,
     siteName: PRODUCT_NAME,
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: `${PRODUCT_NAME} — ${TAGLINE}`,
-    description:
-      'Islanda helps businesses understand their context, turn fragmented information into intelligence, and navigate what comes next.',
+    description: SITE_DESCRIPTION,
   },
 };
 

@@ -13,6 +13,7 @@ import { BusinessSelector } from './_components/business-selector';
 import { UserMenu } from './_components/user-menu';
 import { serverEnv } from '@/lib/env';
 import { isAllowlistedEmail } from '@/lib/admin/allowlist';
+import { unreleasedVisible } from '@/lib/product/release';
 
 /**
  * Authenticated application shell.
@@ -63,6 +64,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   ]);
 
   const current = resolveCurrentBusiness(businesses, store.get(CURRENT_BUSINESS_COOKIE)?.value);
+  // Unreleased capabilities are not listed for users; internal environments see
+  // them marked. Only the boolean crosses to the client: nav items carry icon
+  // components, which cannot be serialised from a Server Component.
+  const showUnreleased = unreleasedVisible();
 
   return (
     <div className="relative min-h-dvh">
@@ -134,7 +139,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {/* Internal navigation rail + the scrolling workspace. */}
           <div className="flex min-h-0 flex-1">
             <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-white/8 px-3 py-5 md:block">
-              <SidebarNav />
+              <SidebarNav showUnreleased={showUnreleased} />
             </aside>
 
             <main id="main-content" tabIndex={0} className="min-w-0 flex-1 overflow-y-auto">
@@ -144,7 +149,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </main>
           </div>
 
-          <MobileBottomNav />
+          <MobileBottomNav showUnreleased={showUnreleased} />
         </div>
       </div>
     </div>

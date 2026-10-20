@@ -201,13 +201,21 @@ const QUICK_LINKS = [
  * Doorways into the modules the Passport summarises — "Passport states, the
  * modules work." The quietest element on the rail on purpose.
  */
-export function PassportQuickLinks({ className }: { className?: string }) {
+export function PassportQuickLinks({
+  canAsk,
+  className,
+}: {
+  /** "Get help" opens Nova, so it is listed only where Nova is released. */
+  canAsk: boolean;
+  className?: string;
+}) {
+  const links = QUICK_LINKS.filter((item) => canAsk || item.href !== '/assistant');
   return (
     <nav aria-label="Quick links" className={cn('flex w-36 shrink-0 flex-col gap-1.5', className)}>
       <p className="text-3xs text-on-glass-subtle/60 mb-1 font-medium tracking-[0.22em] uppercase">
         Go to
       </p>
-      {QUICK_LINKS.map((item) => {
+      {links.map((item) => {
         const Icon = item.icon;
         return (
           <Link

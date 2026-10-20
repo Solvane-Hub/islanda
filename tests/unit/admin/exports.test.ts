@@ -38,10 +38,10 @@ function entry(extra: Record<string, unknown> = {}) {
     businessJourney: 'preparing_to_register',
     industry: 'food_restaurants_catering',
     industryOther: null,
-    primaryGoal: 'licences_permits_approvals',
+    primaryGoals: ['licences_permits_approvals', 'funding_investment'],
     goalOther: null,
     businessStage: null,
-    biggestChallenge: 'finding_customers',
+    challenges: ['finding_customers'],
     challengeOther: null,
     testingInterest: 'yes',
     feedbackInterest: 'maybe',
@@ -110,6 +110,12 @@ describe('buildExport', () => {
     expect(withContact.body).toContain('ada@gmail.com');
     expect(withContact.body).toContain(`"'=HYPERLINK(""http://evil"")"`);
     expect(withContact.body).not.toContain('INTERNAL NOTE');
+    // Multi-select answers export every selection in one cell, labelled as such.
+    expect(withContact.body).toContain('Wants help with (all selected)');
+    expect(withContact.body).toContain('Challenges (all selected)');
+    expect(withContact.body).toMatch(
+      /licences, permits, or approvals I may need; Prepare my business for funding/,
+    );
   });
 
   it('audits every export with its shape — not its content', async () => {

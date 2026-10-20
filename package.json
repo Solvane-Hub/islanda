@@ -20,6 +20,7 @@
     "start": "next start",
     "test": "vitest run tests/unit tests/integration",
     "test:a11y": "playwright test tests/e2e/accessibility.spec.ts",
+    "test:db": "vitest run tests/db",
     "test:e2e": "playwright test",
     "test:integration": "vitest run tests/integration",
     "test:rls": "vitest run --config vitest.rls.config.mts tests/rls",
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
+    "@electric-sql/pglite": "0.3.16",
     "@playwright/test": "1.62.1",
     "@tailwindcss/postcss": "4.3.3",
     "@testing-library/jest-dom": "7.0.0",

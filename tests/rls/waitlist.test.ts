@@ -1,6 +1,19 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { adminClient, adminConfigured, anonClient, rlsConfigured, RUN, signIn } from './client';
+import type { Json } from '@/types/database';
+import {
+  adminClient,
+  adminConfigured,
+  anonClient,
+  productionWritesAllowed,
+  rlsConfigured,
+  RUN,
+  signIn,
+  TEST_SOURCE,
+} from './client';
+
+/** Tests that leave a signup row behind. Skipped against production unless explicitly allowed. */
+const writes = it.skipIf(!productionWritesAllowed);
 
 /**
  * Row Level Security — public waitlist (`waitlist_signups`).
@@ -16,24 +29,24 @@ import { adminClient, adminConfigured, anonClient, rlsConfigured, RUN, signIn } 
 describe.skipIf(!rlsConfigured)('Row Level Security — waitlist_signups', () => {
   const email = `${RUN}-waitlist@example.dev`.toLowerCase();
 
-  it('an anonymous visitor can INSERT a signup', async () => {
+  writes('an anonymous visitor can INSERT a signup', async () => {
     const anon = anonClient();
     const { error } = await anon.from('waitlist_signups').insert({
       email,
       first_name: 'Founder',
       last_name: 'Founder',
-      source: 'landing_page',
+      source: TEST_SOURCE,
     });
     expect(error).toBeNull();
   });
 
-  it('the database rejects a duplicate email regardless of case', async () => {
+  writes('the database rejects a duplicate email regardless of case', async () => {
     const anon = anonClient();
     const { error } = await anon.from('waitlist_signups').insert({
       email: email.toUpperCase(),
       first_name: 'Founder',
       last_name: 'Founder',
-      source: 'landing_page',
+      source: TEST_SOURCE,
     });
     expect(error).not.toBeNull(); // waitlist_signups_email_unique_idx on lower(email)
   });
@@ -44,7 +57,7 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist_signups', () =>
       email: `${RUN}-not-an-email`,
       first_name: 'Founder',
       last_name: 'Founder',
-      source: 'landing_page',
+      source: TEST_SOURCE,
     });
     expect(error).not.toBeNull(); // ws_email_format
   });
@@ -83,16 +96,19 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist_signups', () =>
     expect(data ?? []).toHaveLength(0);
   });
 
-  it('a signed-in founder can also join the waitlist (no auth required, none forbidden)', async () => {
-    const { db } = await signIn('B');
-    const { error } = await db.from('waitlist_signups').insert({
-      email: `${RUN}-founder-b@example.dev`.toLowerCase(),
-      first_name: 'Founder',
-      last_name: 'B',
-      source: 'landing_page',
-    });
-    expect(error).toBeNull();
-  });
+  writes(
+    'a signed-in founder can also join the waitlist (no auth required, none forbidden)',
+    async () => {
+      const { db } = await signIn('B');
+      const { error } = await db.from('waitlist_signups').insert({
+        email: `${RUN}-founder-b@example.dev`.toLowerCase(),
+        first_name: 'Founder',
+        last_name: 'B',
+        source: TEST_SOURCE,
+      });
+      expect(error).toBeNull();
+    },
+  );
 
   describe('rate limiting (the anon grant extension this migration adds)', () => {
     it('an anonymous caller can now invoke consume_rate_limit, and it denies past the limit', async () => {
@@ -118,7 +134,7 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist_signups', () =>
 });
 
 /**
- * Survey + pilot recruitment (20261017000000_waitlist_survey_and_recruitment).
+ * Survey + pilot recruitment (20261017160038_waitlist_survey_and_recruitment).
  *
  * Proves, live: the public can still only INSERT the contact columns; survey
  * answers reach a row only through the token-gated function; recruitment is
@@ -131,13 +147,13 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist survey and recr
   const tokenHash = createHash('sha256').update(token).digest('hex');
   const email = `${RUN}-survey@example.dev`.toLowerCase();
 
-  it('a visitor can insert a signup carrying a survey token hash and a phone', async () => {
+  writes('a visitor can insert a signup carrying a survey token hash and a phone', async () => {
     const { error } = await anonClient().from('waitlist_signups').insert({
       email,
       first_name: 'Survey',
       last_name: 'Tester',
       phone: '(242) 555-0123',
-      source: 'landing_page',
+      source: TEST_SOURCE,
       survey_token_hash: tokenHash,
     });
     expect(error).toBeNull();
@@ -174,38 +190,41 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist survey and recr
     expect(error).not.toBeNull(); // ws_phone_format
   });
 
-  it('the survey function accepts the right token and reveals nothing for a wrong one', async () => {
-    const anon = anonClient();
-    // PostgREST resolves functions by their full named-argument list, and this
-    // one has no defaults: every call sends all seven (the app always does).
-    const answers = {
-      p_country: 'The Bahamas',
-      p_city_island: 'Exuma',
-      p_business_stage: 'trying_to_register' as const,
-      p_biggest_challenge: 'other' as const,
-      p_challenge_other: 'Finding a shop',
-      p_testing_interest: 'yes' as const,
-    };
+  writes(
+    'the survey function accepts the right token and reveals nothing for a wrong one',
+    async () => {
+      const anon = anonClient();
+      // PostgREST resolves functions by their full named-argument list, and this
+      // one has no defaults: every call sends all seven (the app always does).
+      const answers = {
+        p_country: 'The Bahamas',
+        p_city_island: 'Exuma',
+        p_business_stage: 'trying_to_register' as const,
+        p_biggest_challenge: 'other' as const,
+        p_challenge_other: 'Finding a shop',
+        p_testing_interest: 'yes' as const,
+      };
 
-    const wrong = await anon.rpc('submit_waitlist_survey', {
-      p_token: randomBytes(32).toString('base64url'),
-      ...answers,
-    });
-    expect(wrong.error).toBeNull();
-    expect(wrong.data).toBe(false);
+      const wrong = await anon.rpc('submit_waitlist_survey', {
+        p_token: randomBytes(32).toString('base64url'),
+        ...answers,
+      });
+      expect(wrong.error).toBeNull();
+      expect(wrong.data).toBe(false);
 
-    const right = await anon.rpc('submit_waitlist_survey', { p_token: token, ...answers });
-    expect(right.error).toBeNull();
-    expect(right.data).toBe(true);
+      const right = await anon.rpc('submit_waitlist_survey', { p_token: token, ...answers });
+      expect(right.error).toBeNull();
+      expect(right.data).toBe(true);
 
-    // Submitting again updates the same row — it never creates another.
-    const again = await anon.rpc('submit_waitlist_survey', {
-      p_token: token,
-      ...answers,
-      p_business_stage: 'already_operating',
-    });
-    expect(again.data).toBe(true);
-  });
+      // Submitting again updates the same row — it never creates another.
+      const again = await anon.rpc('submit_waitlist_survey', {
+        p_token: token,
+        ...answers,
+        p_business_stage: 'already_operating',
+      });
+      expect(again.data).toBe(true);
+    },
+  );
 
   it('a visitor still cannot read anything back', async () => {
     const { data } = await anonClient()
@@ -237,7 +256,7 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist survey and recr
     expect(tokenRead.error).not.toBeNull(); // no column grant, for anyone
   });
 
-  it('the expanded questionnaire saves partially by token, merging sections', async () => {
+  writes('the expanded questionnaire saves partially by token, merging sections', async () => {
     const anon = anonClient();
     const wrong = await anon.rpc('save_waitlist_survey', {
       p_token: randomBytes(32).toString('base64url'),
@@ -290,7 +309,7 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist survey and recr
     expect(nobody.data).toBeNull();
   });
 
-  it('the database rejects an invalid answer and an orphaned "Other" explanation', async () => {
+  writes('the database rejects an invalid answer and an orphaned "Other" explanation', async () => {
     const anon = anonClient();
     const bad = await anon.rpc('save_waitlist_survey', {
       p_token: token,
@@ -310,8 +329,60 @@ describe.skipIf(!rlsConfigured)('Row Level Security — waitlist survey and recr
     expect(own.data).toMatchObject({ industry: 'technology_software', industryOther: null });
   });
 
+  writes(
+    'goals and challenges are multi-select, with exclusive answers and no duplicates',
+    async () => {
+      const anon = anonClient();
+      const save = (answers: { [key: string]: Json }) =>
+        anon.rpc('save_waitlist_survey', { p_token: token, p_answers: answers, p_final: false });
+
+      const several = await save({
+        primaryGoals: ['clear_plan', 'funding_investment', 'other'],
+        goalOther: 'Import duties',
+        challenges: ['finding_customers', 'marketing'],
+      });
+      expect(several.error).toBeNull();
+      let own = await anon.rpc('get_waitlist_survey', { p_token: token });
+      expect(own.data).toMatchObject({
+        primaryGoals: ['clear_plan', 'funding_investment', 'other'],
+        goalOther: 'Import duties',
+        challenges: ['finding_customers', 'marketing'],
+        // The single-value columns mirror the first selection for older readers.
+        primaryGoal: 'clear_plan',
+        biggestChallenge: 'finding_customers',
+      });
+
+      // A section that does not mention goals leaves them alone (partial save).
+      expect((await save({ testingInterest: 'yes' })).error).toBeNull();
+      own = await anon.rpc('get_waitlist_survey', { p_token: token });
+      expect(own.data).toMatchObject({
+        primaryGoals: ['clear_plan', 'funding_investment', 'other'],
+      });
+
+      // Exclusive answers cannot be combined; duplicates are refused.
+      expect((await save({ primaryGoals: ['not_sure_yet', 'clear_plan'] })).error).not.toBeNull();
+      expect(
+        (await save({ challenges: ['several_challenges', 'marketing'] })).error,
+      ).not.toBeNull();
+      expect((await save({ primaryGoals: ['clear_plan', 'clear_plan'] })).error).not.toBeNull();
+      expect((await save({ primaryGoals: ['not_sure_yet'] })).error).toBeNull();
+
+      // Dropping "Other" clears its explanation; an empty list clears the answer.
+      own = await anon.rpc('get_waitlist_survey', { p_token: token });
+      expect(own.data).toMatchObject({ primaryGoals: ['not_sure_yet'], goalOther: null });
+      expect((await save({ challenges: null })).error).toBeNull();
+      own = await anon.rpc('get_waitlist_survey', { p_token: token });
+      expect(own.data).toMatchObject({ challenges: [], biggestChallenge: null });
+
+      // The older single-value keys are still accepted.
+      expect((await save({ biggestChallenge: 'marketing' })).error).toBeNull();
+      own = await anon.rpc('get_waitlist_survey', { p_token: token });
+      expect(own.data).toMatchObject({ challenges: ['marketing'] });
+    },
+  );
+
   describe.skipIf(!adminConfigured)('stored state, checked with the service role', () => {
-    it('answering never touched recruitment, and completion is stamped once', async () => {
+    writes('answering never touched recruitment, and completion is stamped once', async () => {
       const { data, error } = await adminClient()
         .from('waitlist_signups')
         .select(

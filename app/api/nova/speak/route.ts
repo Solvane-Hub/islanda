@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/services/auth';
 import { serverEnv } from '@/lib/env';
 import { stripUnspeakable } from '@/lib/nova/speech';
 import { logger } from '@/lib/logger';
+import { canUse } from '@/lib/product/release';
 
 /**
  * Nova's voice — server-side text-to-speech via Fish Audio.
@@ -61,6 +62,11 @@ const FISH_MODEL = 's2.1-pro-free';
 const UPSTREAM_TIMEOUT_MS = 15_000;
 
 export async function POST(request: Request): Promise<Response> {
+  // 0. Nova's voice belongs to Nova, which is not released to founders yet.
+  if (!canUse('cited_answers')) {
+    return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  }
+
   // 1. Authenticate — RLS-scoped client, getUser() (never getSession()).
   const db = await createClient();
   const user = await getCurrentUser(db);

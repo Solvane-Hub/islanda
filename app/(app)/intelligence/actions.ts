@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { AppError, fail, newCorrelationId, ok, type Result } from '@/lib/errors';
 import { toFieldErrors } from '@/lib/validation/field-errors';
 import { logger } from '@/lib/logger';
+import { canUse } from '@/lib/product/release';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
 import { getCurrentUser } from '@/services/auth';
 import { listBusinesses, resolveCurrentBusiness } from '@/services/business';
@@ -50,6 +51,16 @@ export async function askNovaFinanceAction(
   formData: FormData,
 ): Promise<Result<NovaFinanceView>> {
   const correlationId = newCorrelationId();
+  // Not released to founders yet: refuse before reading or rate-limiting anything.
+  if (!canUse('financial_answers')) {
+    return fail(
+      new AppError({
+        code: 'NOT_FOUND',
+        humanMessage: 'This is not available.',
+        correlationId,
+      }),
+    );
+  }
 
   const parsed = askSchema.safeParse({ question: formData.get('question') });
   if (!parsed.success) {

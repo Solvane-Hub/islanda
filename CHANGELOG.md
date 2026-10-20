@@ -6,6 +6,44 @@ This project is pre-release; versions are sprint-scoped until first deployment.
 
 ---
 
+## [Unreleased] — Release visibility, multi-select questionnaire, production hardening · 2026-10-20
+
+- **Build privately, release deliberately.** The availability register
+  (`lib/product/availability.ts`) now carries `released`; `lib/product/release.ts` enforces
+  it on the server. Users see released capabilities only: the homepage's "What we're
+  building next" section, the app's "Coming later" nav group and dashboard line, "Soon"
+  badges and the welcome page's "Soon" cards are gone. Unreleased routes (`/assistant`,
+  `/compliance`, `/timeline`, `/funding`), the Nova and Nova-finance actions and
+  `/api/nova/speak` are a 404 / NOT_FOUND in production and remain available in local,
+  CI and preview environments (marked "Preview"). Nova stays unreleased pending SF1/SF3.
+  Site and homepage meta descriptions now describe released capabilities only.
+- **Footer:** the descriptor line under the brand is removed; "Islanda" and the tagline
+  remain. New "Analytics choices" control reopens the consent prompt and deletes the
+  analytics id.
+- **Questionnaire:** "What would you most like Islanda to help you with?" and "What
+  challenges are you facing…?" are select-all-that-apply (checkboxes; "I'm not sure yet" /
+  "I have several challenges…" are exclusive; "Other" text kept while hidden). Migration
+  `20261020185611_waitlist_multi_select` (additive: `primary_goals[]`, `challenges[]`,
+  backfilled from the single columns, which keep mirroring the first selection) —
+  **applied separately, with approval**. Admin list/detail/filters ("any selected"),
+  reports (respondents vs selections) and CSV exports updated.
+- **Test data:** non-production signups are tagged by `source` and excluded from reports;
+  no team notification for test or non-production signups; RLS write suites refuse to
+  run against production without `RLS_ALLOW_PRODUCTION_WRITES=1` (never set in CI). New
+  `npm run test:db` replays every migration into an isolated PGlite and runs the
+  waitlist write tests and the multi-select migration tests there (also in CI).
+- **Migration fix found by test:db:** `app.array_has_no_duplicates` (used by the new CHECK
+  constraints) is executable by `anon` — without it every public signup would have been
+  refused. Reviewed rollback: `supabase/rollbacks/20261020185611_waitlist_multi_select.down.sql`.
+- **Analytics privacy:** the server honours `Sec-GPC` / `DNT`; retention and legal-review
+  items documented in `docs/product/admin-portal-and-analytics.md`.
+- **Migrations:** eleven files renamed to the versions production recorded (no SQL
+  changed); procedure in `supabase/migrations/README.md`, enforced by
+  `tests/unit/migrations/naming.test.ts`. The multi-select migration was applied to
+  production on 2026-10-20 and recorded as `20261020185611`; the hand-applied
+  `20260928000000_add_waitlist_last_name` now has its history row. Production history
+  matches the folder one-to-one.
+
 ## [Unreleased] — Owner-only admin portal, expanded questionnaire, analytics · 2026-10-18
 
 - **Admin portal** at `/admin` for exactly two administrators (Jamil Nash, Jonathan

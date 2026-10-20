@@ -67,6 +67,24 @@ export function setConsent(choice: 'granted' | 'denied'): void {
   }
 }
 
+/** Fired when the visitor asks to change their analytics choice (footer control). */
+export const CONSENT_REOPEN_EVENT = 'islanda:analytics-choice';
+
+/**
+ * Withdraws the recorded choice and the identifier that came with it, then asks
+ * the consent prompt to show again. Until the visitor chooses, visits count
+ * only with the daily rotating key — the same as "No thanks".
+ */
+export function reopenConsent(): void {
+  writeCookie(CONSENT_COOKIE, '', 0);
+  writeCookie(VISITOR_COOKIE, '', 0);
+  try {
+    window.dispatchEvent(new Event(CONSENT_REOPEN_EVENT));
+  } catch {
+    // No window (tests, SSR) — nothing to reopen.
+  }
+}
+
 function untracked(path: string): boolean {
   return UNTRACKED_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
 }

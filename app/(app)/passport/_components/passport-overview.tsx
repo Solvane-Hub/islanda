@@ -19,9 +19,11 @@ const ROW_ICONS = [Landmark, Target, FileText, UserRound] as const;
 export function PassportOverview({
   passport,
   totalPages,
+  canAsk,
 }: {
   passport: BusinessPassport;
   totalPages: number;
+  canAsk: boolean;
 }) {
   const { identity } = passport;
   const primaryName = identity.tradingName ?? identity.legalName;
@@ -31,7 +33,7 @@ export function PassportOverview({
   const jurisdiction = identity.jurisdictionName ?? identity.countryCode;
   const reference = passportReference(passport.businessId);
   const rows = businessStateRows(passport);
-  const next = nextAction(passport);
+  const next = nextAction(passport, { canAsk });
 
   const summary = [jurisdiction, identity.operatingStatus, stageLabel].filter(Boolean).join(' · ');
 

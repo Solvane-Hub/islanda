@@ -39,3 +39,8 @@ export function eventLabel(event: string): string {
   if (!action) return event;
   return `${area!.charAt(0).toUpperCase()}${area!.slice(1)} · ${action.replace(/_/g, ' ')}`;
 }
+
+/** A multi-select answer as plain text (exports, compact lines): labels joined with "; ". */
+export function selectionText(values: readonly string[], label: (value: never) => string): string {
+  return values.map((value) => label(value as never)).join('; ');
+}

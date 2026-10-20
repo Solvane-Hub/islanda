@@ -54,7 +54,7 @@ User → Nova → runIntelligence()
   context from existing services), `usage.ts` (fail-open recorder), `index.ts`
   (production wiring).
 - **Accounting** — `ai_usage` table (append-only, RLS on with zero policies,
-  service-role written; migration `20260909000000_ai_usage.sql`).
+  service-role written; migration `20260909060524_ai_usage.sql`).
 
 ## Provider abstraction (ADR-0019)
 

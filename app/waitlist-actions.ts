@@ -10,11 +10,13 @@ import {
   waitlistSurveySchema,
 } from '@/lib/validation/waitlist';
 import { logger } from '@/lib/logger';
+import { deploymentEnvironment } from '@/lib/env';
 import { sendWaitlistConfirmation, sendWaitlistNotification } from '@/lib/email/resend';
 import {
   consumeWaitlistRateLimit,
   consumeWaitlistSurveyRateLimit,
   getWaitlistSurvey,
+  isTestSignup,
   joinWaitlist,
   submitWaitlistSurvey,
   type JoinWaitlistResult,
@@ -147,7 +149,10 @@ async function joinWaitlistOnce(
   }
 
   try {
-    const source = 'landing_page';
+    // Preview and local signups land in the same database as real ones; the
+    // source marks them so reports and the admin list can leave them out.
+    const deployment = deploymentEnvironment();
+    const source = deployment === 'production' ? 'landing_page' : deployment;
     const result = await joinWaitlist(db, {
       email: parsed.data.email,
       firstName: parsed.data.firstName,
@@ -157,6 +162,9 @@ async function joinWaitlistOnce(
     });
 
     if (result.status === 'joined') {
+      // The person who signed up always gets their confirmation; the team is
+      // only told about real signups — never a test address or a preview/local run.
+      const notifyTeam = !isTestSignup(parsed.data.email, source);
       const deliveries = await Promise.allSettled([
         sendWaitlistConfirmation({
           email: parsed.data.email,
@@ -164,13 +172,15 @@ async function joinWaitlistOnce(
           lastName: parsed.data.lastName,
           status: result.status,
         }),
-        sendWaitlistNotification({
-          email: parsed.data.email,
-          firstName: parsed.data.firstName,
-          lastName: parsed.data.lastName,
-          status: result.status,
-          source,
-        }),
+        notifyTeam
+          ? sendWaitlistNotification({
+              email: parsed.data.email,
+              firstName: parsed.data.firstName,
+              lastName: parsed.data.lastName,
+              status: result.status,
+              source,
+            })
+          : Promise.resolve(),
       ]);
 
       for (const [index, delivery] of deliveries.entries()) {

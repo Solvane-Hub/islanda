@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { requireReleased } from '@/lib/product/release';
 import { RoadmapRoute } from '../_components/roadmap-route';
 
 export const metadata: Metadata = { title: 'Funding' };
@@ -11,6 +12,8 @@ export const metadata: Metadata = { title: 'Funding' };
  * the database rather than asserted here. See `RoadmapRoute`.
  */
 export default function FundingPage() {
+  // Not built: reachable only in internal environments, a 404 in production.
+  requireReleased('funding');
   return (
     <RoadmapRoute
       title="Funding"

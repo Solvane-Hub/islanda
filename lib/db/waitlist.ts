@@ -32,9 +32,9 @@ export type SurveyAnswerPatch = Partial<{
   businessJourney: BusinessJourney | null;
   industry: Industry | null;
   industryOther: string | null;
-  primaryGoal: PrimaryGoal | null;
+  primaryGoals: PrimaryGoal[] | null;
   goalOther: string | null;
-  biggestChallenge: BiggestChallenge | null;
+  challenges: BiggestChallenge[] | null;
   challengeOther: string | null;
   businessStage: BusinessStage | null;
   testingInterest: TestingInterest | null;
@@ -58,9 +58,20 @@ export async function saveSurveyAnswers(
   return data === true;
 }
 
-export type StoredSurveyAnswers = Required<SurveyAnswerPatch> & { completed: boolean };
+export type StoredSurveyAnswers = Required<
+  Omit<SurveyAnswerPatch, 'primaryGoals' | 'challenges'>
+> & {
+  primaryGoals: PrimaryGoal[];
+  challenges: BiggestChallenge[];
+  completed: boolean;
+};
 
-/** The token holder's own answers, or null when the token matches nothing. */
+/**
+ * The token holder's own answers, or null when the token matches nothing.
+ * Reads both shapes the database function has returned: the multi-select
+ * arrays and, from before they existed, a single `primaryGoal` /
+ * `biggestChallenge`.
+ */
 export async function readSurveyAnswers(
   db: Db,
   token: string,
@@ -68,11 +79,23 @@ export async function readSurveyAnswers(
   const { data, error } = await db.rpc('get_waitlist_survey', { p_token: token });
   if (error) throw error;
   if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
-  return data as unknown as StoredSurveyAnswers;
+  const row = data as Record<string, unknown>;
+  const list = <T>(many: unknown, one: unknown): T[] =>
+    Array.isArray(many) && many.length > 0
+      ? (many as T[])
+      : typeof one === 'string' && one
+        ? [one as T]
+        : [];
+  const { primaryGoal, biggestChallenge, ...rest } = row;
+  return {
+    ...(rest as unknown as Omit<StoredSurveyAnswers, 'primaryGoals' | 'challenges'>),
+    primaryGoals: list<PrimaryGoal>(row.primaryGoals, primaryGoal),
+    challenges: list<BiggestChallenge>(row.challenges, biggestChallenge),
+  };
 }
 
 const ENTRY_COLUMNS =
-  'id, first_name, last_name, email, phone, business_name, created_at, survey_country, survey_city_island, business_journey, industry, industry_other, primary_goal, goal_other, business_stage, biggest_challenge, challenge_other, testing_interest, feedback_interest, additional_info, survey_started_at, survey_completed_at, survey_updated_at, recruitment_status, recruitment_notes, recruitment_updated_at, recruitment_contacted_on, recruitment_confirmed_on, recruitment_tested_on, feedback_summary, feedback_link' as const;
+  'id, first_name, last_name, email, phone, business_name, created_at, survey_country, survey_city_island, business_journey, industry, industry_other, primary_goal, primary_goals, goal_other, business_stage, biggest_challenge, challenges, challenge_other, source, testing_interest, feedback_interest, additional_info, survey_started_at, survey_completed_at, survey_updated_at, recruitment_status, recruitment_notes, recruitment_updated_at, recruitment_contacted_on, recruitment_confirmed_on, recruitment_tested_on, feedback_summary, feedback_link' as const;
 
 export interface WaitlistEntryRow {
   id: string;
@@ -87,11 +110,16 @@ export interface WaitlistEntryRow {
   business_journey: BusinessJourney | null;
   industry: Industry | null;
   industry_other: string | null;
+  /** First selected goal — kept in step for older readers. Prefer `primary_goals`. */
   primary_goal: PrimaryGoal | null;
+  /** Null for rows saved before multi-select existed; read through `goalsOf`. */
+  primary_goals: PrimaryGoal[] | null;
   goal_other: string | null;
   business_stage: BusinessStage | null;
   biggest_challenge: BiggestChallenge | null;
+  challenges: BiggestChallenge[] | null;
   challenge_other: string | null;
+  source: string | null;
   testing_interest: TestingInterest | null;
   feedback_interest: TestingInterest | null;
   additional_info: string | null;
@@ -119,6 +147,33 @@ export const TEST_EMAIL_DOMAINS = [
   'foundryai-judge.dev',
 ] as const;
 
+/**
+ * `source` markers for signups that are not genuine contacts — mirrors
+ * `app.is_test_signup()` in SQL. Written by the RLS suite and by every
+ * non-production deployment.
+ */
+export const TEST_SOURCES = ['rls_test', 'e2e_test', 'development', 'preview'] as const;
+
+export function isTestSignup(email: string, source: string | null): boolean {
+  return (
+    isTestEmail(email) || (source !== null && (TEST_SOURCES as readonly string[]).includes(source))
+  );
+}
+
+/** Every selected goal, including a single answer stored before multi-select existed. */
+export function goalsOf(
+  row: Pick<WaitlistEntryRow, 'primary_goals' | 'primary_goal'>,
+): PrimaryGoal[] {
+  return row.primary_goals ?? (row.primary_goal ? [row.primary_goal] : []);
+}
+
+/** Every selected challenge, including a single answer stored before multi-select existed. */
+export function challengesOf(
+  row: Pick<WaitlistEntryRow, 'challenges' | 'biggest_challenge'>,
+): BiggestChallenge[] {
+  return row.challenges ?? (row.biggest_challenge ? [row.biggest_challenge] : []);
+}
+
 export function isTestEmail(email: string): boolean {
   const domain = email.split('@')[1]?.toLowerCase() ?? '';
   return (TEST_EMAIL_DOMAINS as readonly string[]).includes(domain) || domain.endsWith('.test');
@@ -134,7 +189,9 @@ export interface WaitlistQuery {
   businessStage?: BusinessStage;
   businessJourney?: BusinessJourney;
   industry?: Industry;
+  /** Matches a person who selected this goal (among any others). */
   primaryGoal?: PrimaryGoal;
+  /** Matches a person who selected this challenge (among any others). */
   biggestChallenge?: BiggestChallenge;
   testingInterest?: TestingInterest;
   feedbackInterest?: TestingInterest;
@@ -170,14 +227,17 @@ export async function listWaitlistEntries(
   }
   if (!query.includeTests) {
     for (const domain of TEST_EMAIL_DOMAINS) q = q.not('email', 'ilike', `*@${domain}`);
+    q = q.or(`source.is.null,source.not.in.(${TEST_SOURCES.join(',')})`);
   }
   if (query.country) q = q.ilike('survey_country', `%${query.country}%`);
   if (query.cityIsland) q = q.ilike('survey_city_island', `%${query.cityIsland}%`);
   if (query.businessStage) q = q.eq('business_stage', query.businessStage);
   if (query.businessJourney) q = q.eq('business_journey', query.businessJourney);
   if (query.industry) q = q.eq('industry', query.industry);
-  if (query.primaryGoal) q = q.eq('primary_goal', query.primaryGoal);
-  if (query.biggestChallenge) q = q.eq('biggest_challenge', query.biggestChallenge);
+  // Rows from before multi-select were backfilled into the arrays by the
+  // 20261020185611 migration, so "contains" also finds historical answers.
+  if (query.primaryGoal) q = q.contains('primary_goals', [query.primaryGoal]);
+  if (query.biggestChallenge) q = q.contains('challenges', [query.biggestChallenge]);
   if (query.testingInterest) q = q.eq('testing_interest', query.testingInterest);
   if (query.feedbackInterest) q = q.eq('feedback_interest', query.feedbackInterest);
   if (query.pool === 'early_access') q = q.in('testing_interest', ['yes', 'maybe']);

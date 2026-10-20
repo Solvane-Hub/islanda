@@ -1969,6 +1969,7 @@ export type Database = {
           industry: Database['public']['Enums']['waitlist_industry'] | null;
           industry_other: string | null;
           primary_goal: Database['public']['Enums']['waitlist_primary_goal'] | null;
+          primary_goals: Database['public']['Enums']['waitlist_primary_goal'][] | null;
           recruitment_confirmed_on: string | null;
           recruitment_contacted_on: string | null;
           recruitment_tested_on: string | null;
@@ -1976,6 +1977,7 @@ export type Database = {
           survey_updated_at: string | null;
           business_name: string | null;
           business_stage: Database['public']['Enums']['waitlist_business_stage'] | null;
+          challenges: Database['public']['Enums']['waitlist_challenge'][] | null;
           challenge_other: string | null;
           created_at: string;
           email: string;
@@ -2007,6 +2009,7 @@ export type Database = {
           industry?: Database['public']['Enums']['waitlist_industry'] | null;
           industry_other?: string | null;
           primary_goal?: Database['public']['Enums']['waitlist_primary_goal'] | null;
+          primary_goals?: Database['public']['Enums']['waitlist_primary_goal'][] | null;
           recruitment_confirmed_on?: string | null;
           recruitment_contacted_on?: string | null;
           recruitment_tested_on?: string | null;
@@ -2014,6 +2017,7 @@ export type Database = {
           survey_updated_at?: string | null;
           business_name?: string | null;
           business_stage?: Database['public']['Enums']['waitlist_business_stage'] | null;
+          challenges?: Database['public']['Enums']['waitlist_challenge'][] | null;
           challenge_other?: string | null;
           created_at?: string;
           email: string;
@@ -2045,6 +2049,7 @@ export type Database = {
           industry?: Database['public']['Enums']['waitlist_industry'] | null;
           industry_other?: string | null;
           primary_goal?: Database['public']['Enums']['waitlist_primary_goal'] | null;
+          primary_goals?: Database['public']['Enums']['waitlist_primary_goal'][] | null;
           recruitment_confirmed_on?: string | null;
           recruitment_contacted_on?: string | null;
           recruitment_tested_on?: string | null;
@@ -2052,6 +2057,7 @@ export type Database = {
           survey_updated_at?: string | null;
           business_name?: string | null;
           business_stage?: Database['public']['Enums']['waitlist_business_stage'] | null;
+          challenges?: Database['public']['Enums']['waitlist_challenge'][] | null;
           challenge_other?: string | null;
           created_at?: string;
           email?: string;

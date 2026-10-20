@@ -2,8 +2,10 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { AppError, newCorrelationId } from '@/lib/errors';
 import {
+  challengesOf,
   getWaitlistEntry,
-  isTestEmail,
+  goalsOf,
+  isTestSignup,
   listWaitlistEntries,
   updateRecruitmentFields,
   type WaitlistEntryRow,
@@ -71,17 +73,19 @@ function toEntry(row: WaitlistEntryRow) {
     email: row.email,
     phone: row.phone,
     businessName: row.business_name,
-    isTest: isTestEmail(row.email),
+    isTest: isTestSignup(row.email, row.source),
     signedUpAt: row.created_at,
     country: row.survey_country,
     cityIsland: row.survey_city_island,
     businessJourney: row.business_journey,
     industry: row.industry,
     industryOther: row.industry_other,
-    primaryGoal: row.primary_goal,
+    /** Every selected goal; a pre-multi-select answer reads as a one-item list. */
+    primaryGoals: goalsOf(row),
     goalOther: row.goal_other,
     businessStage: row.business_stage,
-    biggestChallenge: row.biggest_challenge,
+    /** Every selected challenge; a pre-multi-select answer reads as a one-item list. */
+    challenges: challengesOf(row),
     challengeOther: row.challenge_other,
     testingInterest: row.testing_interest,
     feedbackInterest: row.feedback_interest,

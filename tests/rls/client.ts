@@ -33,6 +33,25 @@ export const adminConfigured = Boolean(url && serviceRoleKey);
  */
 export const rlsRequired = process.env.RLS_TESTS_REQUIRED === '1';
 
+/**
+ * The production Supabase project. Until a separate test project exists, the
+ * RLS suites can only run against it — so every suite that WRITES rows a
+ * person could mistake for real data (waitlist signups, analytics) is gated on
+ * `productionWritesAllowed`, and refuses to run against production unless
+ * RLS_ALLOW_PRODUCTION_WRITES=1 says so explicitly. Read-only denial tests
+ * still run everywhere: proving "anon cannot read" writes nothing.
+ *
+ * Rows these suites do write carry `source: 'rls_test'` and an @example.dev
+ * address, which the admin portal, reports and team notifications exclude.
+ * CI does not set the flag: the same assertions run at the database layer in
+ * tests/db (isolated PGlite) until a dedicated test project exists.
+ */
+export const PRODUCTION_PROJECT_REF = 'obenrkmcqrsyeuylgfzd';
+export const targetsProduction = Boolean(url?.includes(`${PRODUCTION_PROJECT_REF}.supabase.co`));
+export const productionWritesAllowed =
+  !targetsProduction || process.env.RLS_ALLOW_PRODUCTION_WRITES === '1';
+export const TEST_SOURCE = 'rls_test';
+
 let seq = 0;
 
 function client(): Db {

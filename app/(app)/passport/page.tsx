@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server';
 import { listBusinesses, resolveCurrentBusiness } from '@/services/business';
 import { assembleBusinessPassport } from '@/services/passport';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
+import { canUse } from '@/lib/product/release';
 import { PassportExperience } from './_components/passport-experience';
 
 export const metadata: Metadata = { title: 'My Business' };
@@ -63,7 +64,7 @@ export default async function PassportPage() {
         </Link>
       </header>
 
-      <PassportExperience passport={passport} />
+      <PassportExperience passport={passport} canAsk={canUse('cited_answers')} />
     </div>
   );
 }

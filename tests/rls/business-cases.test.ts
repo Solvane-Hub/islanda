@@ -11,7 +11,7 @@ import { anonClient, archiveAll, rlsConfigured, RUN, signIn, type Db } from './c
  * path. It also proves `advisor_id` — deliberately unconstrained — grants no
  * access by itself: a case is reachable through `business_id` alone.
  *
- * ⚠ Owner integrity (P7.1 fix, `20260911020000_business_cases_owner_integrity.sql`):
+ * ⚠ Owner integrity (P7.1 fix, `20260912002318_business_cases_owner_integrity.sql`):
  *   the INSERT policy additionally requires `owner_id = auth.uid()`, so a
  *   caller can never create a case attributed to a different user — even for a
  *   business they legitimately own. `advisor_id` and the `business_id`

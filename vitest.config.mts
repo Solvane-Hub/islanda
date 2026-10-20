@@ -15,7 +15,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     // E2E belongs to Playwright; keep the two runners from fighting over tests/e2e.
-    include: ['tests/{unit,integration,rls}/**/*.test.{ts,tsx}'],
+    include: ['tests/{unit,integration,rls,db}/**/*.test.{ts,tsx}'],
     coverage: {
       reporter: ['text', 'lcov'],
       include: ['lib/**', 'services/**', 'components/**'],

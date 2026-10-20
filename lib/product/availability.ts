@@ -1,20 +1,30 @@
 /**
- * What Islanda can actually do — the single source of truth for availability.
+ * What Islanda can actually do — the single source of truth for availability
+ * AND for release.
  *
- * The public site, the app navigation and the in-app "coming later" copy all
- * read from this register, so they cannot drift into describing two different
- * products. Every `status` below was set by tracing the capability to the code
- * that implements it (see docs/product/availability.md for the trace), not from
- * the roadmap.
+ * The public site and the app navigation both read from this register, so
+ * they cannot drift into describing two different products. Every `status`
+ * below was set by tracing the capability to the code that implements it (see
+ * docs/product/availability.md for the trace), not from the roadmap.
  *
  *   available            — built, wired to real services, covered by tests.
  *   needs_configuration  — built, but only works when an operator configures it
- *                          (an API key, an environment flag). Never advertised
- *                          publicly as a feature.
- *   in_development       — not built. May have a placeholder route that says so.
+ *                          (an API key, an environment flag), or is switched off
+ *                          for an operational reason.
+ *   in_development       — not built.
  *
- * Customer-facing copy translates these into plain words ("We're working on
- * this"), never into internal status names.
+ * ## Build privately, release deliberately
+ *
+ * A capability is RELEASED only when it is `available` AND `released: true`.
+ * Released capabilities are the only ones a visitor or an ordinary signed-in
+ * user ever sees: public pages describe nothing else, and the app shows no
+ * "coming soon" cards, badges or placeholder pages. Unreleased work stays in
+ * the codebase and is reachable only in internal environments (local, preview)
+ * — see `lib/product/release.ts`, which also 404s unreleased routes in
+ * production. Releasing something is a one-line change here.
+ *
+ * Release is not authorization: a released route still requires a session and
+ * RLS still decides what it returns.
  *
  * Pure data: no I/O, no server-only imports, safe in Client Components.
  */
@@ -29,6 +39,7 @@ export type CapabilityId =
   | 'goals'
   | 'money_records'
   | 'cited_answers'
+  | 'financial_answers'
   | 'requirements_guidance'
   | 'important_dates'
   | 'funding';
@@ -40,8 +51,11 @@ export interface Capability {
   name: string;
   /** One plain sentence: what it does for the person, not how it works. */
   summary: string;
-  /** Whether the public homepage may describe this as something you can use today. */
-  publicToday: boolean;
+  /**
+   * Deliberately released to users. Only released capabilities appear on public
+   * pages or in the ordinary signed-in app; the rest are internal until flipped.
+   */
+  released: boolean;
 }
 
 export const CAPABILITIES: readonly Capability[] = [
@@ -50,7 +64,7 @@ export const CAPABILITIES: readonly Capability[] = [
     status: 'available',
     name: 'A profile for your business',
     summary: 'Give your business a name, the country it operates in, and what it does.',
-    publicToday: true,
+    released: true,
   },
   {
     id: 'guided_questions',
@@ -58,14 +72,14 @@ export const CAPABILITIES: readonly Capability[] = [
     name: 'Five guided questions',
     summary:
       'Describe your business, your stage, your team, the money you may need and your goals. Your answers are saved as you go.',
-    publicToday: true,
+    released: true,
   },
   {
     id: 'business_summary',
     status: 'available',
     name: 'Your business on one page',
     summary: 'See everything you have told Islanda in one place, and change it any time.',
-    publicToday: true,
+    released: true,
   },
   {
     id: 'documents',
@@ -73,14 +87,14 @@ export const CAPABILITIES: readonly Capability[] = [
     name: 'Private document storage',
     summary:
       'Keep business files such as licences, invoices and statements together in private storage. Islanda stores them; it does not read them.',
-    publicToday: true,
+    released: true,
   },
   {
     id: 'goals',
     status: 'available',
     name: 'Goals',
     summary: 'Write down what you want to achieve and track progress against figures you record.',
-    publicToday: true,
+    released: true,
   },
   {
     id: 'money_records',
@@ -88,18 +102,29 @@ export const CAPABILITIES: readonly Capability[] = [
     name: 'Money and sales figures',
     summary:
       'Record figures such as sales and expenses for a month or quarter, and compare one period with another.',
-    publicToday: true,
+    released: true,
   },
   {
-    // The extractive Nova path. Built and tested, and reachable in the app, but
-    // its founder-facing release is gated on the disclaimer and accountability
-    // decision (SF1/SF3), so the public site describes it as in progress.
+    // The extractive Nova path. Built and tested, but its founder-facing release
+    // is gated on the disclaimer and accountability decision (SF1/SF3), so it is
+    // internal-only until that decision is made.
     id: 'cited_answers',
     status: 'available',
     name: 'Nova: answers quoted from official sources',
     summary:
       'Ask a question and see the exact words from the official documents Islanda holds, with a link to each source.',
-    publicToday: false,
+    released: false,
+  },
+  {
+    // Nova over the founder's own figures. The deterministic answers work; the
+    // open-question path calls a model provider, and generative Nova is out of
+    // scope until the ADR-0018 evaluation gates can be demonstrated.
+    id: 'financial_answers',
+    status: 'needs_configuration',
+    name: 'Questions about your own figures',
+    summary:
+      'Ask about the sales and costs you have recorded, with each answer tied to your records.',
+    released: false,
   },
   {
     id: 'requirements_guidance',
@@ -107,21 +132,21 @@ export const CAPABILITIES: readonly Capability[] = [
     name: 'Registration and licence guidance',
     summary:
       'Which registrations, licences and permits may apply to your business, each linked to the official source.',
-    publicToday: false,
+    released: false,
   },
   {
     id: 'important_dates',
     status: 'in_development',
     name: 'Important dates',
     summary: 'The steps to take in order, and the deadlines and renewals to keep track of.',
-    publicToday: false,
+    released: false,
   },
   {
     id: 'funding',
     status: 'in_development',
     name: 'Funding options',
     summary: 'Programmes and funding that may suit a business at your stage.',
-    publicToday: false,
+    released: false,
   },
 ];
 
@@ -131,22 +156,25 @@ export function capability(id: CapabilityId): Capability {
   return found;
 }
 
-/** What the homepage may present as usable today. */
+/** Released: built, working, and deliberately switched on for users. */
+export function isReleased(id: CapabilityId): boolean {
+  const c = capability(id);
+  return c.status === 'available' && c.released;
+}
+
+/**
+ * Whether a person in this environment may see a capability. `showUnreleased`
+ * comes from the server (`unreleasedVisible()` in lib/product/release.ts) and is
+ * true only in internal environments.
+ */
+export function isVisible(id: CapabilityId, showUnreleased: boolean): boolean {
+  return showUnreleased || isReleased(id);
+}
+
+/** What the homepage may present as usable today — released capabilities only. */
 export function availableToday(): readonly Capability[] {
-  return CAPABILITIES.filter((c) => c.status === 'available' && c.publicToday);
+  return CAPABILITIES.filter((c) => isReleased(c.id));
 }
-
-/** What the homepage presents as coming next — one list, no second roadmap. */
-export function comingNext(): readonly Capability[] {
-  return CAPABILITIES.filter((c) => !c.publicToday);
-}
-
-/** Customer wording for a status. Internal status names never reach the screen. */
-export const STATUS_COPY: Record<AvailabilityStatus, string> = {
-  available: 'Available',
-  needs_configuration: 'Not switched on yet',
-  in_development: "We're working on this",
-};
 
 /**
  * Who can get in today.
@@ -179,7 +207,7 @@ export const ACCESS_COPY: Record<
   },
   open: {
     statement:
-      'Islanda is in early access. You can create an account and use the features marked as available below.',
+      'Islanda is in early access. You can create an account and use the features described below.',
     signInAvailable: true,
     signUpAvailable: true,
   },

@@ -1,6 +1,6 @@
 # Admin portal and first-party analytics
 
-_Added 2026-10-18 (migration `20261018000000_admin_portal_and_analytics`)._
+_Added 2026-10-18 (migration `20261019171608_admin_portal_and_analytics`)._
 
 The owner-only operations console at **`/admin`**: website traffic and conversion,
 waitlist and questionnaire responses, registered users and businesses, product usage,
@@ -93,6 +93,30 @@ counted with HMAC-SHA256(day, IP, user agent) under `ANALYTICS_HASH_SECRET` (fal
 to the service-role key), which rotates daily and cannot be reversed. Such visitors are
 shown as "not identifiable" rather than new or returning.
 
+Since 2026-10-20: the **server** also honours `Sec-GPC: 1` / `DNT: 1` — an earlier
+"Allow" is ignored while the signal is present (the id is not used). The footer's
+**Analytics choices** control withdraws the choice at any time: it deletes the consent
+and `islanda_vid` cookies immediately and shows the prompt again.
+
+**`ANALYTICS_HASH_SECRET` continuity.** Setting or rotating it changes only the `d:`
+keys from that moment — that day's anonymous visitors may be counted twice across the
+change. `c:` keys (consented ids) are unaffected. Set it once, then leave it alone.
+
+### Retention and items for legal review
+
+Nothing here is a claim of compliance with any law. The following need a decision or
+review by the owners and, where noted, a qualified adviser:
+
+| Item                            | Current behaviour                                                         | Proposed / question                                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Analytics retention             | `analytics_events` kept indefinitely; no purge job exists                 | Proposed: delete events older than **13 months** (a scheduled job, after approval)                           |
+| Consented id lifetime           | `islanda_vid` / consent cookies last 365 days (`CONSENT_MAX_AGE_SECONDS`) | Confirm the period is proportionate                                                                          |
+| Waitlist and questionnaire data | Kept until deleted by an administrator                                    | Decide a retention period and a deletion-request process                                                     |
+| Audit log                       | Kept indefinitely (security record)                                       | Confirm period                                                                                               |
+| Consent wording                 | "privacy-friendly analytics — no advertising, no third parties"           | **Legal review**: wording, whether the daily hash needs notice, and the Bahamas Data Protection Act position |
+| Privacy notice                  | None published                                                            | **Legal review**: a privacy notice covering waitlist, questionnaire, analytics and email                     |
+| Hosting location                | Supabase / Vercel regions as configured (MP-2 open)                       | Founder decision MP-2                                                                                        |
+
 **Where it records.** Every environment shares one Supabase project, so analytics
 writes happen **only on the production deployment** (`VERCEL_ENV=production`). Local
 development, CI and preview deployments record nothing unless `ANALYTICS_ENABLED=true`
@@ -124,7 +148,31 @@ Website and app page-view history begins on the day this release is deployed; th
 dashboards say so and never back-fill. Product workflow history comes from `audit_log`
 (from 2026-08). Automated test records — reserved domains `example.*`, `resend.dev`,
 `foundryai-test.dev`, `foundryai-judge.dev`, `*.test` — are excluded from every
-aggregate and labelled in lists.
+aggregate and labelled in lists. Since 2026-10-20 so are signups whose `source` is
+`rls_test`, `e2e_test`, `development` or `preview` (see "Test data" below).
+
+### Test data and the shared database
+
+Until a separate test project exists, local, CI, preview and production all use the one
+Supabase project. Safeguards (2026-10-20):
+
+- Signups made outside production are tagged `source = 'preview' | 'development'`
+  (production stays `landing_page`) and excluded from reports, the admin list (unless
+  "show tests") and team notifications. The signer still gets their confirmation email.
+- The team notification email is never sent for a test address or a non-production
+  signup.
+- RLS suites that write signups refuse to run against production unless
+  `RLS_ALLOW_PRODUCTION_WRITES=1` is set; **CI never sets it**. Rows they write carry
+  `source = 'rls_test'` and `@example.dev` addresses. Their database-level assertions run
+  on every push in `npm run test:db` — every migration replayed into an isolated PGlite
+  with production's default privileges — which is how a missing grant that would have
+  refused all public signups was caught before 20261020185611 was applied.
+- Analytics never records outside production (above).
+
+**Recommended:** a dedicated Supabase test project (or Supabase branching) for CI, RLS
+and end-to-end runs — this is a cost and setup decision for the owners. Existing test
+rows are not deleted automatically; they are labelled and excluded. A one-off cleanup
+can be run after review.
 
 ## Metric definitions
 

@@ -210,6 +210,13 @@ export const testingInterestLabel = (v: TestingInterest | null) =>
 export const recruitmentStatusLabel = (v: RecruitmentStatus | null) =>
   labelFrom(RECRUITMENT_STATUS_OPTIONS, v);
 
+/**
+ * Answers that stand alone in a multi-select question: choosing one clears the
+ * others, and choosing another clears it. The database enforces the same rule.
+ */
+export const EXCLUSIVE_GOAL = 'not_sure_yet' as const satisfies PrimaryGoal;
+export const EXCLUSIVE_CHALLENGE = 'several_challenges' as const satisfies BiggestChallenge;
+
 /** Limits shared by the form (maxLength), the schema and the database checks. */
 export const SURVEY_LIMITS = {
   country: 100,

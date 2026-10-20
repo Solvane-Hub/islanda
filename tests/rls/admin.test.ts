@@ -11,7 +11,7 @@ import {
 
 /**
  * Row Level Security — the owner-only admin portal
- * (20261018000000_admin_portal_and_analytics).
+ * (20261019171608_admin_portal_and_analytics).
  *
  * Proves, live, that every admin data path refuses anyone who is not a
  * provisioned platform administrator on an MFA session: anonymous visitors,
