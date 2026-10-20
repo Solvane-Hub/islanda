@@ -4,7 +4,7 @@ import { z } from 'zod';
  * Business Intelligence Core validation (ADR-0005).
  *
  * The literal arrays mirror the Postgres enums in
- * `20260908000000_business_intelligence_core.sql`. Kept explicit (not derived
+ * `20260909020613_business_intelligence_core.sql`. Kept explicit (not derived
  * from generated types) so a schema change is a deliberate, reviewable edit.
  */
 

@@ -5,8 +5,8 @@ import {
   availableToday,
   CAPABILITIES,
   capability,
-  comingNext,
-  STATUS_COPY,
+  isReleased,
+  isVisible,
 } from '@/lib/product/availability';
 import { sourceStandingLabel, isUsedAsCurrentLaw } from '@/lib/knowledge/source-display';
 import { CURRENT_LAW_LEGAL_STATUSES } from '@/types/knowledge';
@@ -14,48 +14,48 @@ import { CURRENT_LAW_LEGAL_STATUSES } from '@/types/knowledge';
 /**
  * The availability register is the single source of truth the homepage, the
  * navigation and the dashboard read. These tests pin the claims that matter:
- * nothing unbuilt is ever offered as usable today, and the access copy never
- * offers a sign-in the waitlist gate would refuse.
+ * nothing unbuilt is ever offered as usable today, nothing unreleased is ever
+ * shown to users, and the access copy never offers a sign-in the waitlist gate
+ * would refuse.
  */
 describe('availability register', () => {
-  it('never lets the public site present an unbuilt capability as usable today', () => {
+  it('never releases a capability that is not built and working', () => {
     for (const c of CAPABILITIES) {
-      if (c.publicToday) expect(c.status, c.id).toBe('available');
+      if (c.released) expect(c.status, c.id).toBe('available');
+      expect(isReleased(c.id), c.id).toBe(c.status === 'available' && c.released);
     }
   });
 
-  it('keeps registration and licence guidance, dates and funding marked as in development', () => {
+  it('keeps registration and licence guidance, dates and funding unbuilt and unreleased', () => {
     for (const id of ['requirements_guidance', 'important_dates', 'funding'] as const) {
       expect(capability(id).status, id).toBe('in_development');
-      expect(capability(id).publicToday, id).toBe(false);
+      expect(isReleased(id), id).toBe(false);
     }
   });
 
-  it('holds Nova back from the public "today" list until its release is signed off', () => {
-    // Built and reachable in the app, but founder-facing release is gated on
-    // SF1/SF3 (CLAUDE.md), so the homepage describes it as being tested.
+  it('holds Nova back from users until its release is signed off (SF1/SF3)', () => {
     expect(capability('cited_answers').status).toBe('available');
+    expect(isReleased('cited_answers')).toBe(false);
+    expect(isReleased('financial_answers')).toBe(false);
     expect(availableToday().map((c) => c.id)).not.toContain('cited_answers');
-    expect(comingNext().map((c) => c.id)).toContain('cited_answers');
   });
 
-  it('partitions every capability into exactly one public list', () => {
-    const today = availableToday().map((c) => c.id);
-    const next = comingNext().map((c) => c.id);
-    expect([...today, ...next].sort()).toEqual(CAPABILITIES.map((c) => c.id).sort());
-    expect(today.filter((id) => next.includes(id))).toEqual([]);
+  it('lists exactly the released capabilities as available today', () => {
+    expect(availableToday().map((c) => c.id)).toEqual(
+      CAPABILITIES.filter((c) => isReleased(c.id)).map((c) => c.id),
+    );
+  });
+
+  it('shows unreleased capabilities only when the environment allows it', () => {
+    expect(isVisible('funding', false)).toBe(false);
+    expect(isVisible('funding', true)).toBe(true);
+    expect(isVisible('documents', false)).toBe(true);
   });
 
   it('never claims completeness or official status in its own copy', () => {
     const all = CAPABILITIES.map((c) => `${c.name} ${c.summary}`).join(' ');
     expect(all).not.toMatch(/everything you need|complete requirements|all your requirements/i);
     expect(all).not.toMatch(/\bverified\b|\bofficial approval\b|government service/i);
-  });
-
-  it('describes statuses in customer words, never internal names', () => {
-    for (const text of Object.values(STATUS_COPY)) {
-      expect(text).not.toMatch(/_/);
-    }
   });
 
   it('throws on an unknown capability rather than inventing one', () => {

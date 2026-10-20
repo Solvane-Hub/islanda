@@ -15,7 +15,7 @@ import {
  * in. The functions refuse anyone who is not a platform administrator on an
  * MFA session, so callers need no extra privilege and get none.
  *
- * Shapes mirror the SQL in 20261018000000_admin_portal_and_analytics.sql.
+ * Shapes mirror the SQL in 20261019171608_admin_portal_and_analytics.sql.
  */
 
 type Db = SupabaseClient<Database>;
@@ -71,6 +71,11 @@ export interface WaitlistInsights {
     survey_started: number;
     survey_completed: number;
     with_phone: number;
+    /** People who chose at least one goal / challenge (multi-select), and the total ticks. */
+    goal_respondents?: number;
+    goal_selections?: number;
+    challenge_respondents?: number;
+    challenge_selections?: number;
     test_records_excluded: number;
   };
   daily: { day: string; signups: number }[];

@@ -32,6 +32,7 @@ import {
   type WaitlistPage,
 } from '@/services/waitlist/recruitment';
 import { RecruitmentEditor } from '../../_components/recruitment-editor';
+import { SelectionList } from '../../_components/selection-list';
 import { PageHeading } from '../../_components/page-heading';
 import { requireAdminPage } from '../../_lib/guard';
 import {
@@ -202,14 +203,14 @@ function FilterForm({ filters, filtered }: { filters: WaitlistFilters; filtered:
       />
       <SelectFilter
         id="filter-goal"
-        label="Primary goal"
+        label="Wants help with (any selected)"
         name="primaryGoal"
         value={filters.primaryGoal}
         options={PRIMARY_GOAL_OPTIONS}
       />
       <SelectFilter
         id="filter-challenge"
-        label="Biggest challenge"
+        label="Challenge (any selected)"
         name="biggestChallenge"
         value={filters.biggestChallenge}
         options={ALL_CHALLENGE_OPTIONS}
@@ -352,8 +353,8 @@ const HEADERS = [
   'City / island',
   'Journey',
   'Industry',
-  'Primary goal',
-  'Biggest challenge',
+  'Wants help with',
+  'Challenges',
   'Early access',
   'Feedback',
   'Recruitment',
@@ -479,21 +480,21 @@ function Row({ entry }: { entry: WaitlistEntry }) {
           </span>
         ) : null}
       </td>
-      <td className={cn(cell, 'max-w-[16rem]')}>
-        {entry.primaryGoal ? primaryGoalLabel(entry.primaryGoal) : muted}
-        {entry.goalOther ? (
-          <span className="text-foreground-muted mt-1 block text-xs">
-            &ldquo;{entry.goalOther}&rdquo;
-          </span>
-        ) : null}
+      <td className={cn(cell, 'max-w-[20rem] min-w-[14rem]')}>
+        <SelectionList
+          values={entry.primaryGoals}
+          label={primaryGoalLabel}
+          other={entry.goalOther}
+          empty="—"
+        />
       </td>
-      <td className={cn(cell, 'max-w-[16rem]')}>
-        {entry.biggestChallenge ? challengeLabel(entry.biggestChallenge) : muted}
-        {entry.challengeOther ? (
-          <span className="text-foreground-muted mt-1 block text-xs">
-            &ldquo;{entry.challengeOther}&rdquo;
-          </span>
-        ) : null}
+      <td className={cn(cell, 'max-w-[20rem] min-w-[14rem]')}>
+        <SelectionList
+          values={entry.challenges}
+          label={challengeLabel}
+          other={entry.challengeOther}
+          empty="—"
+        />
       </td>
       <td className={cell}>
         {entry.testingInterest ? (

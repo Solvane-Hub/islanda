@@ -3,6 +3,8 @@ import {
   BUSINESS_JOURNEYS,
   BUSINESS_STAGES,
   CHALLENGES,
+  EXCLUSIVE_CHALLENGE,
+  EXCLUSIVE_GOAL,
   INDUSTRIES,
   OFFERED_CHALLENGES,
   PRIMARY_GOALS,
@@ -86,6 +88,36 @@ function answerChoice<const T extends readonly [string, ...string[]]>(values: T)
 }
 
 /**
+ * A multi-select answer: the values a visitor ticked, in order, without
+ * duplicates. An empty selection means "cleared". An exclusive option ("I'm not
+ * sure yet", "I have several challenges…") cannot be combined with others —
+ * the form prevents it and the database refuses it too.
+ */
+function answerChoices<const T extends readonly [string, ...string[]]>(
+  values: T,
+  exclusive: T[number],
+  exclusiveMessage: string,
+) {
+  return z.preprocess(
+    (value) => {
+      if (value === undefined) return undefined;
+      if (value === null) return null;
+      const list = (Array.isArray(value) ? value : [value]).filter(
+        (v) => typeof v === 'string' && v.trim() !== '',
+      );
+      return list.length === 0 ? null : list;
+    },
+    z
+      .array(z.enum(values, { message: 'Choose from the options, or leave it blank.' }))
+      .max(values.length)
+      .refine((list) => new Set(list).size === list.length, 'Each answer can be chosen once.')
+      .refine((list) => !(list.includes(exclusive) && list.length > 1), exclusiveMessage)
+      .nullable()
+      .optional(),
+  );
+}
+
+/**
  * Every questionnaire answer. Each key is optional: an ABSENT key leaves the
  * stored answer alone (partial save), a PRESENT null clears it.
  */
@@ -96,9 +128,17 @@ export const surveyAnswersSchema = z.object({
   businessJourney: answerChoice(BUSINESS_JOURNEYS),
   industry: answerChoice(INDUSTRIES),
   industryOther: answerText(SURVEY_LIMITS.industryOther),
-  primaryGoal: answerChoice(PRIMARY_GOALS),
+  primaryGoals: answerChoices(
+    PRIMARY_GOALS,
+    EXCLUSIVE_GOAL,
+    `"I'm not sure yet" can't be combined with other answers.`,
+  ),
   goalOther: answerText(SURVEY_LIMITS.goalOther),
-  biggestChallenge: answerChoice(OFFERED_CHALLENGES),
+  challenges: answerChoices(
+    OFFERED_CHALLENGES,
+    EXCLUSIVE_CHALLENGE,
+    `"I have several challenges and don't know where to start" can't be combined with other answers.`,
+  ),
   challengeOther: answerText(SURVEY_LIMITS.challengeOther),
   businessStage: answerChoice(BUSINESS_STAGES),
   testingInterest: answerChoice(TESTING_INTERESTS),
@@ -115,14 +155,10 @@ function dropOrphanedExplanations(a: SurveyAnswersInput): SurveyAnswersInput {
   const out = { ...a };
   if ('industry' in a && a.industry !== undefined && a.industry !== 'other')
     out.industryOther = null;
-  if ('primaryGoal' in a && a.primaryGoal !== undefined && a.primaryGoal !== 'other') {
+  if (a.primaryGoals !== undefined && !(a.primaryGoals ?? []).includes('other')) {
     out.goalOther = null;
   }
-  if (
-    'biggestChallenge' in a &&
-    a.biggestChallenge !== undefined &&
-    a.biggestChallenge !== 'other'
-  ) {
+  if (a.challenges !== undefined && !(a.challenges ?? []).includes('other')) {
     out.challengeOther = null;
   }
   return Object.fromEntries(
@@ -143,15 +179,23 @@ export const waitlistSurveySchema = z.object({
 
 export type WaitlistSurveyInput = z.infer<typeof waitlistSurveySchema>;
 
+/** Multi-select fields: every ticked checkbox shares the field name. */
+const MULTI_SELECT_FIELDS: readonly SurveyField[] = ['primaryGoals', 'challenges'];
+
 /** Reads only the fields a section declared, so absent radios become "cleared", not "untouched". */
 export function surveyAnswersFromForm(
   formData: FormData,
-): Record<string, FormDataEntryValue | null> {
+): Record<string, FormDataEntryValue | FormDataEntryValue[] | null> {
   const declared = String(formData.get('fields') ?? '')
     .split(',')
     .map((f) => f.trim())
     .filter((f): f is SurveyField => (SURVEY_FIELDS as string[]).includes(f));
-  return Object.fromEntries(declared.map((field) => [field, formData.get(field)]));
+  return Object.fromEntries(
+    declared.map((field) => [
+      field,
+      MULTI_SELECT_FIELDS.includes(field) ? formData.getAll(field) : formData.get(field),
+    ]),
+  );
 }
 
 /* ── Admin filters ────────────────────────────────────────────────────── */

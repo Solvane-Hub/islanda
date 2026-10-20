@@ -40,6 +40,13 @@ function lastSave(): Record<string, FormDataEntryValue> {
   return Object.fromEntries((actions.survey.mock.calls.at(-1)![1] as FormData).entries());
 }
 
+function lastSaveAll(field: string): FormDataEntryValue[] {
+  return (actions.survey.mock.calls.at(-1)![1] as FormData).getAll(field);
+}
+
+const GOALS = 'What would you most like Islanda to help you with?';
+const CHALLENGES = 'What challenges are you facing with your business right now?';
+
 /** Continue, then wait for the next section — with its buttons ready again. */
 async function continueTo(heading: string) {
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
@@ -157,14 +164,13 @@ describe('optional questionnaire', () => {
       businessJourney: 'preparing_to_register',
     });
 
-    const goals = screen.getByRole('group', {
-      name: 'What would you most like Islanda to help you with?',
-    });
-    expect(within(goals).getAllByRole('radio')).toHaveLength(20);
-    const challenges = screen.getByRole('group', {
-      name: "What is the biggest challenge you're facing with your business right now?",
-    });
-    expect(within(challenges).getAllByRole('radio')).toHaveLength(15);
+    const goals = screen.getByRole('group', { name: GOALS });
+    expect(within(goals).getAllByRole('checkbox')).toHaveLength(20);
+    expect(within(goals).queryAllByRole('radio')).toHaveLength(0);
+    expect(goals).toHaveAccessibleDescription('Select all that apply.');
+    const challenges = screen.getByRole('group', { name: CHALLENGES });
+    expect(within(challenges).getAllByRole('checkbox')).toHaveLength(15);
+    expect(challenges).toHaveAccessibleDescription('Select all that apply.');
     expect(
       screen.getByRole('group', { name: 'Which stage best describes your business?' }),
     ).toBeTruthy();
@@ -175,17 +181,87 @@ describe('optional questionnaire', () => {
     actions.survey.mockResolvedValue(ok({ status: 'saved' }));
     await continueTo('What do you want Islanda to help you do?');
 
-    const challenges = screen.getByRole('group', {
-      name: "What is the biggest challenge you're facing with your business right now?",
+    const challenges = screen.getByRole('group', { name: CHALLENGES });
+    const explain = screen.getByLabelText(/Tell us about your challenge/);
+    expect(explain).not.toBeVisible();
+    fireEvent.click(within(challenges).getByRole('checkbox', { name: 'Other' }));
+    expect(explain).toBeVisible();
+    expect(explain).toHaveAttribute('maxLength', '300');
+    // "Other" combines with other answers rather than replacing them.
+    fireEvent.click(within(challenges).getByRole('checkbox', { name: 'Finding customers' }));
+    expect(explain).toBeVisible();
+    fireEvent.change(explain, { target: { value: 'Shipping to the Family Islands' } });
+    // Unticking "Other" by mistake hides the field without losing what was typed.
+    fireEvent.click(within(challenges).getByRole('checkbox', { name: 'Other' }));
+    expect(explain).not.toBeVisible();
+    fireEvent.click(within(challenges).getByRole('checkbox', { name: 'Other' }));
+    expect(explain).toHaveValue('Shipping to the Family Islands');
+  });
+
+  it('saves every selected goal and challenge together', async () => {
+    await joinAndOpenSurvey();
+    actions.survey.mockResolvedValue(ok({ status: 'saved' }));
+    await continueTo('What do you want Islanda to help you do?');
+
+    const goals = screen.getByRole('group', { name: GOALS });
+    fireEvent.click(within(goals).getByRole('checkbox', { name: /licences, permits/ }));
+    fireEvent.click(within(goals).getByRole('checkbox', { name: /funding or investment/ }));
+    fireEvent.click(within(goals).getByRole('checkbox', { name: 'Other' }));
+    fireEvent.change(screen.getByLabelText(/What would you like help with\?/), {
+      target: { value: 'Import duties' },
     });
-    expect(screen.queryByLabelText(/Tell us about your challenge/)).toBeNull();
-    fireEvent.click(within(challenges).getByRole('radio', { name: 'Other' }));
-    expect(await screen.findByLabelText(/Tell us about your challenge/)).toHaveAttribute(
-      'maxLength',
-      '300',
-    );
-    fireEvent.click(within(challenges).getByRole('radio', { name: 'Finding customers' }));
-    await waitFor(() => expect(screen.queryByLabelText(/Tell us about your challenge/)).toBeNull());
+    const challenges = screen.getByRole('group', { name: CHALLENGES });
+    fireEvent.click(within(challenges).getByRole('checkbox', { name: 'Finding customers' }));
+    fireEvent.click(within(challenges).getByRole('checkbox', { name: 'Marketing my business' }));
+
+    await continueTo('Early testing');
+    expect(lastSave()).toMatchObject({
+      section: '2',
+      fields: 'primaryGoals,goalOther,challenges,challengeOther,businessStage',
+      goalOther: 'Import duties',
+    });
+    // Option order, not click order — and no duplicates.
+    expect(lastSaveAll('primaryGoals')).toEqual([
+      'licences_permits_approvals',
+      'funding_investment',
+      'other',
+    ]);
+    expect(lastSaveAll('challenges')).toEqual(['finding_customers', 'marketing']);
+  });
+
+  it('keeps the "not sure" answers exclusive', async () => {
+    await joinAndOpenSurvey();
+    actions.survey.mockResolvedValue(ok({ status: 'saved' }));
+    await continueTo('What do you want Islanda to help you do?');
+
+    const goals = screen.getByRole('group', { name: GOALS });
+    const plan = within(goals).getByRole('checkbox', { name: /Create a clear plan/ });
+    const notSure = within(goals).getByRole('checkbox', { name: "I'm not sure yet" });
+    fireEvent.click(plan);
+    fireEvent.click(notSure);
+    expect(notSure).toBeChecked();
+    expect(plan).not.toBeChecked();
+    fireEvent.click(plan);
+    expect(plan).toBeChecked();
+    expect(notSure).not.toBeChecked();
+
+    const challenges = screen.getByRole('group', { name: CHALLENGES });
+    const several = within(challenges).getByRole('checkbox', { name: /several challenges/ });
+    const customers = within(challenges).getByRole('checkbox', { name: 'Finding customers' });
+    fireEvent.click(customers);
+    fireEvent.click(several);
+    expect(within(challenges).getAllByRole('checkbox', { checked: true })).toEqual([several]);
+    fireEvent.click(customers);
+    expect(several).not.toBeChecked();
+  });
+
+  it('clearing every selection saves an empty answer, not "unchanged"', async () => {
+    await joinAndOpenSurvey();
+    actions.survey.mockResolvedValue(ok({ status: 'saved' }));
+    await continueTo('What do you want Islanda to help you do?');
+    await continueTo('Early testing');
+    expect(lastSave().fields).toContain('primaryGoals');
+    expect(lastSaveAll('primaryGoals')).toEqual([]);
   });
 
   it('walks all four sections; the last submit is final and shows a confirmation', async () => {
@@ -255,7 +331,11 @@ describe('optional questionnaire', () => {
     fireEvent.change(screen.getByLabelText('Country'), { target: { value: 'The Bahamas' } });
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 
-    expect(await screen.findByText(/could not save your answers just now/)).toBeTruthy();
+    // Generous timeout: this form now renders ~35 controlled checkboxes, and under a
+    // full parallel suite the first commit can exceed the 1s default.
+    expect(
+      await screen.findByText(/could not save your answers just now/, {}, { timeout: 5000 }),
+    ).toBeTruthy();
     expect(screen.getByText(/Your answers are still here/)).toBeTruthy();
     expect(screen.getByLabelText('Country')).toHaveValue('The Bahamas');
     expect(screen.getByRole('heading', { name: 'About your business' })).toBeTruthy();
@@ -280,9 +360,9 @@ describe('optional questionnaire', () => {
       businessJourney: 'established_business',
       industry: 'other',
       industryOther: 'Boat repair',
-      primaryGoal: null,
-      goalOther: null,
-      biggestChallenge: null,
+      primaryGoals: ['clear_plan', 'other'],
+      goalOther: 'Export permits',
+      challenges: ['finding_customers'],
       challengeOther: null,
       businessStage: null,
       testingInterest: null,
@@ -299,6 +379,21 @@ describe('optional questionnaire', () => {
       screen.getByRole('radio', { name: 'I already run an established business' }),
     ).toBeChecked();
     expect(screen.getByLabelText(/Your industry/)).toHaveValue('Boat repair');
+    // Multi-select answers come back ticked, "Other" text included (section B is
+    // mounted but hidden until reached, so query the hidden tree).
+    const goals = screen.getByRole('group', { name: GOALS, hidden: true });
+    expect(
+      within(goals)
+        .getAllByRole('checkbox', { checked: true, hidden: true })
+        .map((box) => (box as HTMLInputElement).value),
+    ).toEqual(['clear_plan', 'other']);
+    expect(screen.getByLabelText(/What would you like help with\?/)).toHaveValue('Export permits');
+    expect(
+      within(screen.getByRole('group', { name: CHALLENGES, hidden: true })).getByRole('checkbox', {
+        name: 'Finding customers',
+        hidden: true,
+      }),
+    ).toBeChecked();
     // It does not repeat the claim that an email was just sent.
     expect(screen.queryByText(/confirmation email is on its way/)).toBeNull();
   });

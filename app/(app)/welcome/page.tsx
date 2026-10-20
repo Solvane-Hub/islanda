@@ -14,6 +14,8 @@ import { hasPublishedKnowledge } from '@/services/nova/retrieval';
 import { toNovaBusinessFacts } from '@/services/nova/business-awareness';
 import type { BusinessPassport } from '@/services/passport';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
+import { capability } from '@/lib/product/availability';
+import { canUse } from '@/lib/product/release';
 import { BUSINESS_STAGE_LABELS, type BusinessStage } from '@/lib/validation/intake';
 import { buttonVariants } from '@/components/ui/button';
 import { WorkspaceSurface, SurfaceLabel } from '@/components/ui/workspace-surface';
@@ -26,9 +28,9 @@ export const metadata: Metadata = { title: 'Your business in Islanda' };
  *
  * Straight after onboarding the founder should see Islanda understood what
  * they brought in — not an empty dashboard. Build mode reflects the concept
- * back; Manage mode shows the command centre. Both then offer a clear path into
- * Nova, which is the only "next" that genuinely works today — the rest are named
- * honestly as coming, never as ready.
+ * back; Manage mode shows the command centre. Both then offer next steps that
+ * work today — and only those: nothing unreleased is listed, not even as
+ * "coming soon".
  */
 export default async function WelcomePage() {
   const db = await createClient();
@@ -37,7 +39,7 @@ export default async function WelcomePage() {
 
   if (!current) redirect('/businesses/new');
 
-  const [object, countries, novaAvailable] = await Promise.all([
+  const [object, countries, novaHasKnowledge] = await Promise.all([
     getBusinessObject(db, current.id),
     getActiveCountries(db),
     hasPublishedKnowledge(db, current.country_code),
@@ -76,31 +78,25 @@ export default async function WelcomePage() {
     founderGoals: passportFacts.founderGoals,
   };
 
-  // Built from the availability register's wording: what works now, then what
-  // does not yet. No surface is listed here that the register does not name.
-  const nextAreas: { label: string; available: boolean; note: string }[] = [
+  // Nova is offered only where it is released AND holds documents for this country.
+  const novaAvailable = canUse('cited_answers') && novaHasKnowledge;
+
+  // Only things that work today, in the availability register's own words.
+  const nextAreas: { label: string; note: string }[] = [
     {
       label: 'Describe your business',
-      available: true,
       note: 'Five short questions. Your answers are saved as you go.',
     },
-    {
-      label: 'Ask a question',
-      available: novaAvailable,
-      note: novaAvailable
-        ? 'Nova quotes the official documents Islanda holds for your country.'
-        : 'Islanda does not hold official documents for this country yet.',
-    },
-    {
-      label: 'Business requirements',
-      available: false,
-      note: 'Which registrations and licences may apply. We are working on this.',
-    },
-    {
-      label: 'Funding',
-      available: false,
-      note: 'Programmes that may suit your business. We are working on this.',
-    },
+    ...(novaAvailable
+      ? [
+          {
+            label: 'Ask a question',
+            note: 'Nova quotes the official documents Islanda holds for your country.',
+          },
+        ]
+      : []),
+    { label: capability('documents').name, note: capability('documents').summary },
+    { label: capability('goals').name, note: capability('goals').summary },
   ];
 
   return (
@@ -177,21 +173,10 @@ export default async function WelcomePage() {
           {nextAreas.map((area) => (
             <div
               key={area.label}
-              className="border-border-control bg-surface flex items-start justify-between gap-4 rounded-xl border p-4"
+              className="border-border-control bg-surface flex min-w-0 flex-col gap-1 rounded-xl border p-4"
             >
-              <div className="flex min-w-0 flex-col gap-1">
-                <span className="text-on-ink text-sm font-medium">{area.label}</span>
-                <span className="text-on-ink-muted text-xs text-pretty">{area.note}</span>
-              </div>
-              {area.available ? (
-                <span className="text-bahama-turquoise text-2xs font-medium tracking-[0.1em] uppercase">
-                  Available
-                </span>
-              ) : (
-                <span className="text-on-glass-subtle text-2xs font-medium tracking-[0.1em] uppercase">
-                  Soon
-                </span>
-              )}
+              <span className="text-on-ink text-sm font-medium">{area.label}</span>
+              <span className="text-on-ink-muted text-xs text-pretty">{area.note}</span>
             </div>
           ))}
         </div>

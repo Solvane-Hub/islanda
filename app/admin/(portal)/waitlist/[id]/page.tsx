@@ -17,6 +17,7 @@ import {
 import { getWaitlistDetail, type WaitlistEntry } from '@/services/waitlist/recruitment';
 import { Panel } from '../../../_components/charts';
 import { RecruitmentEditor } from '../../../_components/recruitment-editor';
+import { SelectionList } from '../../../_components/selection-list';
 import { requireAdminPage } from '../../../_lib/guard';
 
 export const metadata: Metadata = { title: 'Waitlist signup' };
@@ -127,17 +128,19 @@ function Detail({ entry }: { entry: WaitlistEntry }) {
             </dd>
             <dt className="text-foreground-muted">Wants help with</dt>
             <dd>
-              {answer(
-                entry.primaryGoal ? primaryGoalLabel(entry.primaryGoal) : null,
-                entry.goalOther,
-              )}
+              <SelectionList
+                values={entry.primaryGoals}
+                label={primaryGoalLabel}
+                other={entry.goalOther}
+              />
             </dd>
-            <dt className="text-foreground-muted">Biggest challenge</dt>
+            <dt className="text-foreground-muted">Challenges</dt>
             <dd>
-              {answer(
-                entry.biggestChallenge ? challengeLabel(entry.biggestChallenge) : null,
-                entry.challengeOther,
-              )}
+              <SelectionList
+                values={entry.challenges}
+                label={challengeLabel}
+                other={entry.challengeOther}
+              />
             </dd>
             <dt className="text-foreground-muted">Business stage</dt>
             <dd>{answer(entry.businessStage ? businessStageLabel(entry.businessStage) : null)}</dd>

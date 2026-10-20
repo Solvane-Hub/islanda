@@ -57,7 +57,14 @@ const SWIPE_THRESHOLD_PX = 48;
  * occupies the identical screen position on every page. Swipe is layered on
  * top as a third way to move — never the only one.
  */
-export function PassportExperience({ passport }: { passport: BusinessPassport }) {
+export function PassportExperience({
+  passport,
+  canAsk,
+}: {
+  passport: BusinessPassport;
+  /** Whether Nova is released here; when not, nothing on the Passport points to it. */
+  canAsk: boolean;
+}) {
   const [active, setActive] = useState<PassportPageId>('cover');
   const [enterFromX, setEnterFromX] = useState(14);
   const touchStartX = useRef<number | null>(null);
@@ -97,7 +104,9 @@ export function PassportExperience({ passport }: { passport: BusinessPassport })
   function interiorLeaf() {
     switch (active) {
       case 'overview':
-        return <PassportOverview passport={passport} totalPages={PASSPORT_TOTAL_PAGES} />;
+        return (
+          <PassportOverview passport={passport} totalPages={PASSPORT_TOTAL_PAGES} canAsk={canAsk} />
+        );
       case 'identity':
         return (
           <PassportIdentity
@@ -120,6 +129,7 @@ export function PassportExperience({ passport }: { passport: BusinessPassport })
             passport={passport}
             totalPages={PASSPORT_TOTAL_PAGES}
             reference={reference}
+            canAsk={canAsk}
           />
         );
       case 'records':
@@ -146,7 +156,7 @@ export function PassportExperience({ passport }: { passport: BusinessPassport })
       {/* Contents + module doorways — outside the object, deliberately quiet. */}
       <div className="hidden xl:flex xl:flex-col xl:gap-8 xl:pt-2">
         <PassportPageIndex active={active} onChange={goTo} variant="vertical" />
-        <PassportQuickLinks />
+        <PassportQuickLinks canAsk={canAsk} />
       </div>
 
       {/* ── THE OBJECT, below xl: a full-height viewer, nothing else. ── */}

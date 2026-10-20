@@ -82,6 +82,8 @@ export function ChoiceCard({
   hint,
   type = 'radio',
   defaultChecked,
+  checked,
+  onCheckedChange,
   className,
 }: {
   name: string;
@@ -91,6 +93,9 @@ export function ChoiceCard({
   hint?: string;
   type?: 'radio' | 'checkbox';
   defaultChecked?: boolean;
+  /** Controlled state, for groups whose options depend on each other (an exclusive "none of these"). */
+  checked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
   className?: string;
 }) {
   return (
@@ -108,7 +113,9 @@ export function ChoiceCard({
         type={type}
         name={name}
         value={value}
-        defaultChecked={defaultChecked}
+        {...(checked === undefined
+          ? { defaultChecked }
+          : { checked, onChange: (event) => onCheckedChange?.(event.target.checked) })}
         // The native control is the source of truth for state, focus and
         // keyboard behaviour; it is visually replaced, never removed.
         className="peer sr-only"

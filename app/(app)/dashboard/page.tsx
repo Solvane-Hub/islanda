@@ -47,7 +47,7 @@ import { PerformanceModule } from '../_components/performance-module';
 import { GoalsModule, type GoalItem } from '../_components/goals-module';
 import { DocumentsModule } from '../_components/documents-module';
 import { NovaFinance } from '../_components/nova-finance';
-import { NAV_ITEMS } from '../_components/nav-items';
+import { canUse } from '@/lib/product/release';
 
 export const metadata: Metadata = { title: 'Home' };
 
@@ -293,6 +293,8 @@ export default async function DashboardPage() {
   const periodOptions = periods.map((p) => ({ id: p.id, label: p.label ?? p.period_start }));
   const documentOptions = documents.map((d) => ({ id: d.id, title: d.title }));
 
+  // Nova is built but not released to founders (SF1/SF3); its doorways appear only where it is.
+  const canAskNova = canUse('cited_answers');
   const goalItems: GoalItem[] = goalsWithProgress.map(({ goal, progress }) => ({
     id: goal.id,
     title: goal.title,
@@ -310,14 +312,14 @@ export default async function DashboardPage() {
     currentProvenanceKind: progress.currentValueProvenance
       ? provenanceKindFor(progress.currentValueProvenance, 'unverified')
       : null,
-    // Only a regulatory question Nova can genuinely answer today.
+    // Only a regulatory question Nova can genuinely answer today — and only
+    // where Nova is released.
     novaQuestion:
-      goal.goal_type === 'obtain_licence'
+      canAskNova && goal.goal_type === 'obtain_licence'
         ? `What licence do I need for ${current.industry ? `a ${current.industry.toLowerCase()} business` : 'my business'} in ${countryName}?`
         : null,
   }));
 
-  const comingLater = NAV_ITEMS.filter((item) => !item.available);
   const answeredCount = progress.completed;
 
   return (
@@ -353,7 +355,7 @@ export default async function DashboardPage() {
       </header>
 
       {/* 1 — What to do next. One primary action. */}
-      <DashboardPriorities nextMove={nextMove} openItems={openItems} />
+      <DashboardPriorities nextMove={nextMove} openItems={openItems} canAsk={canAskNova} />
 
       {/* 2 — The state of the business: what it has been told, and progress. */}
       <WorkspaceSurface
@@ -432,19 +434,10 @@ export default async function DashboardPage() {
           evidenceByMetricId={evidenceByMetricId}
         />
         {/* Asking about figures only makes sense once there are figures. */}
-        {performanceView.hasData ? <NovaFinance /> : null}
+        {performanceView.hasData && canUse('financial_answers') ? <NovaFinance /> : null}
       </div>
 
-      <NovaInvite />
-
-      {/* Not built yet — named once, quietly, with no door to a dead end. */}
-      {comingLater.length > 0 ? (
-        <p className="text-on-ink-muted px-1 pb-2 text-sm text-pretty">
-          <span className="text-on-ink font-medium">Coming later:</span>{' '}
-          {comingLater.map((item) => item.label.toLowerCase()).join(', ')}. We&apos;re working on
-          these, and they aren&apos;t available yet.
-        </p>
-      ) : null}
+      {canAskNova ? <NovaInvite /> : null}
     </div>
   );
 }

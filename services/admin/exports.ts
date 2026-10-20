@@ -3,7 +3,7 @@ import type { Database } from '@/types/database';
 import { AppError, newCorrelationId } from '@/lib/errors';
 import { exportFilename, toCsv, type Cell } from '@/lib/admin/csv';
 import type { DateRange } from '@/lib/admin/date-range';
-import { FUNNEL_STEP_LABELS, featureLabel } from '@/lib/admin/labels';
+import { FUNNEL_STEP_LABELS, featureLabel, selectionText } from '@/lib/admin/labels';
 import type { WaitlistFilters } from '@/lib/validation/waitlist';
 import {
   businessJourneyLabel,
@@ -101,9 +101,9 @@ export async function buildExport(
         'Business journey',
         'Industry',
         'Industry (other)',
-        'Primary goal',
+        'Wants help with (all selected)',
         'Goal (other)',
-        'Biggest challenge',
+        'Challenges (all selected)',
         'Challenge (other)',
         'Business stage',
         'Early access interest',
@@ -125,9 +125,9 @@ export async function buildExport(
         businessJourneyLabel(e.businessJourney),
         industryLabel(e.industry),
         e.industryOther,
-        primaryGoalLabel(e.primaryGoal),
+        selectionText(e.primaryGoals, primaryGoalLabel),
         e.goalOther,
-        challengeLabel(e.biggestChallenge),
+        selectionText(e.challenges, challengeLabel),
         e.challengeOther,
         businessStageLabel(e.businessStage),
         testingInterestLabel(e.testingInterest),
@@ -165,8 +165,8 @@ export async function buildExport(
         ...r.countries.map((c) => ['Country', c.label, c.count] as Cell[]),
         ...block('Business journey', r.journey, businessJourneyLabel),
         ...block('Industry', r.industry, industryLabel),
-        ...block('Primary goal', r.goal, primaryGoalLabel),
-        ...block('Biggest challenge', r.challenge, challengeLabel),
+        ...block('Wants help with (selections)', r.goal, primaryGoalLabel),
+        ...block('Challenges (selections)', r.challenge, challengeLabel),
         ...block('Business stage', r.stage, businessStageLabel),
         ...block('Early access interest', r.testing_interest, testingInterestLabel),
         ...block('Feedback interest', r.feedback_interest, testingInterestLabel),
@@ -174,6 +174,7 @@ export async function buildExport(
       ];
       preamble.push(
         `Signups in range: ${r.totals.signups}; questionnaire completed: ${r.totals.survey_completed}. Test records excluded: ${r.totals.test_records_excluded}.`,
+        `Goals and challenges are select-all-that-apply: ${r.totals.goal_respondents ?? 0} respondents made ${r.totals.goal_selections ?? 0} goal selections; ${r.totals.challenge_respondents ?? 0} made ${r.totals.challenge_selections ?? 0} challenge selections.`,
       );
       break;
     }

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Alert } from '@/components/ui/alert';
 import { buttonVariants } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/server';
+import { selectionText } from '@/lib/admin/labels';
 import { logger } from '@/lib/logger';
 import { parseDateRange, rangeQuery, rate } from '@/lib/admin/date-range';
 import {
@@ -138,10 +139,16 @@ export default async function QuestionnairePage({
             <Panel title="Industry">
               <BarList unit="people" items={counts(insights.industry, industryLabel)} />
             </Panel>
-            <Panel title="What they most want Islanda to help with">
+            <Panel
+              title="What they want Islanda to help with"
+              description={`Select-all-that-apply. ${formatNumber(insights.totals.goal_respondents ?? 0)} respondents made ${formatNumber(insights.totals.goal_selections ?? 0)} selections, so the bars add up to more than the number of people.`}
+            >
               <BarList unit="people" items={counts(insights.goal, primaryGoalLabel)} />
             </Panel>
-            <Panel title="Biggest challenge">
+            <Panel
+              title="Challenges they face"
+              description={`Select-all-that-apply. ${formatNumber(insights.totals.challenge_respondents ?? 0)} respondents made ${formatNumber(insights.totals.challenge_selections ?? 0)} selections. Answers from before multi-select count as one selection each.`}
+            >
               <BarList unit="people" items={counts(insights.challenge, challengeLabel)} />
             </Panel>
             <Panel title="Business stage">
@@ -186,7 +193,7 @@ export default async function QuestionnairePage({
                       {[
                         e.country,
                         e.industry ? industryLabel(e.industry) : null,
-                        e.primaryGoal ? primaryGoalLabel(e.primaryGoal) : null,
+                        selectionText(e.primaryGoals, primaryGoalLabel) || null,
                       ]
                         .filter(Boolean)
                         .join(' · ') || 'No location, industry or goal given'}

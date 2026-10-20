@@ -18,13 +18,15 @@ export function PassportState({
   passport,
   totalPages,
   reference,
+  canAsk,
 }: {
   passport: BusinessPassport;
   totalPages: number;
   reference: string;
+  canAsk: boolean;
 }) {
   const { financials, goals, documents, completeness } = passport;
-  const next = nextAction(passport);
+  const next = nextAction(passport, { canAsk });
 
   return (
     <PassportPage

@@ -12,26 +12,32 @@ import {
   Target,
   TrendingUp,
 } from 'lucide-react';
-import { capability } from '@/lib/product/availability';
+import { isVisible, type CapabilityId } from '@/lib/product/availability';
 
 /**
  * Primary navigation — grouped by what a person is trying to do, not by how
  * the system is built.
  *
- *   Home · Your business (summary, details, goals, money, documents) · Get help
- *   · Coming later · Settings
+ *   Home · Your business (summary, details, goals, money, documents) · Settings
  *
  * Every existing route keeps its URL; only labels and grouping changed, so
- * deep links still work. "Coming later" items are still listed (with a "Soon"
- * badge) rather than hidden, and their availability is read from the product
- * availability register — the same source the public homepage uses — so the
- * app cannot advertise a surface the homepage calls unbuilt, or the reverse.
+ * deep links still work.
+ *
+ * Build privately, release deliberately: an item tied to an unreleased
+ * capability (lib/product/availability.ts) is not listed at all for users —
+ * no "Soon" badge, no greyed-out row that leads to a placeholder. In internal
+ * environments the server passes `showUnreleased` and those items appear under
+ * "Internal preview", marked as such. `navSectorsFor` is the only place that
+ * decides, and the routes themselves 404 in production (lib/product/release.ts).
  */
 export interface NavItem {
   href: string;
   label: string;
-  available: boolean;
   icon: LucideIcon;
+  /** The capability this item exposes, when it is not part of the core app. */
+  capability?: CapabilityId;
+  /** Set by `navSectorsFor` on an unreleased item shown in an internal environment. */
+  preview?: boolean;
   /**
    * True for an in-page anchor into another route's section, for a concept
    * (goals, money) that is real and built but has no page of its own yet — not
@@ -50,80 +56,90 @@ export interface NavSector {
   items: readonly NavItem[];
 }
 
-const built = (id: Parameters<typeof capability>[0]) => capability(id).status === 'available';
-
 export const NAV_SECTORS: readonly NavSector[] = [
   {
-    items: [{ href: '/dashboard', label: 'Home', available: true, icon: House }],
+    items: [{ href: '/dashboard', label: 'Home', icon: House }],
   },
   {
     label: 'Your business',
     items: [
       // The Business Passport, introduced by what it is for.
-      { href: '/passport', label: 'My Business', available: true, icon: IdCard },
+      { href: '/passport', label: 'My Business', icon: IdCard },
       {
         href: '/intake/review',
         label: 'Business details',
-        available: true,
         icon: ClipboardList,
         alsoActiveFor: ['/intake'],
       },
       {
         href: '/dashboard#goals',
         label: 'My goals',
-        available: true,
         icon: Target,
         isAnchor: true,
       },
       {
         href: '/dashboard#financials',
         label: 'Money and sales',
-        available: true,
         icon: TrendingUp,
         isAnchor: true,
       },
-      { href: '/documents', label: 'Documents', available: true, icon: FileText },
+      { href: '/documents', label: 'Documents', icon: FileText },
     ],
   },
   {
     label: 'Help',
     items: [
       /**
-       * Nova. The extractive reasoner, its envelope gate, citation grounding,
-       * jurisdiction-scoped retrieval, rate limiting and execution recording
-       * are built and tested, and the route gates itself on a published
-       * Knowledge Pack — so it is listed as available, under the name of the
-       * job it does rather than the name of the assistant.
+       * Nova. The extractive reasoner is built and tested, but its release to
+       * founders waits on the disclaimer and accountability decision (SF1/SF3),
+       * so it is an internal item until `cited_answers` is released.
        */
-      { href: '/assistant', label: 'Get help', available: true, icon: LifeBuoy },
+      { href: '/assistant', label: 'Get help', icon: LifeBuoy, capability: 'cited_answers' },
     ],
   },
   {
-    label: 'Coming later',
+    // Placeholder routes for capabilities that are not built. Internal only.
+    label: 'Internal preview',
     items: [
       {
         href: '/compliance',
         label: 'Requirements',
-        available: built('requirements_guidance'),
         icon: ShieldCheck,
+        capability: 'requirements_guidance',
       },
       {
         href: '/timeline',
         label: 'Important dates',
-        available: built('important_dates'),
         icon: CalendarClock,
+        capability: 'important_dates',
       },
-      { href: '/funding', label: 'Funding', available: built('funding'), icon: Banknote },
+      { href: '/funding', label: 'Funding', icon: Banknote, capability: 'funding' },
     ],
   },
   {
     label: 'Account',
-    items: [{ href: '/settings', label: 'Settings', available: true, icon: Settings }],
+    items: [{ href: '/settings', label: 'Settings', icon: Settings }],
   },
 ] as const;
 
-/** Flat list retained for any caller that needs every route. */
+/** Flat list of every route, released or not — for tests and route audits, not for rendering. */
 export const NAV_ITEMS: readonly NavItem[] = NAV_SECTORS.flatMap((g) => g.items);
+
+/**
+ * The navigation a person in this environment may see. Unreleased items are
+ * dropped (or, internally, kept and marked `preview`); a sector left empty is
+ * dropped with them, so no heading ever sits over nothing.
+ */
+export function navSectorsFor(showUnreleased: boolean): NavSector[] {
+  return NAV_SECTORS.map((sector) => ({
+    ...sector,
+    items: sector.items
+      .filter((item) => !item.capability || isVisible(item.capability, showUnreleased))
+      .map((item) =>
+        item.capability && !isVisible(item.capability, false) ? { ...item, preview: true } : item,
+      ),
+  })).filter((sector) => sector.items.length > 0);
+}
 
 /** Whether `item` is where the reader is. Anchors never are (no hash in a pathname). */
 export function isNavItemActive(item: NavItem, pathname: string): boolean {

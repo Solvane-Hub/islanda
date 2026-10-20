@@ -7,7 +7,7 @@ import { anonClient, rlsConfigured, signIn } from './client';
  * `ai_usage` has RLS enabled with ZERO policies, like `audit_log` — so
  * `authenticated` and `anon` are already fully denied regardless of FORCE, and
  * that is what this suite pins. `FORCE ROW LEVEL SECURITY` (added in
- * `20260911000000_ai_usage_force_rls.sql`) closes a DIFFERENT gap — an
+ * `20260911235640_ai_usage_force_rls.sql`) closes a DIFFERENT gap — an
  * ordinary (non-BYPASSRLS) table-owner connection — which is not observable
  * through the `anon`/`authenticated` clients this test harness uses. That flag
  * was verified directly via schema inspection during the P7 audit

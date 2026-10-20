@@ -73,8 +73,6 @@ describe('waitlistSurveySchema', () => {
   it.each([
     ['businessJourney', BUSINESS_JOURNEY_OPTIONS],
     ['industry', INDUSTRY_OPTIONS],
-    ['primaryGoal', PRIMARY_GOAL_OPTIONS],
-    ['biggestChallenge', CHALLENGE_OPTIONS],
     ['businessStage', BUSINESS_STAGE_OPTIONS],
     ['testingInterest', TESTING_INTEREST_OPTIONS],
     ['feedbackInterest', FEEDBACK_INTEREST_OPTIONS],
@@ -82,6 +80,51 @@ describe('waitlistSurveySchema', () => {
     for (const option of options) {
       expect(parse({ [field]: option.value }).answers).toMatchObject({ [field]: option.value });
     }
+  });
+
+  it.each([
+    ['primaryGoals', PRIMARY_GOAL_OPTIONS],
+    ['challenges', CHALLENGE_OPTIONS],
+  ] as const)('accepts every offered %s, alone and together', (field, options) => {
+    for (const option of options) {
+      expect(parse({ [field]: [option.value] }).answers).toMatchObject({
+        [field]: [option.value],
+      });
+    }
+    const several = options
+      .map((o) => o.value)
+      .filter((v) => v !== 'not_sure_yet' && v !== 'several_challenges');
+    expect(parse({ [field]: several }).answers).toMatchObject({ [field]: several });
+  });
+
+  it('accepts a single value where a list is expected (one ticked checkbox)', () => {
+    expect(parse({ primaryGoals: 'clear_plan' }).answers.primaryGoals).toEqual(['clear_plan']);
+  });
+
+  it('treats an empty selection as cleared, not untouched', () => {
+    // Clearing the selection also clears its now-orphaned 'Other' explanation.
+    expect(parse({ primaryGoals: [] }).answers).toEqual({ primaryGoals: null, goalOther: null });
+    expect(parse({ challenges: [''] }).answers).toEqual({ challenges: null, challengeOther: null });
+    expect(parse({}).answers).toEqual({});
+  });
+
+  it('rejects duplicate selections', () => {
+    expect(
+      waitlistSurveySchema.safeParse({
+        token: TOKEN,
+        final: false,
+        answers: { primaryGoals: ['clear_plan', 'clear_plan'] },
+      }).success,
+    ).toBe(false);
+  });
+
+  it('keeps the exclusive answers exclusive', () => {
+    const ok = (answers: Record<string, unknown>) =>
+      waitlistSurveySchema.safeParse({ token: TOKEN, final: false, answers }).success;
+    expect(ok({ primaryGoals: ['not_sure_yet'] })).toBe(true);
+    expect(ok({ primaryGoals: ['not_sure_yet', 'clear_plan'] })).toBe(false);
+    expect(ok({ challenges: ['several_challenges'] })).toBe(true);
+    expect(ok({ challenges: ['several_challenges', 'marketing'] })).toBe(false);
   });
 
   it('rejects values outside the agreed options, including the retired challenge', () => {
@@ -96,7 +139,7 @@ describe('waitlistSurveySchema', () => {
       waitlistSurveySchema.safeParse({
         token: TOKEN,
         final: false,
-        answers: { biggestChallenge: 'managing_business' },
+        answers: { challenges: ['managing_business'] },
       }).success,
     ).toBe(false);
   });
@@ -110,10 +153,19 @@ describe('waitlistSurveySchema', () => {
       industry: 'technology_software',
       industryOther: null,
     });
-    expect(parse({ primaryGoal: 'clear_plan', goalOther: 'x' }).answers.goalOther).toBeNull();
+    expect(parse({ primaryGoals: ['clear_plan'], goalOther: 'x' }).answers.goalOther).toBeNull();
     expect(
-      parse({ biggestChallenge: 'marketing', challengeOther: 'x' }).answers.challengeOther,
+      parse({ challenges: ['marketing'], challengeOther: 'x' }).answers.challengeOther,
     ).toBeNull();
+    // "Other" anywhere in a multi-select keeps its explanation.
+    expect(
+      parse({ primaryGoals: ['clear_plan', 'other'], goalOther: 'Export permits' }).answers
+        .goalOther,
+    ).toBe('Export permits');
+    expect(
+      parse({ challenges: ['marketing', 'other'], challengeOther: 'Shipping' }).answers
+        .challengeOther,
+    ).toBe('Shipping');
   });
 
   it('caps free text at the database limits', () => {
@@ -135,6 +187,17 @@ describe('waitlistSurveySchema', () => {
     fd.set('country', 'Barbados');
     fd.set('industry', 'technology_software'); // present but not declared — ignored
     expect(surveyAnswersFromForm(fd)).toEqual({ country: 'Barbados', businessJourney: null });
+  });
+
+  it('reads every ticked checkbox of a multi-select field', () => {
+    const fd = new FormData();
+    fd.set('fields', 'primaryGoals,challenges');
+    fd.append('primaryGoals', 'clear_plan');
+    fd.append('primaryGoals', 'other');
+    expect(surveyAnswersFromForm(fd)).toEqual({
+      primaryGoals: ['clear_plan', 'other'],
+      challenges: [],
+    });
   });
 });
 describe('waitlistFiltersSchema', () => {

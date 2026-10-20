@@ -58,7 +58,10 @@ export function businessStateRows(passport: BusinessPassport): StateRow[] {
  * (dashboard-specific machinery, out of scope to touch this milestone) — it
  * simply reasons over the same category of real state via its own read.
  */
-export function nextAction(passport: BusinessPassport): { label: string; href: string } {
+export function nextAction(
+  passport: BusinessPassport,
+  { canAsk }: { canAsk: boolean },
+): { label: string; href: string } {
   const { completeness, financials, goals, documents } = passport;
   if (!completeness.intake.isComplete) {
     return { label: 'Complete your business profile', href: '/intake' };
@@ -72,5 +75,9 @@ export function nextAction(passport: BusinessPassport): { label: string; href: s
   if (documents.length === 0) {
     return { label: 'Add your first document', href: '/documents' };
   }
-  return { label: 'Ask a question about your business', href: '/assistant' };
+  // With everything in place, the useful next step is a question for Nova — but
+  // only where Nova is released; otherwise, keeping the figures current.
+  return canAsk
+    ? { label: 'Ask a question about your business', href: '/assistant' }
+    : { label: 'Keep your figures up to date', href: '/dashboard#financials' };
 }

@@ -74,6 +74,12 @@ jobs:
     # configuration into a failure rather than a silent skip.
     env:
       RLS_TESTS_REQUIRED: '1'
+      # TEMPORARY, until a separate Supabase test project exists: the only project
+      # is production, and the waitlist suites must write a signup to prove the
+      # public door. Rows are tagged source='rls_test' with @example.dev
+      # addresses, which reports, the admin list and team emails all exclude.
+      # Without this flag those suites skip against production (tests/rls/client.ts).
+      RLS_ALLOW_PRODUCTION_WRITES: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

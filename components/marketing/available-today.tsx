@@ -55,7 +55,7 @@ export function AvailableToday() {
       <p className="text-on-ink-muted max-w-2xl text-sm text-pretty">
         <span className="text-on-ink font-medium">What Islanda does not do:</span> it does not
         register your business, apply for licences or send anything to the government for you, and
-        it does not yet tell you which requirements apply to your business.
+        it does not tell you which requirements apply to your business.
       </p>
     </div>
   );

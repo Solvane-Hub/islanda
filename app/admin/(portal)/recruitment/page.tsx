@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Alert } from '@/components/ui/alert';
 import { buttonVariants } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/server';
+import { selectionText } from '@/lib/admin/labels';
 import { logger } from '@/lib/logger';
 import { parseDateRange } from '@/lib/admin/date-range';
 import { cn } from '@/lib/utils/cn';
@@ -179,7 +180,7 @@ export default async function RecruitmentPage({
                   <span key="i" className="text-xs">
                     {[
                       e.industry ? industryLabel(e.industry) : null,
-                      e.primaryGoal ? primaryGoalLabel(e.primaryGoal) : null,
+                      selectionText(e.primaryGoals, primaryGoalLabel) || null,
                     ]
                       .filter(Boolean)
                       .join(' · ') || '—'}

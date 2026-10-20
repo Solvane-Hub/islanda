@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { requireReleased } from '@/lib/product/release';
 import { RoadmapRoute } from '../_components/roadmap-route';
 
 export const metadata: Metadata = { title: 'Business requirements' };
@@ -11,6 +12,8 @@ export const metadata: Metadata = { title: 'Business requirements' };
  * the database rather than asserted here. See `RoadmapRoute`.
  */
 export default function CompliancePage() {
+  // Not built: reachable only in internal environments, a 404 in production.
+  requireReleased('requirements_guidance');
   return (
     <RoadmapRoute
       title="Business requirements"

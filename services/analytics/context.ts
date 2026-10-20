@@ -11,17 +11,22 @@ import { ownHostsFor, type AnalyticsRequestContext } from './index';
  * `x-forwarded-for` and the geo header are supplied by the hosting platform
  * (Vercel) in production. The IP is used only transiently, inside the daily
  * visitor hash and the rate-limit subject hash; it is never stored.
+ *
+ * A browser privacy signal — Global Privacy Control (`Sec-GPC: 1`) or Do Not
+ * Track (`DNT: 1`) — overrides any earlier "Allow": the persistent id is
+ * ignored and the visit counts only under the daily rotating key.
  */
 export function analyticsContext(
   headers: Headers,
   cookie: (name: string) => string | undefined,
 ): AnalyticsRequestContext {
+  const privacySignal = headers.get('sec-gpc') === '1' || headers.get('dnt') === '1';
   return {
     ip: headers.get('x-forwarded-for')?.split(',')[0]?.trim() || headers.get('x-real-ip') || null,
     userAgent: headers.get('user-agent'),
     country: headers.get('x-vercel-ip-country'),
-    consent: cookie(CONSENT_COOKIE) ?? null,
-    visitorId: cookie(VISITOR_COOKIE) ?? null,
+    consent: privacySignal ? 'denied' : (cookie(CONSENT_COOKIE) ?? null),
+    visitorId: privacySignal ? null : (cookie(VISITOR_COOKIE) ?? null),
     ownHosts: ownHostsFor(headers.get('host')),
   };
 }

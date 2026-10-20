@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { AnalyticsChoicesButton } from '@/components/analytics/analytics-choices-button';
 import { ACCESS_COPY, type AccessMode } from '@/lib/product/availability';
+import { PRODUCT_NAME, TAGLINE } from '@/lib/brand';
 
 /**
  * Footer.
@@ -21,11 +23,9 @@ export function SiteFooter({ mode }: { mode: AccessMode }) {
         <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-2">
             <span className="text-on-ink text-[0.9375rem] font-semibold tracking-[-0.02em]">
-              Islanda
+              {PRODUCT_NAME}
             </span>
-            <p className="max-w-sm text-sm text-pretty">
-              Helping people in The Bahamas organize a business idea and take a clear first step.
-            </p>
+            <p className="text-sm">{TAGLINE}</p>
           </div>
 
           <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-6 gap-y-1">
@@ -49,7 +49,10 @@ export function SiteFooter({ mode }: { mode: AccessMode }) {
           <p className="text-on-ink-subtle text-xs">
             Islanda is built by Solvane Hub. It is not a government service.
           </p>
-          <p className="text-on-ink-subtle text-xs">Nassau, The Bahamas</p>
+          <div className="flex items-center gap-4">
+            <AnalyticsChoicesButton className="text-on-ink-subtle hover:text-on-ink inline-flex min-h-11 items-center rounded-sm text-xs underline-offset-4 transition-colors hover:underline" />
+            <p className="text-on-ink-subtle text-xs">Nassau, The Bahamas</p>
+          </div>
         </div>
       </div>
     </footer>

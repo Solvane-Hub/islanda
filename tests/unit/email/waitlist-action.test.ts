@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as Env from '@/lib/env';
 
 const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
@@ -7,6 +8,12 @@ const mocks = vi.hoisted(() => ({
   sendWaitlistConfirmation: vi.fn(),
   sendWaitlistNotification: vi.fn(),
   logError: vi.fn(),
+  deployment: { current: 'production' as 'production' | 'preview' | 'development' },
+}));
+
+vi.mock('@/lib/env', async (importOriginal) => ({
+  ...(await importOriginal<typeof Env>()),
+  deploymentEnvironment: () => mocks.deployment.current,
 }));
 
 vi.mock('next/headers', () => ({
@@ -17,9 +24,10 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: mocks.createClient,
 }));
 
-vi.mock('@/services/waitlist', () => ({
+vi.mock('@/services/waitlist', async () => ({
   consumeWaitlistRateLimit: mocks.consumeWaitlistRateLimit,
   joinWaitlist: mocks.joinWaitlist,
+  isTestSignup: (await import('@/lib/db/waitlist')).isTestSignup,
 }));
 
 vi.mock('@/lib/email/resend', () => ({
@@ -33,11 +41,11 @@ vi.mock('@/lib/logger', () => ({
 
 import { joinWaitlistAction } from '@/app/waitlist-actions';
 
-function submission(): FormData {
+function submission(email = 'jamil@gmail.com'): FormData {
   const formData = new FormData();
   formData.set('firstName', 'Jamil');
   formData.set('lastName', 'Nash');
-  formData.set('email', 'jamil@example.com');
+  formData.set('email', email);
   return formData;
 }
 
@@ -58,6 +66,30 @@ describe('waitlist email dispatch', () => {
     expect(result).toMatchObject({ ok: true, data: { status: 'already_on_list' } });
     expect(mocks.sendWaitlistConfirmation).not.toHaveBeenCalled();
     expect(mocks.sendWaitlistNotification).not.toHaveBeenCalled();
+  });
+
+  it('tags production signups as landing_page and non-production ones by deployment', async () => {
+    mocks.joinWaitlist.mockResolvedValue({ status: 'joined' });
+    await joinWaitlistAction(null, submission());
+    expect(mocks.joinWaitlist.mock.calls.at(-1)![1].source).toBe('landing_page');
+    mocks.deployment.current = 'preview';
+    await joinWaitlistAction(null, submission());
+    expect(mocks.joinWaitlist.mock.calls.at(-1)![1].source).toBe('preview');
+    mocks.deployment.current = 'development';
+    await joinWaitlistAction(null, submission());
+    expect(mocks.joinWaitlist.mock.calls.at(-1)![1].source).toBe('development');
+    mocks.deployment.current = 'production';
+  });
+
+  it('never notifies the team about a preview, local or test-address signup', async () => {
+    mocks.joinWaitlist.mockResolvedValue({ status: 'joined' });
+    mocks.deployment.current = 'preview';
+    await joinWaitlistAction(null, submission());
+    mocks.deployment.current = 'production';
+    await joinWaitlistAction(null, submission('qa@example.dev'));
+    expect(mocks.sendWaitlistNotification).not.toHaveBeenCalled();
+    // The person who signed up still gets their confirmation.
+    expect(mocks.sendWaitlistConfirmation).toHaveBeenCalledTimes(2);
   });
 
   it('sends both emails for a newly joined visitor', async () => {

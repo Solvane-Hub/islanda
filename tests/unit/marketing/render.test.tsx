@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Hero } from '@/components/marketing/hero';
 import { SiteFooter } from '@/components/marketing/site-footer';
@@ -8,10 +8,9 @@ import { SectionHeading } from '@/components/marketing/section';
 import { Problem } from '@/components/marketing/problem';
 import { AvailableToday } from '@/components/marketing/available-today';
 import { ExampleBusiness } from '@/components/marketing/example-business';
-import { ComingNext } from '@/components/marketing/coming-next';
 import { Faq } from '@/components/marketing/faq';
 import { WaitlistCta } from '@/components/marketing/waitlist-cta';
-import { availableToday, comingNext } from '@/lib/product/availability';
+import { availableToday, CAPABILITIES, isReleased } from '@/lib/product/availability';
 
 /**
  * Render tests for the public homepage.
@@ -109,7 +108,19 @@ describe('the hero', () => {
   });
 });
 
-describe('what works today, and what does not yet', () => {
+describe('the footer brand', () => {
+  it.each(['waitlist', 'open'] as const)('carries the name and tagline only (%s mode)', (mode) => {
+    const { container } = render(<SiteFooter mode={mode} />);
+    expect(screen.getByText('Islanda')).toBeTruthy();
+    expect(screen.getByText("Navigate What's Next.")).toBeTruthy();
+    // The retired descriptor line must not come back.
+    expect(container.textContent).not.toMatch(
+      /organi[sz]e a business idea and take a clear first step/i,
+    );
+  });
+});
+
+describe('what works today', () => {
   it('lists exactly the capabilities the register marks available and public', () => {
     render(<AvailableToday />);
     const items = availableToday();
@@ -125,26 +136,12 @@ describe('what works today, and what does not yet', () => {
     expect(screen.getByText(/does not register your business/)).toBeTruthy();
   });
 
-  it('puts every capability not public today in one "coming next" list, none marked available', () => {
-    render(<ComingNext />);
-    const items = comingNext();
-    const listItems = screen.getAllByRole('listitem');
-    expect(listItems).toHaveLength(items.length);
-    for (const li of listItems) {
-      expect(within(li).queryByText(/^Available/)).toBeNull();
+  it('never names an unreleased capability', () => {
+    const { container } = render(<AvailableToday />);
+    const text = container.textContent ?? '';
+    for (const c of CAPABILITIES.filter((c) => !isReleased(c.id))) {
+      expect(text, c.id).not.toContain(c.name);
     }
-    expect(screen.getAllByText("We're working on this").length).toBeGreaterThan(0);
-  });
-
-  it('never lists the same capability as both available and coming next', () => {
-    const today = new Set(availableToday().map((c) => c.id));
-    for (const c of comingNext()) expect(today.has(c.id)).toBe(false);
-  });
-
-  it('names the guidance people most want as not ready', () => {
-    const names = comingNext().map((c) => c.id);
-    expect(names).toContain('requirements_guidance');
-    expect(names).toContain('cited_answers');
   });
 });
 
@@ -168,9 +165,13 @@ describe('the example', () => {
     ]);
   });
 
-  it('says what the example business cannot get yet', () => {
+  it('states what Islanda will not tell her as scope, not as something coming', () => {
     render(<ExampleBusiness />);
-    expect(screen.getByText(/still being built/)).toBeTruthy();
+    expect(screen.getByText(/What Islanda won’t tell her/)).toBeTruthy();
+    expect(
+      screen.getByText(/government office responsible, or a qualified professional/),
+    ).toBeTruthy();
+    expect(screen.queryByText(/still being built|can.t get yet|\bsoon\b/i)).toBeNull();
   });
 });
 

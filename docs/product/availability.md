@@ -1,17 +1,45 @@
 # What Islanda can do today
 
-**Updated:** 2026-10-16 · **Source of truth in code:** `lib/product/availability.ts`
+**Updated:** 2026-10-20 · **Source of truth in code:** `lib/product/availability.ts`
+(release gate: `lib/product/release.ts`)
 
-This is the trace behind the availability register. The public homepage, the app
-navigation ("Coming later") and the Home page's "coming later" line all read the
-register, so they describe the same product. Change the register and this page together.
+This is the trace behind the availability register. The public homepage and the app
+navigation both read the register, so they describe the same product. Change the
+register and this page together.
+
+## Build privately, release deliberately (2026-10-20)
+
+A capability is **released** only when it is `available` **and** marked `released: true`
+in the register. Users — visitors and ordinary signed-in founders — see released
+capabilities and nothing else:
+
+- The homepage has no "what we're building next" section; the FAQ, the example and the
+  auth pages make no promises about unbuilt features. Limits are stated as scope
+  ("Islanda does not tell you which requirements apply"), never as "coming soon".
+- The app navigation, dashboard, welcome page and Passport list no unreleased item:
+  no "Soon" badges, no "Coming later" line, no doors to Nova while Nova is unreleased.
+- **Unreleased routes are a 404 in production**, however they are reached:
+  `/assistant` (and `/assistant/about`) via its layout, `/compliance`, `/timeline`,
+  `/funding` via `requireReleased`; the Nova and Nova-finance server actions return
+  NOT_FOUND; `/api/nova/speak` returns 404 before authentication.
+- **Internal environments** (local, CI, Vercel previews — which sit behind Vercel's own
+  sign-in) still show unreleased work, under "Internal preview" with a _Preview_ tag.
+  `SHOW_UNRELEASED_FEATURES=false` rehearses production locally; `true` in production
+  is for a deliberate internal check only.
+
+Release is not authorization. Every route still requires a session, RLS still decides
+what any query returns, and the admin portal keeps its own owner-only MFA model.
+
+**To release a capability:** set `released: true` (and confirm `status: 'available'`),
+update this table and the CHANGELOG, and check the gates it depends on (for Nova:
+SF1/SF3 — the disclaimer and accountability decision).
 
 This is a product document, not an architecture document, and it is not registered in
 `docs/architecture/DOCUMENT_MANIFEST.md`.
 
 ## Capabilities
 
-| Capability                        | Status                                     | What it rests on (traced in code)                                                                                                                       | Customer wording                                                         |
+| Capability                        | Status / release                           | What it rests on (traced in code)                                                                                                                       | Customer wording                                                         |
 | --------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Business profile                  | Available                                  | `buildBusinessAction` / `manageBusinessAction` (`app/(app)/actions.ts`) → `services/business`                                                           | "A profile for your business"                                            |
 | Five guided questions             | Available                                  | `/intake`, `saveIntakeStepAction` → `services/intake` (resumable; ADR-0020 "I don't know yet")                                                          | "Five guided questions"                                                  |
@@ -19,13 +47,13 @@ This is a product document, not an architecture document, and it is not register
 | Private document storage          | Available                                  | `/documents`, signed upload to private bucket `business-documents` (`services/documents`). No extraction exists.                                        | "Private document storage … Islanda stores them; it does not read them." |
 | Goals                             | Available                                  | `createGoalAction` → `services/goals`; progress from recorded figures                                                                                   | "Goals"                                                                  |
 | Money and sales figures           | Available                                  | `recordFigureAction` → `services/financials`; derived figures in `lib/business-intelligence/performance`. No bank connection.                           | "Money and sales figures"                                                |
-| Nova — cited answers              | Available in app; **held from public**     | `/assistant`, extractive path (`services/nova`), published pack BS-v0.1 (VAT Act + amendments, Data Protection Acts). Founder release gated on SF1/SF3. | Homepage: "Built, being tested before release". App: "Get help".         |
-| Nova — finance questions          | Needs configuration                        | `askNovaFinanceAction` → Intelligence Gateway; deterministic answers always, reasoning needs `OPENAI_API_KEY`. Shown only once figures exist.           | "Ask about your figures"                                                 |
+| Nova — cited answers              | Available; **unreleased** (internal only)  | `/assistant`, extractive path (`services/nova`), published pack BS-v0.1 (VAT Act + amendments, Data Protection Acts). Founder release gated on SF1/SF3. | Not shown to users. Internal: "Get help".                                |
+| Nova — finance questions          | Needs configuration; **unreleased**        | `askNovaFinanceAction` → Intelligence Gateway; deterministic answers always, reasoning needs `OPENAI_API_KEY` (generative Nova is out of scope).        | Not shown to users                                                       |
 | Nova — general business questions | Needs configuration; internal testing only | ADR-0023 (proposed). Needs `OPENAI_API_KEY`.                                                                                                            | Not advertised                                                           |
 | Voice                             | Needs configuration                        | `/api/nova/speak` → Fish Audio; needs `FISH_API_KEY`, `FISH_NOVA_VOICE_ID`. Off by default.                                                             | Not advertised                                                           |
-| Registration and licence guidance | In development                             | `/compliance` is a placeholder (`RoadmapRoute`)                                                                                                         | "We're working on this"                                                  |
-| Important dates                   | In development                             | `/timeline` is a placeholder                                                                                                                            | "We're working on this"                                                  |
-| Funding options                   | In development                             | `/funding` is a placeholder                                                                                                                             | "We're working on this"                                                  |
+| Registration and licence guidance | In development; unreleased                 | `/compliance` is a placeholder (`RoadmapRoute`), internal only                                                                                          | Not shown to users                                                       |
+| Important dates                   | In development; unreleased                 | `/timeline` is a placeholder, internal only                                                                                                             | Not shown to users                                                       |
+| Funding options                   | In development; unreleased                 | `/funding` is a placeholder, internal only                                                                                                              | Not shown to users                                                       |
 
 ## Access
 

@@ -1,4 +1,4 @@
-import { Check, Clock } from 'lucide-react';
+import { Check, Info } from 'lucide-react';
 
 /**
  * Section C — one relatable example, labelled as an illustration.
@@ -9,8 +9,9 @@ import { Check, Clock } from 'lucide-react';
  * because a sample read as a real customer, or as a government determination,
  * is the misreading this page has to rule out.
  *
- * "What she can't get yet" is part of the example on purpose: the honest edge
- * of the product is information the visitor needs before joining.
+ * "What Islanda won't tell her" is part of the example on purpose: the honest
+ * edge of the product is information the visitor needs before joining. It is
+ * stated as scope, not as a promise of something coming.
  */
 const ANSWERS = [
   {
@@ -29,8 +30,8 @@ const TODAY = [
   'She sets a goal and records her first weekend’s sales against it.',
 ] as const;
 
-const NOT_YET =
-  'Which licences or registrations her stand needs. That guidance is still being built.';
+const OUT_OF_SCOPE =
+  'Which licences or registrations her stand needs. She confirms those with the government office responsible, or a qualified professional.';
 
 export function ExampleBusiness() {
   return (
@@ -74,14 +75,14 @@ export function ExampleBusiness() {
         </div>
 
         <div>
-          <h3 className="text-on-ink text-lg font-semibold">What she can’t get yet</h3>
+          <h3 className="text-on-ink text-lg font-semibold">What Islanda won’t tell her</h3>
           <p className="text-on-ink-muted mt-4 flex gap-3 text-sm text-pretty">
-            <Clock
+            <Info
               aria-hidden="true"
               className="text-champagne-dim mt-0.5 size-4 shrink-0"
               strokeWidth={2}
             />
-            {NOT_YET}
+            {OUT_OF_SCOPE}
           </p>
         </div>
       </div>

@@ -56,7 +56,7 @@ After joining the waitlist (name + email, optional phone), a visitor is offered 
 optional questions — location, business stage, biggest challenge, interest in early
 testing. Answers are written to their **existing** `waitlist_signups` row through the
 token-gated `submit_waitlist_survey` function; skipping writes nothing. Migration:
-`supabase/migrations/20261017000000_waitlist_survey_and_recruitment.sql`.
+`supabase/migrations/20261017160038_waitlist_survey_and_recruitment.sql`.
 
 Team members review signups and track pilot recruitment (Not Contacted → Contacted →
 Confirmed → Tested) at **`/admin/waitlist`**, signing in at `/admin/login`. This works

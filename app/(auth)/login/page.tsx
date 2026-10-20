@@ -44,9 +44,9 @@ export default async function LoginPage({
           </Link>
         </p>
         <p className="text-pretty">
-          Islanda is in early access, and some features are still being built.{' '}
+          Islanda is in early access.{' '}
           <Link href="/" className="underline underline-offset-4">
-            See what works today
+            See what you can do in Islanda
           </Link>
           .
         </p>

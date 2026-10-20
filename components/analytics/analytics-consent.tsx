@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useSyncExternalStore } from 'react';
-import { getConsent, privacySignalPresent, setConsent } from '@/lib/analytics/client';
+import {
+  CONSENT_REOPEN_EVENT,
+  getConsent,
+  privacySignalPresent,
+  setConsent,
+} from '@/lib/analytics/client';
 
 /**
  * The visitor's choice about a persistent analytics identifier.
@@ -12,10 +17,15 @@ import { getConsent, privacySignalPresent, setConsent } from '@/lib/analytics/cl
  * visits can be recognised. No third party is involved either way.
  *
  * Not shown when the browser sends Global Privacy Control or Do Not Track:
- * that signal is already the answer.
+ * that signal is already the answer (and the server honours it too).
+ *
+ * The footer's "Analytics choices" control withdraws the choice and fires
+ * `CONSENT_REOPEN_EVENT`, which brings this prompt back so the visitor can
+ * choose again at any time.
  */
-function subscribe(): () => void {
-  return () => undefined;
+function subscribe(onChange: () => void): () => void {
+  window.addEventListener(CONSENT_REOPEN_EVENT, onChange);
+  return () => window.removeEventListener(CONSENT_REOPEN_EVENT, onChange);
 }
 
 export function AnalyticsConsent() {
@@ -25,6 +35,13 @@ export function AnalyticsConsent() {
     () => 'pending' as const,
   );
   const [answered, setAnswered] = useState(false);
+  // Reopening clears the cookie, so `initial` reads null again; forget the
+  // earlier answer in this session too, during render rather than in an effect.
+  const [lastInitial, setLastInitial] = useState(initial);
+  if (initial !== lastInitial) {
+    setLastInitial(initial);
+    if (initial === null) setAnswered(false);
+  }
 
   if (initial !== null || answered) return null;
 

@@ -64,6 +64,15 @@ const serverSchema = z.object({
     .optional()
     .transform((v) => (v === undefined ? undefined : v === 'true')),
   VERCEL_ENV: z.string().optional(),
+  /**
+   * Whether unreleased capabilities (lib/product/availability.ts) are reachable.
+   * Unset: on everywhere except the production deployment. 'false' rehearses
+   * production locally; 'true' in production is for a deliberate internal check.
+   */
+  SHOW_UNRELEASED_FEATURES: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v === 'true')),
 });
 
 /**
@@ -146,6 +155,7 @@ function parseServerEnv(source: EnvSource): z.infer<typeof serverSchema> {
     ANALYTICS_HASH_SECRET: source.ANALYTICS_HASH_SECRET,
     ANALYTICS_ENABLED: source.ANALYTICS_ENABLED,
     VERCEL_ENV: source.VERCEL_ENV,
+    SHOW_UNRELEASED_FEATURES: source.SHOW_UNRELEASED_FEATURES,
   });
   if (!parsed.success) {
     throw new Error(
@@ -160,3 +170,14 @@ export const __testing = { parseClientEnv, parseServerEnv, clientSchema, serverS
 
 export const clientEnv = parseClientEnv(process.env);
 export const serverEnv = parseServerEnv(process.env);
+
+/**
+ * Which deployment this server is. Vercel sets VERCEL_ENV on its deployments;
+ * everything else — a laptop, CI, `next start` for end-to-end tests — is
+ * 'development'. Used to keep non-production traffic out of production data:
+ * analytics, waitlist signups (tagged by source) and team notifications.
+ */
+export function deploymentEnvironment(): 'production' | 'preview' | 'development' {
+  const env = serverEnv.VERCEL_ENV;
+  return env === 'production' || env === 'preview' ? env : 'development';
+}

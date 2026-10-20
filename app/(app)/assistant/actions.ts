@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { AppError, fail, newCorrelationId, ok, type Result } from '@/lib/errors';
 import { toFieldErrors } from '@/lib/validation/field-errors';
 import { logger } from '@/lib/logger';
+import { canUse } from '@/lib/product/release';
 import { CURRENT_BUSINESS_COOKIE } from '@/lib/business-cookie';
 import type { NovaResponseView } from '@/types/nova';
 import { routeNovaQuestion } from '@/lib/nova/routing';
@@ -72,6 +73,16 @@ export async function askNovaAction(
   formData: FormData,
 ): Promise<Result<NovaResponseView>> {
   const correlationId = newCorrelationId();
+  // Not released to founders yet: refuse before reading or rate-limiting anything.
+  if (!canUse('cited_answers')) {
+    return fail(
+      new AppError({
+        code: 'NOT_FOUND',
+        humanMessage: 'This is not available.',
+        correlationId,
+      }),
+    );
+  }
 
   const parsed = askSchema.safeParse({ question: formData.get('question') });
   if (!parsed.success) {

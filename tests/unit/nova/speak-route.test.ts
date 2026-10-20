@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  * The `/api/nova/speak` route — Nova's server-side voice.
  *
  * The security-critical behaviours, tested at the handler boundary:
+ *   • where Nova is not released, the route does not exist (404) — checked first
  *   • an unauthenticated request is rejected before anything else (401)
  *   • a missing Fish configuration degrades to 503, not a 500 or a leak
  *   • a provider failure becomes a clean 502 — never a broken response
@@ -15,6 +16,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const h = vi.hoisted(() => ({
   user: null as { id: string } | null,
+  released: { value: true },
   env: { FISH_API_KEY: 'secret-key', FISH_NOVA_VOICE_ID: 'voice-1' } as {
     FISH_API_KEY?: string;
     FISH_NOVA_VOICE_ID?: string;
@@ -24,6 +26,7 @@ const h = vi.hoisted(() => ({
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn(async () => ({})) }));
 vi.mock('@/services/auth', () => ({ getCurrentUser: vi.fn(async () => h.user) }));
 vi.mock('@/lib/env', () => ({ serverEnv: h.env }));
+vi.mock('@/lib/product/release', () => ({ canUse: () => h.released.value }));
 vi.mock('@/lib/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
@@ -39,6 +42,7 @@ function post(body: unknown): Request {
 }
 
 beforeEach(() => {
+  h.released.value = true;
   h.user = { id: 'user-1' };
   h.env.FISH_API_KEY = 'secret-key';
   h.env.FISH_NOVA_VOICE_ID = 'voice-1';
@@ -50,6 +54,15 @@ afterEach(() => {
 });
 
 describe('POST /api/nova/speak', () => {
+  it('is a 404 where Nova is not released, before authentication or any provider call', async () => {
+    h.released.value = false;
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+    const res = await POST(post({ text: 'Let me look at that.' }));
+    expect(res.status).toBe(404);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it('rejects an unauthenticated request with 401', async () => {
     h.user = null;
     const res = await POST(post({ text: 'Let me look at that.' }));

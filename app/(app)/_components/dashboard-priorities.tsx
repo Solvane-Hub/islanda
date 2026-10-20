@@ -24,12 +24,15 @@ export interface PriorityItem {
 export function DashboardPriorities({
   nextMove,
   openItems,
+  canAsk,
   className,
 }: {
   /** The single next move, or null when nothing is outstanding. */
   nextMove: Milestone | null;
   /** Intake slots that are not yet answered. Real, each with its edit route. */
   openItems: readonly PriorityItem[];
+  /** Whether Nova is released here; when not, the "ask a question" suggestion is left out. */
+  canAsk: boolean;
   className?: string;
 }) {
   // The next move often IS "answer the remaining questions"; listing those
@@ -72,16 +75,19 @@ export function DashboardPriorities({
         <div className="flex flex-col gap-2">
           <p className="text-on-ink text-base font-medium">You&apos;re up to date.</p>
           <p className="text-on-ink-muted max-w-xl text-sm text-pretty">
-            There&apos;s nothing waiting on you. You can keep your figures and documents current, or
-            ask a question about your business.
+            {canAsk
+              ? 'There’s nothing waiting on you. You can keep your figures and documents current, or ask a question about your business.'
+              : 'There’s nothing waiting on you. You can keep your figures and documents current.'}
           </p>
-          <Link
-            href="/assistant"
-            className="text-bahama-turquoise hover:text-on-ink inline-flex min-h-11 w-fit items-center gap-1.5 rounded-sm text-sm font-medium transition-colors duration-150"
-          >
-            Ask a question
-            <ArrowRight aria-hidden="true" className="size-3.5" strokeWidth={2} />
-          </Link>
+          {canAsk ? (
+            <Link
+              href="/assistant"
+              className="text-bahama-turquoise hover:text-on-ink inline-flex min-h-11 w-fit items-center gap-1.5 rounded-sm text-sm font-medium transition-colors duration-150"
+            >
+              Ask a question
+              <ArrowRight aria-hidden="true" className="size-3.5" strokeWidth={2} />
+            </Link>
+          ) : null}
         </div>
       )}
 

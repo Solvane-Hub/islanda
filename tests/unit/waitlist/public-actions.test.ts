@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as Env from '@/lib/env';
 
 const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
@@ -11,6 +12,10 @@ const mocks = vi.hoisted(() => ({
   logError: vi.fn(),
   recordServerEvent: vi.fn(),
   getWaitlistSurvey: vi.fn(),
+}));
+vi.mock('@/lib/env', async (importOriginal) => ({
+  ...(await importOriginal<typeof Env>()),
+  deploymentEnvironment: () => 'production',
 }));
 
 vi.mock('next/headers', () => ({
@@ -29,12 +34,13 @@ vi.mock('@/services/analytics', () => ({
 }));
 vi.mock('@/services/analytics/context', () => ({ analyticsContext: () => ({}) }));
 vi.mock('@/lib/supabase/server', () => ({ createClient: mocks.createClient }));
-vi.mock('@/services/waitlist', () => ({
+vi.mock('@/services/waitlist', async () => ({
   consumeWaitlistRateLimit: mocks.consumeWaitlistRateLimit,
   consumeWaitlistSurveyRateLimit: mocks.consumeWaitlistSurveyRateLimit,
   joinWaitlist: mocks.joinWaitlist,
   submitWaitlistSurvey: mocks.submitWaitlistSurvey,
   getWaitlistSurvey: mocks.getWaitlistSurvey,
+  isTestSignup: (await import('@/lib/db/waitlist')).isTestSignup,
 }));
 vi.mock('@/lib/email/resend', () => ({
   sendWaitlistConfirmation: mocks.sendWaitlistConfirmation,

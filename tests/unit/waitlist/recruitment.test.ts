@@ -14,6 +14,9 @@ vi.mock('@/lib/db/waitlist', async (importOriginal) => {
   const real = await importOriginal<typeof WaitlistDb>();
   return {
     isTestEmail: real.isTestEmail,
+    isTestSignup: real.isTestSignup,
+    goalsOf: real.goalsOf,
+    challengesOf: real.challengesOf,
     listWaitlistEntries: mocks.listWaitlistEntries,
     getWaitlistEntry: mocks.getWaitlistEntry,
     updateRecruitmentFields: mocks.updateRecruitmentFields,
@@ -48,10 +51,13 @@ function row(overrides: Record<string, unknown> = {}) {
     industry: 'food_restaurants_catering',
     industry_other: null,
     primary_goal: 'licences_permits_approvals',
+    primary_goals: ['licences_permits_approvals', 'funding_investment'],
     goal_other: null,
     business_stage: 'trying_to_register',
     biggest_challenge: 'finding_customers',
+    challenges: ['finding_customers'],
     challenge_other: null,
+    source: 'landing_page',
     testing_interest: 'yes',
     feedback_interest: 'maybe',
     additional_info: null,
@@ -151,6 +157,48 @@ describe('listWaitlist', () => {
       isTest: false,
     });
     expect(page.entries[1]!.isTest).toBe(true);
+  });
+
+  it('returns every selected goal and challenge', async () => {
+    mocks.listWaitlistEntries.mockResolvedValue({ total: 1, rows: [row()] });
+    const page = await listWaitlist({} as never, waitlistFiltersSchema.parse({}));
+    expect(page.entries[0]).toMatchObject({
+      primaryGoals: ['licences_permits_approvals', 'funding_investment'],
+      challenges: ['finding_customers'],
+    });
+  });
+
+  it('reads an answer saved before multi-select as a one-item list', async () => {
+    mocks.listWaitlistEntries.mockResolvedValue({
+      total: 1,
+      rows: [row({ primary_goals: null, challenges: null })],
+    });
+    const page = await listWaitlist({} as never, waitlistFiltersSchema.parse({}));
+    expect(page.entries[0]).toMatchObject({
+      primaryGoals: ['licences_permits_approvals'],
+      challenges: ['finding_customers'],
+    });
+    mocks.listWaitlistEntries.mockResolvedValue({
+      total: 1,
+      rows: [
+        row({ primary_goals: null, primary_goal: null, challenges: null, biggest_challenge: null }),
+      ],
+    });
+    const blank = await listWaitlist({} as never, waitlistFiltersSchema.parse({}));
+    expect(blank.entries[0]).toMatchObject({ primaryGoals: [], challenges: [] });
+  });
+
+  it('labels signups created by automated tests or non-production deployments', async () => {
+    mocks.listWaitlistEntries.mockResolvedValue({
+      total: 3,
+      rows: [
+        row({ id: 'a', source: 'rls_test' }),
+        row({ id: 'b', source: 'preview' }),
+        row({ id: 'c', source: 'landing_page' }),
+      ],
+    });
+    const page = await listWaitlist({} as never, waitlistFiltersSchema.parse({ tests: 'show' }));
+    expect(page.entries.map((e) => e.isTest)).toEqual([true, true, false]);
   });
 });
 

@@ -1,12 +1,21 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { BusinessSnapshot } from '@/app/(app)/_components/business-snapshot';
 import { NovaInvite } from '@/app/(app)/_components/nova-invite';
 import { DashboardPriorities } from '@/app/(app)/_components/dashboard-priorities';
-import { isNavItemActive, NAV_ITEMS, NAV_SECTORS } from '@/app/(app)/_components/nav-items';
+import {
+  isNavItemActive,
+  NAV_ITEMS,
+  NAV_SECTORS,
+  navSectorsFor,
+} from '@/app/(app)/_components/nav-items';
+import { NavSectorList } from '@/app/(app)/_components/sidebar-nav';
+import { MobileBottomNav } from '@/app/(app)/_components/mobile-bottom-nav';
 import { RoadmapSurface } from '@/components/ui/roadmap-surface';
-import { capability } from '@/lib/product/availability';
+import { isReleased } from '@/lib/product/availability';
 import type { Milestone } from '@/services/progress';
+
+vi.mock('next/navigation', () => ({ usePathname: () => '/dashboard' }));
 
 /**
  * Workspace render tests.
@@ -125,6 +134,7 @@ describe('DashboardPriorities ("What to do next")', () => {
       <DashboardPriorities
         nextMove={NEXT}
         openItems={[{ label: 'Money needed', href: '/intake?step=4' }]}
+        canAsk={false}
       />,
     );
     expect(screen.getByRole('heading', { name: 'What to do next' })).toBeTruthy();
@@ -149,6 +159,7 @@ describe('DashboardPriorities ("What to do next")', () => {
           actionLabel: 'Set a goal',
         }}
         openItems={[{ label: 'Money needed', href: '/intake?step=4' }]}
+        canAsk={false}
       />,
     );
     expect(screen.getByRole('link', { name: /Set a goal/ })).toHaveAttribute(
@@ -162,18 +173,27 @@ describe('DashboardPriorities ("What to do next")', () => {
   });
 
   it('never nests a button inside a link', () => {
-    const { container } = render(<DashboardPriorities nextMove={NEXT} openItems={[]} />);
+    const { container } = render(
+      <DashboardPriorities nextMove={NEXT} openItems={[]} canAsk={false} />,
+    );
     expect(container.querySelector('a button')).toBeNull();
   });
 
   it('communicates an empty state without inventing a task', () => {
-    render(<DashboardPriorities nextMove={null} openItems={[]} />);
+    render(<DashboardPriorities nextMove={null} openItems={[]} canAsk />);
     expect(screen.getByText(/you.re up to date/i)).toBeInTheDocument();
     expect(screen.getAllByRole('link')).toHaveLength(1);
     expect(screen.getByRole('link', { name: /ask a question/i })).toHaveAttribute(
       'href',
       '/assistant',
     );
+  });
+
+  it('offers no door to Nova where Nova is not released', () => {
+    render(<DashboardPriorities nextMove={null} openItems={[]} canAsk={false} />);
+    expect(screen.getByText(/you.re up to date/i)).toBeInTheDocument();
+    expect(screen.queryByRole('link')).toBeNull();
+    expect(screen.queryByText(/ask a question/i)).toBeNull();
   });
 });
 
@@ -192,7 +212,7 @@ describe('primary navigation', () => {
     expect(NAV_ITEMS.find((i) => i.label === 'My Business')?.href).toBe('/passport');
     const help = NAV_ITEMS.find((i) => i.href === '/assistant');
     expect(help?.label).toBe('Get help');
-    expect(help?.available).toBe(true);
+    expect(help?.capability).toBe('cited_answers');
   });
 
   it('keeps every existing route reachable — no deep link lost to the regrouping', () => {
@@ -214,20 +234,40 @@ describe('primary navigation', () => {
     }
   });
 
-  it('reads the unbuilt surfaces from the availability register, and they are unbuilt', () => {
-    const later = NAV_SECTORS.find((s) => s.label === 'Coming later');
-    expect(later).toBeDefined();
-    const byHref = Object.fromEntries((later?.items ?? []).map((i) => [i.href, i]));
-    expect(byHref['/compliance']?.available).toBe(
-      capability('requirements_guidance').status === 'available',
-    );
-    expect(byHref['/timeline']?.available).toBe(
-      capability('important_dates').status === 'available',
-    );
-    expect(byHref['/funding']?.available).toBe(capability('funding').status === 'available');
-    for (const href of ['/compliance', '/timeline', '/funding']) {
-      expect(byHref[href]?.available, href).toBe(false);
+  it('shows users only released items — no unreleased entry, no "Coming later" sector', () => {
+    const userNav = navSectorsFor(false);
+    const hrefs = userNav.flatMap((s) => s.items.map((i) => i.href));
+    for (const href of ['/assistant', '/compliance', '/timeline', '/funding']) {
+      expect(hrefs, href).not.toContain(href);
     }
+    for (const item of userNav.flatMap((s) => s.items)) {
+      expect(item.preview, item.href).toBeFalsy();
+      if (item.capability) expect(isReleased(item.capability), item.href).toBe(true);
+    }
+    expect(userNav.map((s) => s.label)).not.toContain('Internal preview');
+    expect(userNav.map((s) => s.label)).not.toContain('Coming later');
+    // A sector left with nothing in it is dropped, not shown as an empty heading.
+    for (const sector of userNav) expect(sector.items.length, sector.label).toBeGreaterThan(0);
+  });
+
+  it('keeps unreleased items for internal environments, marked as preview', () => {
+    const internal = navSectorsFor(true).flatMap((s) => s.items);
+    for (const href of ['/assistant', '/compliance', '/timeline', '/funding']) {
+      expect(internal.find((i) => i.href === href)?.preview, href).toBe(true);
+    }
+    expect(internal.find((i) => i.href === '/documents')?.preview).toBeFalsy();
+  });
+
+  it('renders no "Soon" badge or unreleased link for users, on desktop or mobile', () => {
+    const sectors = navSectorsFor(false);
+    const { container, unmount } = render(<NavSectorList sectors={sectors} />);
+    expect(container.textContent).not.toMatch(/soon|not available|preview/i);
+    unmount();
+    const mobile = render(<MobileBottomNav sectors={sectors} />);
+    const tabs = Array.from(mobile.container.querySelectorAll('a')).map((a) =>
+      a.getAttribute('href'),
+    );
+    expect(tabs).toEqual(['/dashboard', '/passport', '/documents']);
   });
 
   it('marks goals and money as anchors that never claim "you are here"', () => {

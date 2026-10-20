@@ -16,7 +16,7 @@ export default function SignUpPage() {
         </h1>
         <p className="text-foreground-muted text-sm text-pretty">
           Give your business idea a home: a profile, a few guided questions and a private place for
-          your files. Islanda is in early access, so some features are still being built.
+          your files. Islanda is in early access.
         </p>
       </div>
 

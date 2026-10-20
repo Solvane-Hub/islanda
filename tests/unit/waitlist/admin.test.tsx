@@ -81,10 +81,10 @@ function entry(overrides: Record<string, unknown> = {}) {
     businessJourney: 'preparing_to_register',
     industry: 'food_restaurants_catering',
     industryOther: null,
-    primaryGoal: 'licences_permits_approvals',
+    primaryGoals: ['licences_permits_approvals', 'funding_investment'],
     goalOther: null,
     businessStage: 'trying_to_register',
-    biggestChallenge: 'other',
+    challenges: ['marketing', 'other'],
     challengeOther: 'Finding a shop',
     testingInterest: 'yes',
     feedbackInterest: 'maybe',
@@ -160,8 +160,8 @@ describe('waitlist table', () => {
       'City / island',
       'Journey',
       'Industry',
-      'Primary goal',
-      'Biggest challenge',
+      'Wants help with',
+      'Challenges',
       'Early access',
       'Feedback',
       'Recruitment',
@@ -173,6 +173,9 @@ describe('waitlist table', () => {
     expect(within(row).getByText('ada@gmail.com')).toBeTruthy();
     expect(within(row).getByText('Food, Restaurants & Catering')).toBeTruthy();
     expect(within(row).getByText(/Finding a shop/)).toBeTruthy();
+    // Every selection of a multi-select answer is shown, not just the first.
+    expect(within(row).getByText('Marketing my business')).toBeTruthy();
+    expect(within(row).getByText('Other')).toBeTruthy();
     expect(within(row).getByRole('link', { name: 'Ada Lovelace' })).toHaveAttribute(
       'href',
       `/admin/waitlist/${SIGNUP_ID}`,

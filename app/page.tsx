@@ -6,7 +6,6 @@ import { SiteHeader } from '@/components/marketing/site-header';
 import { Problem } from '@/components/marketing/problem';
 import { AvailableToday } from '@/components/marketing/available-today';
 import { ExampleBusiness } from '@/components/marketing/example-business';
-import { ComingNext } from '@/components/marketing/coming-next';
 import { Faq } from '@/components/marketing/faq';
 import { SectionHeading } from '@/components/marketing/section';
 import { WaitlistCta } from '@/components/marketing/waitlist-cta';
@@ -15,7 +14,7 @@ import { serverEnv } from '@/lib/env';
 import { accessModeFrom } from '@/lib/product/availability';
 
 const DESCRIPTION =
-  'Starting a business in The Bahamas? Islanda is being built to help you organize your business idea and take a clearer first step. Join the early-access waitlist.';
+  'Starting a business in The Bahamas? Islanda gives your business idea a home: one private place for what your business is, what you want, and the files that go with it. Join the early-access waitlist.';
 
 export const metadata: Metadata = {
   title: 'Islanda — Starting a business in The Bahamas? Start here.',
@@ -33,14 +32,16 @@ export const metadata: Metadata = {
  * Built to be understood in about ten seconds by someone with a business idea
  * and no background in business software: who it is for, what problem it
  * addresses, what works today, whether they can get in, and what to do next.
- * Six sections after the hero, one primary action (the waitlist):
+ * Five sections after the hero, one primary action (the waitlist):
  *
  *   A  the problem, in situations people recognise
- *   B  what Islanda helps with today       ← availability register
+ *   B  what Islanda helps with today       ← availability register (released only)
  *   C  one example, labelled as made up
- *   D  what we are building next          ← availability register
- *   E  straight answers
- *   F  early access (the waitlist)
+ *   D  straight answers
+ *   E  early access (the waitlist)
+ *
+ * Build privately, release deliberately: the page describes only released
+ * capabilities and never announces unreleased ones — no "coming soon" list.
  *
  * Every statement about who can get in comes from the access mode
  * (`WAITLIST_ONLY_MODE`), and every statement about what works comes from
@@ -138,33 +139,17 @@ export default async function HomePage({
             </div>
           </section>
 
-          {/* D — coming next, one list */}
-          <section className="bg-ink text-on-ink relative isolate overflow-hidden">
-            <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-8 lg:px-12 lg:py-28">
-              <SectionHeading
-                tone="ink"
-                index="04"
-                eyebrow="Not ready yet"
-                title="What we're building next"
-                lede="These are in progress and not available today. We will only switch each one on when its information is current and checked against official sources."
-              />
-              <div className="mt-10 lg:mt-12">
-                <ComingNext />
-              </div>
-            </div>
-          </section>
-
-          {/* E — questions */}
+          {/* D — questions */}
           <section className="bg-abyss text-on-ink relative isolate overflow-hidden">
             <div className="mx-auto w-full max-w-4xl px-4 py-20 sm:px-8 lg:px-12 lg:py-28">
-              <SectionHeading tone="ink" index="05" eyebrow="Questions" title="Common questions" />
+              <SectionHeading tone="ink" index="04" eyebrow="Questions" title="Common questions" />
               <div className="mt-10">
                 <Faq mode={mode} />
               </div>
             </div>
           </section>
 
-          {/* F — the waitlist. The page's one conversion point. */}
+          {/* E — the waitlist. The page's one conversion point. */}
           <section id="waitlist" className="bg-ink text-on-ink relative isolate overflow-hidden">
             <div
               aria-hidden="true"

@@ -6,8 +6,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  * access modes.
  *
  * The component tests check each section; this checks the page a visitor gets:
- * six sections in order, one primary action, and no door that the waitlist
- * gate would slam. The waitlist action is mocked at the module boundary (the
+ * five sections in order, one primary action, no door that the waitlist gate
+ * would slam, and nothing that is not released. The waitlist action is mocked at the module boundary (the
  * form's submission is covered by tests/unit/marketing/waitlist-form.test.tsx).
  */
 const env = vi.hoisted(() => ({ WAITLIST_ONLY_MODE: true }));
@@ -15,6 +15,14 @@ vi.mock('@/lib/env', () => ({ serverEnv: env }));
 vi.mock('@/app/waitlist-actions', () => ({ joinWaitlistAction: vi.fn() }));
 
 const { default: HomePage } = await import('@/app/page');
+const { CAPABILITIES, isReleased } = await import('@/lib/product/availability');
+
+/**
+ * Unfinished-feature messaging. The public site describes only what works;
+ * it never announces what does not (build privately, release deliberately).
+ */
+const COMING_SOON =
+  /coming soon|coming later|not ready yet|not available yet|under development|in development|still being built|working on (it|this)|we.re building|building next|available soon|launching soon|stay tuned|under construction|placeholder|demo only|\bsoon\b/i;
 
 async function renderHome(access?: string) {
   const ui = await HomePage({ searchParams: Promise.resolve(access ? { access } : {}) });
@@ -26,18 +34,48 @@ describe('homepage', () => {
     env.WAITLIST_ONLY_MODE = true;
   });
 
-  it('presents six sections after the hero, in order', async () => {
+  it('presents five sections after the hero, in order', async () => {
     await renderHome();
     const h2s = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
     expect(h2s).toEqual([
       "Starting a business shouldn't feel like guesswork.",
       'What you can do in Islanda today',
       'A small food business, start to first step',
-      "What we're building next",
       'Common questions',
       'Join the early-access waitlist',
     ]);
   });
+
+  it.each([true, false])(
+    'never announces unfinished features (waitlist mode: %s)',
+    async (waitlistOnly) => {
+      env.WAITLIST_ONLY_MODE = waitlistOnly;
+      const { container } = await renderHome();
+      // <details> answers are in the DOM even when collapsed, so this covers the FAQ too.
+      const text = container.textContent ?? '';
+      expect(text).not.toMatch(COMING_SOON);
+      for (const c of CAPABILITIES.filter((c) => !isReleased(c.id))) {
+        expect(text, c.id).not.toContain(c.name);
+      }
+    },
+  );
+
+  it.each([true, false])(
+    'links only to the page itself or to routes that exist publicly (waitlist mode: %s)',
+    async (waitlistOnly) => {
+      env.WAITLIST_ONLY_MODE = waitlistOnly;
+      const { container } = await renderHome();
+      const hrefs = Array.from(container.querySelectorAll('a')).map((a) => a.getAttribute('href'));
+      const UNRELEASED_ROUTES = ['/assistant', '/compliance', '/timeline', '/funding'];
+      for (const href of hrefs) {
+        expect(href, 'every link has a destination').toBeTruthy();
+        expect(
+          UNRELEASED_ROUTES.some((r) => href!.startsWith(r)),
+          href!,
+        ).toBe(false);
+      }
+    },
+  );
 
   it('has one h1, and the waitlist form is real', async () => {
     await renderHome();

@@ -6,6 +6,36 @@ This project is pre-release; versions are sprint-scoped until first deployment.
 
 ---
 
+## [Unreleased] — Release visibility, multi-select questionnaire, production hardening · 2026-10-20
+
+- **Build privately, release deliberately.** The availability register
+  (`lib/product/availability.ts`) now carries `released`; `lib/product/release.ts` enforces
+  it on the server. Users see released capabilities only: the homepage's "What we're
+  building next" section, the app's "Coming later" nav group and dashboard line, "Soon"
+  badges and the welcome page's "Soon" cards are gone. Unreleased routes (`/assistant`,
+  `/compliance`, `/timeline`, `/funding`), the Nova and Nova-finance actions and
+  `/api/nova/speak` are a 404 / NOT_FOUND in production and remain available in local,
+  CI and preview environments (marked "Preview"). Nova stays unreleased pending SF1/SF3.
+  Site and homepage meta descriptions now describe released capabilities only.
+- **Footer:** the descriptor line under the brand is removed; "Islanda" and the tagline
+  remain. New "Analytics choices" control reopens the consent prompt and deletes the
+  analytics id.
+- **Questionnaire:** "What would you most like Islanda to help you with?" and "What
+  challenges are you facing…?" are select-all-that-apply (checkboxes; "I'm not sure yet" /
+  "I have several challenges…" are exclusive; "Other" text kept while hidden). Migration
+  `20261019200000_waitlist_multi_select` (additive: `primary_goals[]`, `challenges[]`,
+  backfilled from the single columns, which keep mirroring the first selection) —
+  **applied separately, with approval**. Admin list/detail/filters ("any selected"),
+  reports (respondents vs selections) and CSV exports updated.
+- **Test data:** non-production signups are tagged by `source` and excluded from reports;
+  no team notification for test or non-production signups; RLS write suites refuse to
+  run against production without `RLS_ALLOW_PRODUCTION_WRITES=1` (set temporarily in CI).
+- **Analytics privacy:** the server honours `Sec-GPC` / `DNT`; retention and legal-review
+  items documented in `docs/product/admin-portal-and-analytics.md`.
+- **Migrations:** eleven files renamed to the versions production recorded (no SQL
+  changed); procedure in `supabase/migrations/README.md`, enforced by
+  `tests/unit/migrations/naming.test.ts`.
+
 ## [Unreleased] — Owner-only admin portal, expanded questionnaire, analytics · 2026-10-18
 
 - **Admin portal** at `/admin` for exactly two administrators (Jamil Nash, Jonathan

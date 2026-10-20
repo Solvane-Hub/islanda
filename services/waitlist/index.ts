@@ -137,7 +137,9 @@ export async function submitWaitlistSurvey(
   const answers: SurveyAnswerPatch = Object.fromEntries(
     Object.entries(input.answers).filter(([, value]) => value !== undefined),
   );
-  const hasAnswer = Object.values(answers).some((value) => value !== null);
+  const hasAnswer = Object.values(answers).some(
+    (value) => value !== null && !(Array.isArray(value) && value.length === 0),
+  );
 
   // Nothing answered in this save. It still matters when earlier sections
   // stored answers (a cleared answer, or the final submit that completes the
@@ -154,7 +156,10 @@ export async function submitWaitlistSurvey(
 async function hasAnyStoredAnswer(db: SupabaseClient<Database>, token: string): Promise<boolean> {
   const stored = await readSurveyAnswers(db, token);
   if (!stored) return false;
-  return Object.entries(stored).some(([key, value]) => key !== 'completed' && value !== null);
+  return Object.entries(stored).some(
+    ([key, value]) =>
+      key !== 'completed' && value !== null && !(Array.isArray(value) && value.length === 0),
+  );
 }
 
 /** The visitor’s own stored answers (by token), so they can return and update them. */
@@ -166,3 +171,4 @@ export async function getWaitlistSurvey(
 }
 
 export type { StoredSurveyAnswers } from '@/lib/db/waitlist';
+export { isTestSignup } from '@/lib/db/waitlist';

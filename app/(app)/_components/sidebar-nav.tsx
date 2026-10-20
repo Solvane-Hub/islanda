@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
-import { isNavItemActive, NAV_SECTORS, type NavSector } from './nav-items';
+import { isNavItemActive, type NavSector } from './nav-items';
 
 /**
  * Shared sector-grouped nav list — the desktop rail (`SidebarNav`) and the
@@ -16,12 +16,10 @@ import { isNavItemActive, NAV_SECTORS, type NavSector } from './nav-items';
  * active row gets a filled surface AND a leading bar AND a coloured icon, so
  * state is never carried by colour alone.
  *
- * Unavailable routes stay visible and readable rather than being hidden or
- * dimmed into illegibility: `on-glass-subtle` measures 6.45:1 on the rail, so
- * a founder can read where the product is going. A sector's own heading is
- * never what marks an item unavailable — Compliance/Timeline/Funding sit
- * inside "Intelligence" alongside Nova, and the muted colour plus "Soon"
- * badge are what keep them honestly secondary.
+ * The sectors arrive from the server already filtered for release
+ * (`navSectorsFor`): a user never sees an unreleased item. In an internal
+ * environment those items are present and carry a "Preview" tag, so a
+ * developer can tell what users will not see.
  *
  * Rows are 40px rather than 44px now that the rail is a panel with its own
  * padding — the touch target on mobile comes from the sheet, which keeps the
@@ -66,9 +64,7 @@ export function NavSectorList({
                   'relative flex min-h-10 items-center gap-2.5 rounded-lg px-3 text-sm transition-colors duration-150',
                   active
                     ? 'text-on-ink bg-white/8 font-medium'
-                    : item.available
-                      ? 'text-on-ink-muted hover:text-on-ink hover:bg-white/5'
-                      : 'text-on-glass-subtle hover:text-on-ink-muted hover:bg-white/5',
+                    : 'text-on-ink-muted hover:text-on-ink hover:bg-white/5',
                 )}
               >
                 {active ? (
@@ -83,9 +79,9 @@ export function NavSectorList({
                   strokeWidth={1.75}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
-                {!item.available ? (
+                {item.preview ? (
                   <span className="text-2xs text-on-glass-subtle font-medium tracking-wide uppercase">
-                    Soon<span className="sr-only">, not available yet</span>
+                    Preview<span className="sr-only">, internal environments only</span>
                   </span>
                 ) : null}
               </Link>
@@ -97,7 +93,13 @@ export function NavSectorList({
   );
 }
 
-/** The desktop rail — every sector, in order. */
-export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
-  return <NavSectorList sectors={NAV_SECTORS} onNavigate={onNavigate} />;
+/** The desktop rail — every sector this person may see, in order. */
+export function SidebarNav({
+  sectors,
+  onNavigate,
+}: {
+  sectors: readonly NavSector[];
+  onNavigate?: () => void;
+}) {
+  return <NavSectorList sectors={sectors} onNavigate={onNavigate} />;
 }
