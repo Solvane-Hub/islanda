@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
-import { isNavItemActive, type NavSector } from './nav-items';
+import { isNavItemActive, navSectorsFor, type NavSector } from './nav-items';
 
 /**
  * Shared sector-grouped nav list — the desktop rail (`SidebarNav`) and the
@@ -16,8 +16,8 @@ import { isNavItemActive, type NavSector } from './nav-items';
  * active row gets a filled surface AND a leading bar AND a coloured icon, so
  * state is never carried by colour alone.
  *
- * The sectors arrive from the server already filtered for release
- * (`navSectorsFor`): a user never sees an unreleased item. In an internal
+ * The sectors are filtered for release (`navSectorsFor`) from a boolean the
+ * server decides: a user never sees an unreleased item. In an internal
  * environment those items are present and carry a "Preview" tag, so a
  * developer can tell what users will not see.
  *
@@ -95,11 +95,12 @@ export function NavSectorList({
 
 /** The desktop rail — every sector this person may see, in order. */
 export function SidebarNav({
-  sectors,
+  showUnreleased,
   onNavigate,
 }: {
-  sectors: readonly NavSector[];
+  /** From the server (`unreleasedVisible()`); true only in internal environments. */
+  showUnreleased: boolean;
   onNavigate?: () => void;
 }) {
-  return <NavSectorList sectors={sectors} onNavigate={onNavigate} />;
+  return <NavSectorList sectors={navSectorsFor(showUnreleased)} onNavigate={onNavigate} />;
 }

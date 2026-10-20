@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
-import { isNavItemActive, type NavSector } from './nav-items';
+import { isNavItemActive, navSectorsFor } from './nav-items';
 import { NavSectorList } from './sidebar-nav';
 
 /**
@@ -21,7 +21,8 @@ import { NavSectorList } from './sidebar-nav';
  */
 const BOTTOM_HREFS: readonly string[] = ['/dashboard', '/passport', '/documents', '/assistant'];
 
-export function MobileBottomNav({ sectors }: { sectors: readonly NavSector[] }) {
+export function MobileBottomNav({ showUnreleased }: { showUnreleased: boolean }) {
+  const sectors = navSectorsFor(showUnreleased);
   const bottomItems = BOTTOM_HREFS.flatMap((href) =>
     sectors.flatMap((sector) => sector.items).filter((item) => item.href === href),
   );

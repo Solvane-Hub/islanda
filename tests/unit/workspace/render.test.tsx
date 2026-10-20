@@ -9,7 +9,7 @@ import {
   NAV_SECTORS,
   navSectorsFor,
 } from '@/app/(app)/_components/nav-items';
-import { NavSectorList } from '@/app/(app)/_components/sidebar-nav';
+import { SidebarNav } from '@/app/(app)/_components/sidebar-nav';
 import { MobileBottomNav } from '@/app/(app)/_components/mobile-bottom-nav';
 import { RoadmapSurface } from '@/components/ui/roadmap-surface';
 import { isReleased } from '@/lib/product/availability';
@@ -259,11 +259,10 @@ describe('primary navigation', () => {
   });
 
   it('renders no "Soon" badge or unreleased link for users, on desktop or mobile', () => {
-    const sectors = navSectorsFor(false);
-    const { container, unmount } = render(<NavSectorList sectors={sectors} />);
+    const { container, unmount } = render(<SidebarNav showUnreleased={false} />);
     expect(container.textContent).not.toMatch(/soon|not available|preview/i);
     unmount();
-    const mobile = render(<MobileBottomNav sectors={sectors} />);
+    const mobile = render(<MobileBottomNav showUnreleased={false} />);
     const tabs = Array.from(mobile.container.querySelectorAll('a')).map((a) =>
       a.getAttribute('href'),
     );

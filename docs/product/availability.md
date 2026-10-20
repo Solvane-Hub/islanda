@@ -27,6 +27,8 @@ capabilities and nothing else:
   `SHOW_UNRELEASED_FEATURES=false` rehearses production locally; `true` in production
   is for a deliberate internal check only.
 
+Signed-in routes stream behind a loading boundary, so a gated page renders the not-found page with HTTP status 200 rather than 404 (verified 2026-10-20 with `SHOW_UNRELEASED_FEATURES=false`); no unreleased content is sent. The routes require a session, so crawlers never reach them; the API route returns a true 404.
+
 Release is not authorization. Every route still requires a session, RLS still decides
 what any query returns, and the admin portal keeps its own owner-only MFA model.
 
