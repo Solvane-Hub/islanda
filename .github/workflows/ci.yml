@@ -72,6 +72,12 @@ jobs:
   rls:
     name: Row Level Security (tenant isolation)
     runs-on: ubuntu-latest
+    # Paused (risk A4): these suites sign in and write fixtures, some with the
+    # service-role key, and the only hosted project is production. To resume,
+    # set the repository variable HOSTED_DB_TESTS=enabled AND point the secrets
+    # at a separate project named in HOSTED_DB_TEST_PROJECT_REF; the guard step
+    # below refuses production and any undeclared project.
+    if: ${{ vars.HOSTED_DB_TESTS == 'enabled' }}
     # Security control, not a feature. RLS_TESTS_REQUIRED=1 turns a missing
     # configuration into a failure rather than a silent skip.
     env:
@@ -88,6 +94,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Refuse production and undeclared databases
+        run: npx tsx scripts/ci/assert-hosted-test-target.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          HOSTED_DB_TEST_PROJECT_REF: ${{ vars.HOSTED_DB_TEST_PROJECT_REF }}
       - name: Run RLS tests
         run: npm run test:rls
         env:
@@ -97,8 +108,9 @@ jobs:
           RLS_TEST_USER_A_PASSWORD: ${{ secrets.RLS_TEST_USER_A_PASSWORD }}
           RLS_TEST_USER_B_EMAIL: ${{ secrets.RLS_TEST_USER_B_EMAIL }}
           RLS_TEST_USER_B_PASSWORD: ${{ secrets.RLS_TEST_USER_B_PASSWORD }}
-          # Seeds fixture rows in business-evidence.test.ts only. Scoped to this
-          # step; no other job or the app build receives it.
+          # Used by the admin, business-evidence and business-intelligence suites
+          # to seed fixtures and a throwaway user. Scoped to this step; no other
+          # job or the app build receives it.
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
   a11y:
@@ -112,8 +124,6 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       NEXT_PUBLIC_APP_URL: http://localhost:3000
-      RLS_TEST_USER_A_EMAIL: ${{ secrets.RLS_TEST_USER_A_EMAIL }}
-      RLS_TEST_USER_A_PASSWORD: ${{ secrets.RLS_TEST_USER_A_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -122,7 +132,20 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      # Paused (risk A4): the authenticated pages sign in, so they get user A's
+      # credentials only when hosted tests are enabled AND the guard has
+      # confirmed a declared non-production project. Otherwise they skip and
+      # only the public pages are checked.
+      - name: Refuse production and undeclared databases
+        if: ${{ vars.HOSTED_DB_TESTS == 'enabled' }}
+        run: npx tsx scripts/ci/assert-hosted-test-target.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          HOSTED_DB_TEST_PROJECT_REF: ${{ vars.HOSTED_DB_TEST_PROJECT_REF }}
       - run: npm run test:a11y
+        env:
+          RLS_TEST_USER_A_EMAIL: ${{ vars.HOSTED_DB_TESTS == 'enabled' && secrets.RLS_TEST_USER_A_EMAIL || '' }}
+          RLS_TEST_USER_A_PASSWORD: ${{ vars.HOSTED_DB_TESTS == 'enabled' && secrets.RLS_TEST_USER_A_PASSWORD || '' }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
